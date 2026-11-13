@@ -1,0 +1,134 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Models\MemberProfileModel;
+use App\Models\SponsorRelationshipModel;
+use CodeIgniter\Shield\Entities\User;
+use CodeIgniter\Shield\Models\UserModel;
+use Config\Platform;
+use InvalidArgumentException;
+use RuntimeException;
+
+class RegistrationService
+{
+    public function __construct(
+        private readonly MemberIdGenerator $memberIds = new MemberIdGenerator(),
+        private readonly SponsorValidator $sponsors = new SponsorValidator(),
+        private readonly MemberProfileModel $profiles = new MemberProfileModel(),
+        private readonly SponsorRelationshipModel $relationships = new SponsorRelationshipModel(),
+        private readonly AuditLogger $audit = new AuditLogger(),
+        private readonly ?Platform $config = null
+    ) {
+    }
+
+    /**
+     * @param array{
+     *   member_name: string,
+     *   sponsor_id: string,
+     *   mobile: string,
+     *   email: string,
+     *   usdt_wallet: string,
+     *   password: string
+     * } $data
+     * @return array{user: User, profile: object, member_id: string}
+     */
+    public function register(array $data, ?int $actorUserId = null, string $source = 'public'): array
+    {
+        $config = $this->config ?? config('Platform');
+
+        $sponsorResult = $this->sponsors->validate($data['sponsor_id']);
+        if (! $sponsorResult['valid']) {
+            throw new InvalidArgumentException($sponsorResult['message']);
+        }
+
+        /** @var \App\Entities\MemberProfile $sponsor */
+        $sponsor = $sponsorResult['profile'];
+
+        $users = model(UserModel::class);
+        $existingEmail = $users->findByCredentials(['email' => $data['email']]);
+        if ($existingEmail !== null) {
+            throw new InvalidArgumentException('An account with this email already exists.');
+        }
+
+        $db = db_connect();
+        $db->transBegin();
+
+        try {
+            $memberId = $this->memberIds->generate();
+
+            // Ensure generated ID never collides with configured root sponsor ID.
+            if ($memberId === $config->rootSponsorId) {
+                $memberId = $this->memberIds->generate();
+            }
+
+            $user = new User([
+                'username' => $memberId,
+                'active'   => 1,
+            ]);
+            $users->save($user);
+            $user = $users->findById($users->getInsertID());
+
+            $user->createEmailIdentity([
+                'email'    => $data['email'],
+                'password' => $data['password'],
+            ]);
+
+            $user->addGroup('member');
+
+            $profileId = $this->profiles->insert([
+                'user_id'         => $user->id,
+                'member_id'       => $memberId,
+                'member_name'     => $data['member_name'],
+                'mobile'          => $data['mobile'],
+                'usdt_wallet'     => $data['usdt_wallet'],
+                'account_status'  => 'inactive',
+                'is_root_sponsor' => 0,
+            ], true);
+
+            if ($profileId === false) {
+                throw new RuntimeException('Unable to create member profile.');
+            }
+
+            $this->relationships->insert([
+                'member_user_id'    => $user->id,
+                'sponsor_user_id'   => $sponsor->user_id,
+                'sponsor_member_id' => $sponsor->member_id,
+            ]);
+
+            if ($db->transStatus() === false) {
+                $db->transRollback();
+                throw new RuntimeException('Registration failed.');
+            }
+
+            $db->transCommit();
+
+            $profile = $this->profiles->find($profileId);
+
+            $this->audit->log(
+                $source === 'admin' ? 'admin.member_created' : 'member.registered',
+                $actorUserId ?? $user->id,
+                'member_profile',
+                (string) $memberId,
+                [
+                    'sponsor_id' => $sponsor->member_id,
+                    'source'     => $source,
+                ]
+            );
+
+            return [
+                'user'      => $user,
+                'profile'   => $profile,
+                'member_id' => $memberId,
+            ];
+        } catch (\Throwable $e) {
+            if ($db->transStatus() !== false) {
+                $db->transRollback();
+            }
+
+            throw $e;
+        }
+    }
+}
