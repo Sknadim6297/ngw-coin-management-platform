@@ -5,38 +5,34 @@ declare(strict_types=1);
 namespace App\Controllers\Member;
 
 use App\Controllers\BaseController;
-use App\Models\MemberProfileModel;
-use App\Models\SponsorRelationshipModel;
 
 class DashboardController extends BaseController
 {
     public function index()
     {
-        $userId  = (int) auth()->id();
-        $profile = model(MemberProfileModel::class)->findByUserId($userId);
+        $userId = (int) auth()->id();
 
-        if ($profile === null) {
+        try {
+            $dashboard = service('memberDashboardService')->build($userId);
+        } catch (\RuntimeException $e) {
             return redirect()->to(site_url('login'))->with('error', 'Member profile not found.');
         }
 
-        $relationship = model(SponsorRelationshipModel::class)->findByMemberUserId($userId);
-        $referralLink = site_url('register?sponsor=' . urlencode($profile->member_id));
-        $priceSummary = service('coinPriceService')->settingsSummary();
-        $inventory    = service('coinInventoryService')->summary();
-        $locking      = service('coinLockingService')->memberDashboardSnapshot($userId);
-
         return view('member/dashboard/index', [
             'title'        => 'Member Dashboard',
-            'profile'      => $profile,
-            'relationship' => $relationship,
-            'referralLink' => $referralLink,
-            'completion'   => $profile->profileCompletionPercent(),
-            'priceSummary' => $priceSummary,
-            'inventory'    => $inventory,
-            'coinSummary'  => $locking['summary'],
-            'activeLocks'  => $locking['active'],
-            'maturedLocks' => $locking['matured'],
-            'recentLocks'  => $locking['recent'],
+            'kpis'         => $dashboard['kpis'],
+            'charts'       => $dashboard['charts'],
+            'profile'      => $dashboard['profile'],
+            'referralLink' => $dashboard['referral_link'],
+            'priceSummary' => $dashboard['price_summary'],
+            'inventory'    => $dashboard['inventory'],
+            'activeLocks'  => $dashboard['active_locks'],
+            'maturedLocks' => $dashboard['matured_locks'],
+            'recentLocks'  => $dashboard['recent_locks'],
+            'timezone'     => $dashboard['timezone'],
+            'todayStart'   => $dashboard['today_start'],
+            'todayEnd'     => $dashboard['today_end'],
+            'generatedAt'  => $dashboard['generated_at'],
         ]);
     }
 }

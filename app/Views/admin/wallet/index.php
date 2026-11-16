@@ -6,7 +6,7 @@
     <div class="row g-3 align-items-end">
         <div class="col-md-6">
             <label class="form-label" for="member_id">Member ID</label>
-            <input class="form-control" id="member_id" name="member_id" value="<?= esc($memberId) ?>" placeholder="e.g. CPM000001" required>
+            <input class="form-control" id="member_id" name="member_id" value="<?= esc($memberId) ?>" placeholder="e.g. NGW000001" required>
         </div>
         <div class="col-md-6 d-flex flex-wrap gap-2">
             <button class="btn btn-gold" type="submit">Lookup Wallet</button>

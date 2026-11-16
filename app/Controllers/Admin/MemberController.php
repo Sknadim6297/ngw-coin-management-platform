@@ -14,7 +14,9 @@ class MemberController extends BaseController
     public function index(?string $status = null)
     {
         $profiles = model(MemberProfileModel::class);
-        $builder  = $profiles->orderBy('created_at', 'DESC');
+        // Root admin/sponsor must never appear in member management lists.
+        $profiles->excludeRootSponsors();
+        $builder = $profiles->orderBy('created_at', 'DESC');
 
         $title = 'All Members';
 
@@ -85,6 +87,11 @@ class MemberController extends BaseController
 
         if ($profile === null) {
             return redirect()->to(site_url('admin/members'))->with('error', 'Member not found.');
+        }
+
+        $rootId = trim((string) config('Platform')->rootSponsorId);
+        if ($profile->is_root_sponsor || ($rootId !== '' && $profile->member_id === $rootId)) {
+            return redirect()->to(site_url('admin/members'))->with('error', 'Admin account is not listed as a member.');
         }
 
         $relationship = model(SponsorRelationshipModel::class)

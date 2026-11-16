@@ -394,10 +394,10 @@ final class CoinLockingTest extends CIUnitTestCase
         service('memberAuthService')->attempt($member['member_id'], 'Password123!');
         $dash = $this->get('member/dashboard');
         $dash->assertOK();
-        $dash->assertSee('Total Owned Coins');
-        $dash->assertSee('15.00000000');
-        $dash->assertSee('Available Coins');
-        $dash->assertSee('Locked Coins');
+        $dash->assertSee('My Total Coins');
+        $dash->assertSee('15');
+        $dash->assertSee('My Available Coins');
+        $dash->assertSee('My Locked Coins');
 
         $lockPage = $this->get('member/locking');
         $lockPage->assertOK();

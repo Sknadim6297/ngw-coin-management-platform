@@ -18,7 +18,7 @@ class Platform extends BaseConfig
     /**
      * Prefix for generated Member IDs. Override via .env platform.memberIdPrefix.
      */
-    public string $memberIdPrefix = 'CPM';
+    public string $memberIdPrefix = 'NGW';
 
     /**
      * Zero-padding length for the numeric portion of Member IDs.

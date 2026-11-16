@@ -1,7 +1,5 @@
 <?= $this->extend('layouts/member') ?>
 <?= $this->section('content') ?>
-<p class="page-subtitle">Your membership overview with live coin ownership and locking status from the ledger.</p>
-
 <?php if ($profile->isInactive()): ?>
     <div class="alert alert-warning mb-4" role="alert">
         <strong>Activation required.</strong> Your account is inactive. You can browse your dashboard and profile now.
@@ -9,67 +7,56 @@
     </div>
 <?php endif; ?>
 
-<div class="row g-3 mb-4">
-    <div class="col-md-6 col-xl-4">
-        <div class="card-premium">
-            <div class="text-secondary mb-1">Member Name</div>
-            <strong><?= esc($profile->member_name) ?></strong>
-        </div>
-    </div>
-    <div class="col-md-6 col-xl-4">
-        <div class="card-premium">
-            <div class="text-secondary mb-1">Member ID</div>
-            <strong><?= esc($profile->member_id) ?></strong>
-        </div>
-    </div>
-    <div class="col-md-6 col-xl-4">
-        <div class="card-premium">
-            <div class="text-secondary mb-1">Account Status</div>
-            <span class="badge-status <?= esc($profile->account_status) ?>"><?= esc(ucfirst($profile->account_status)) ?></span>
-        </div>
-    </div>
-    <div class="col-md-6 col-xl-4">
-        <div class="card-premium">
-            <div class="text-secondary mb-1">Sponsor ID</div>
-            <strong><?= esc($relationship['sponsor_member_id'] ?? '—') ?></strong>
-        </div>
-    </div>
-    <div class="col-md-6 col-xl-4">
-        <div class="card-premium">
-            <div class="text-secondary mb-1">Registration Date</div>
-            <strong><?= esc($profile->created_at) ?></strong>
-        </div>
-    </div>
-    <div class="col-md-6 col-xl-4">
-        <div class="card-premium">
-            <div class="text-secondary mb-1">Profile Completion</div>
-            <strong><?= esc($completion) ?>%</strong>
-            <div class="progress mt-2" style="height: 8px; background: #2a2a31;">
-                <div class="progress-bar" style="width: <?= esc($completion) ?>%; background: linear-gradient(90deg, #F4D77B, #D4AF37);"></div>
-            </div>
-        </div>
-    </div>
-</div>
+<?= view('components/kpi_grid', ['kpis' => $kpis]) ?>
 
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card-premium">
-            <div class="text-secondary mb-1">Total Owned Coins</div>
-            <strong style="color: var(--gold-bright);"><?= esc($coinSummary['balance']) ?></strong>
-        </div>
+<div class="row g-3 my-4">
+    <div class="col-lg-6">
+        <?= view('components/dashboard_chart', [
+            'id'      => 'chartHoldings',
+            'title'   => 'Personal Coin Holdings',
+            'type'    => 'doughnut',
+            'dataset' => $charts['holdings_breakdown'],
+        ]) ?>
     </div>
-    <div class="col-md-4">
-        <div class="card-premium">
-            <div class="text-secondary mb-1">Available Coins</div>
-            <strong style="color: var(--gold-bright);"><?= esc($coinSummary['available']) ?></strong>
-        </div>
+    <div class="col-lg-6">
+        <?= view('components/dashboard_chart', [
+            'id'      => 'chartPurchases',
+            'title'   => 'Approved Purchase Activity (14 days)',
+            'type'    => 'bar',
+            'dataset' => $charts['purchase_activity'],
+        ]) ?>
     </div>
-    <div class="col-md-4">
-        <div class="card-premium">
-            <div class="text-secondary mb-1">Locked Coins</div>
-            <strong style="color: var(--gold-bright);"><?= esc($coinSummary['locked']) ?></strong>
-            <div class="mt-2"><a class="btn btn-outline-gold btn-sm" href="<?= site_url('member/locking') ?>">Manage Locks</a></div>
-        </div>
+    <div class="col-lg-6">
+        <?= view('components/dashboard_chart', [
+            'id'      => 'chartLocks',
+            'title'   => 'Locking Activity (14 days)',
+            'type'    => 'line',
+            'dataset' => $charts['locking_activity'],
+        ]) ?>
+    </div>
+    <div class="col-lg-6">
+        <?= view('components/dashboard_chart', [
+            'id'      => 'chartTeam',
+            'title'   => 'Direct Referral Growth (14 days)',
+            'type'    => 'bar',
+            'dataset' => $charts['team_growth'],
+        ]) ?>
+    </div>
+    <div class="col-lg-6">
+        <?= view('components/dashboard_chart', [
+            'id'      => 'chartMining',
+            'title'   => 'Mining History',
+            'type'    => 'line',
+            'dataset' => $charts['mining_history'],
+        ]) ?>
+    </div>
+    <div class="col-lg-6">
+        <?= view('components/dashboard_chart', [
+            'id'      => 'chartCommission',
+            'title'   => 'Commission History',
+            'type'    => 'line',
+            'dataset' => $charts['commission_history'],
+        ]) ?>
     </div>
 </div>
 
@@ -171,4 +158,9 @@
         <a class="btn btn-gold btn-sm" href="<?= site_url('member/purchases/buy') ?>">Buy Coins</a>
     </div>
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<script src="<?= base_url('assets/js/dashboard-charts.js') ?>"></script>
 <?= $this->endSection() ?>

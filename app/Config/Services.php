@@ -22,6 +22,9 @@ use App\Services\DeploymentPreflightService;
 use App\Services\CoinLockingService;
 use App\Services\MemberWalletService;
 use App\Services\WalletReconciliationService;
+use App\Services\AdminDashboardService;
+use App\Services\MemberDashboardService;
+use App\Services\ReferralTeamService;
 use App\Services\FinanceDashboardService;
 use App\Services\FinancialAlertService;
 use App\Services\FinancialNotificationService;
@@ -313,5 +316,32 @@ class Services extends BaseService
         }
 
         return new WalletReconciliationService();
+    }
+
+    public static function referralTeamService(bool $getShared = true): ReferralTeamService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('referralTeamService');
+        }
+
+        return new ReferralTeamService();
+    }
+
+    public static function adminDashboardService(bool $getShared = true): AdminDashboardService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('adminDashboardService');
+        }
+
+        return new AdminDashboardService();
+    }
+
+    public static function memberDashboardService(bool $getShared = true): MemberDashboardService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('memberDashboardService');
+        }
+
+        return new MemberDashboardService();
     }
 }

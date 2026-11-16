@@ -5,20 +5,22 @@ declare(strict_types=1);
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
-use App\Models\MemberProfileModel;
 
 class DashboardController extends BaseController
 {
     public function index()
     {
-        $profiles = model(MemberProfileModel::class);
+        $dashboard = service('adminDashboardService')->build();
 
         return view('admin/dashboard/index', [
             'title'               => 'Admin Dashboard',
-            'totalMembers'        => $profiles->countByStatus(),
-            'activeMembers'       => $profiles->countByStatus('active'),
-            'inactiveMembers'     => $profiles->countByStatus('inactive'),
-            'recentRegistrations' => $profiles->recentRegistrations(8),
+            'kpis'                => $dashboard['kpis'],
+            'charts'              => $dashboard['charts'],
+            'recentRegistrations' => $dashboard['recent_registrations'],
+            'timezone'            => $dashboard['timezone'],
+            'todayStart'          => $dashboard['today_start'],
+            'todayEnd'            => $dashboard['today_end'],
+            'generatedAt'         => $dashboard['generated_at'],
         ]);
     }
 }

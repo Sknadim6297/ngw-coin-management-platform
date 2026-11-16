@@ -34,8 +34,28 @@ class MemberProfileModel extends Model
         return $this->where('user_id', $userId)->first();
     }
 
-    public function countByStatus(?string $status = null): int
+    /**
+     * Admin/root sponsor stays in DB for login + sponsor validation,
+     * but must not appear in member management / dashboard member KPIs.
+     */
+    public function excludeRootSponsors(): self
     {
+        $this->builder()->where('is_root_sponsor', 0);
+
+        $rootId = trim((string) config('Platform')->rootSponsorId);
+        if ($rootId !== '') {
+            $this->builder()->where('member_id !=', $rootId);
+        }
+
+        return $this;
+    }
+
+    public function countByStatus(?string $status = null, bool $excludeRoot = true): int
+    {
+        if ($excludeRoot) {
+            $this->excludeRootSponsors();
+        }
+
         $builder = $this->builder();
 
         if ($status !== null) {
@@ -48,8 +68,12 @@ class MemberProfileModel extends Model
     /**
      * @return list<MemberProfile>
      */
-    public function recentRegistrations(int $limit = 8): array
+    public function recentRegistrations(int $limit = 8, bool $excludeRoot = true): array
     {
+        if ($excludeRoot) {
+            $this->excludeRootSponsors();
+        }
+
         return $this->orderBy('created_at', 'DESC')->findAll($limit);
     }
 }
