@@ -83,9 +83,10 @@ class AuthGroups extends ShieldAuthGroups
             'member.access',
             'member.sponsor',
             // Intentionally NO blanket finance.* — assign finance_* groups for dual-control.
-            // Platform admin may still review/approve payments and manage coins.
+            // Platform admin may still review/approve payments, monitor ops, and manage coins.
             'finance.payment.review',
             'finance.payment.approve',
+            'finance.monitor.view',
             'mining.rates.view',
             'mining.simulate.run',
             'commission.plans.view',
