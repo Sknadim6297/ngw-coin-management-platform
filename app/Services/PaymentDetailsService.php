@@ -170,13 +170,16 @@ class PaymentDetailsService
 
     /**
      * @param array<string, mixed> $data
+     * @param bool $platformAdminDirectApply When true (admin.settings), apply wallet/QR/enable live
+     *        instead of dual-control propose — solo platform admins must not get stuck behind self-approval.
      * @return array{network: array<string, mixed>, proposal: ?array<string, mixed>, message: string}
      */
     public function save(
         array $data,
         int $actorUserId,
         ?UploadedFile $logoFile = null,
-        ?UploadedFile $qrFile = null
+        ?UploadedFile $qrFile = null,
+        bool $platformAdminDirectApply = false
     ): array {
         $network = $this->ensureBep20();
         $pattern = ($this->config ?? config('Platform'))->bep20Pattern;
@@ -255,11 +258,21 @@ class PaymentDetailsService
         ], $actorUserId);
 
         // Bootstrap first usable wallet (including replacing placeholder text): apply live immediately.
-        if ($walletBootstrap) {
+        // Platform admins with Settings also apply sensitive changes live (audited) so the form never
+        // locks them behind a pending proposal they cannot self-approve.
+        if ($walletBootstrap || ($platformAdminDirectApply && ($walletChanging || $qrChanging || $enableChanging))) {
+            if ($platformAdminDirectApply && ! $walletBootstrap) {
+                $this->audit->log('payment.details_platform_admin_direct_apply', $actorUserId, 'usdt_payment_network', self::NETWORK_KEY, [
+                    'wallet_changing' => $walletChanging,
+                    'qr_changing'     => $qrChanging,
+                    'enable_changing' => $enableChanging,
+                ]);
+            }
+
             return $this->applyLiveDestination(
                 $network,
                 $actorUserId,
-                $wallet,
+                $wallet !== '' ? $wallet : $currentWallet,
                 $contract,
                 $recipient,
                 $min,
@@ -272,7 +285,7 @@ class PaymentDetailsService
             );
         }
 
-        // Subsequent sensitive changes require dual-control.
+        // Subsequent sensitive changes require dual-control (non–platform-admin operators).
         if ($walletChanging || $qrChanging || ($enableChanging && $wantEnable === false) || ($enableChanging && $wantEnable)) {
             $qrMode    = 'keep';
             $staging   = null;

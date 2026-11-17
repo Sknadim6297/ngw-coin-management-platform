@@ -1,37 +1,42 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
-<p class="page-subtitle">Manage BEP20 USDT receiving details. First real wallet setup applies immediately. Later wallet / QR / enable changes use dual-control (platform admin with Settings may approve their own proposal).</p>
+<p class="page-subtitle">Manage BEP20 USDT receiving details. Platform admins can save wallet / contract / enable directly. Dual-control pending only applies to finance operators without Settings access.</p>
 
 <?php if (! empty($setupHint)): ?>
 <div class="alert alert-info"><?= esc($setupHint) ?></div>
 <?php endif; ?>
 
 <?php if (! empty($pending)): ?>
-<div class="alert alert-warning">
-    <strong>Pending destination change</strong>
-    <code><?= esc($pending['proposal_ref'] ?? '') ?></code>
-    → <code><?= esc($pending['to_destination_wallet'] ?? '') ?></code>
-    · Enable: <?= ! empty($pending['display_enabled']) ? 'Yes' : 'No' ?>
-    <?php
-        $actorId = (int) (auth()->id() ?? 0);
-        $isOwnPending = (int) ($pending['proposed_by'] ?? 0) === $actorId;
-        $showApprove = ! empty($canApprove) && (! $isOwnPending || ! empty($allowSelfApprove));
-    ?>
-    <?php if ($showApprove): ?>
-        <form method="post" action="<?= site_url('admin/payment-details/approve/' . rawurlencode((string) $pending['proposal_ref'])) ?>" class="d-inline ms-2">
-            <?= csrf_field() ?>
-            <button class="btn btn-gold btn-sm" type="submit"><?= $isOwnPending ? 'Approve (platform admin)' : 'Approve' ?></button>
-        </form>
-    <?php elseif ($isOwnPending && empty($allowSelfApprove)): ?>
-        <span class="ms-2 small">Awaiting a second finance approver (or a platform admin with Settings).</span>
-    <?php endif; ?>
-    <?php if (! empty($canCancelPending)): ?>
-        <form method="post" action="<?= site_url('admin/payment-details/reject/' . rawurlencode((string) $pending['proposal_ref'])) ?>" class="d-inline">
-            <?= csrf_field() ?>
-            <input type="hidden" name="reason" value="<?= $isOwnPending ? 'Cancelled by proposer.' : 'Rejected by finance approver.' ?>">
-            <button class="btn btn-outline-gold btn-sm" type="submit"><?= $isOwnPending ? 'Cancel pending' : 'Reject' ?></button>
-        </form>
-    <?php endif; ?>
+<?php
+    $actorId = (int) (auth()->id() ?? 0);
+    $isOwnPending = (int) ($pending['proposed_by'] ?? 0) === $actorId;
+    $showApprove = ! empty($canApprove) && (! $isOwnPending || ! empty($allowSelfApprove));
+?>
+<div class="alert alert-warning d-flex flex-wrap align-items-center gap-2">
+    <div class="flex-grow-1">
+        <strong>Pending destination change</strong>
+        <code><?= esc($pending['proposal_ref'] ?? '') ?></code>
+        → <code><?= esc($pending['to_destination_wallet'] ?? '') ?></code>
+        · Enable: <?= ! empty($pending['display_enabled']) ? 'Yes' : 'No' ?>
+        <div class="small mt-1">The form below stays locked so two edits cannot conflict. Approve to apply, or Cancel to unlock and edit again.</div>
+    </div>
+    <div class="d-flex gap-2">
+        <?php if ($showApprove): ?>
+            <form method="post" action="<?= site_url('admin/payment-details/approve/' . rawurlencode((string) $pending['proposal_ref'])) ?>">
+                <?= csrf_field() ?>
+                <button class="btn btn-gold btn-sm" type="submit"><?= $isOwnPending ? 'Approve now' : 'Approve' ?></button>
+            </form>
+        <?php endif; ?>
+        <?php if (! empty($canCancelPending)): ?>
+            <form method="post" action="<?= site_url('admin/payment-details/reject/' . rawurlencode((string) $pending['proposal_ref'])) ?>">
+                <?= csrf_field() ?>
+                <input type="hidden" name="reason" value="<?= $isOwnPending ? 'Cancelled by proposer.' : 'Rejected by finance approver.' ?>">
+                <button class="btn btn-outline-gold btn-sm" type="submit">Cancel pending</button>
+            </form>
+        <?php elseif ($isOwnPending && empty($allowSelfApprove)): ?>
+            <span class="small">Awaiting a second finance approver.</span>
+        <?php endif; ?>
+    </div>
 </div>
 <?php endif; ?>
 

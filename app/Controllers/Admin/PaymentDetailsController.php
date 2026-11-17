@@ -71,7 +71,7 @@ class PaymentDetailsController extends BaseController
                 'instructions'             => (string) $this->request->getPost('instructions'),
                 'is_enabled'               => (bool) $this->request->getPost('is_enabled'),
                 'remove_qr'                => (bool) $this->request->getPost('remove_qr'),
-            ], (int) auth()->id(), $logo, $qr);
+            ], (int) auth()->id(), $logo, $qr, $this->canPlatformAdminSelfApprove());
         } catch (InvalidArgumentException $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         } catch (Throwable $e) {
