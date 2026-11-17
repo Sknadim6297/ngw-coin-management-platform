@@ -19,29 +19,91 @@ class CommissionController extends BaseController
             return $this->deny();
         }
 
-        $snap = service('commissionSimulationService')->adminSnapshot();
+        $tab = strtolower(trim((string) ($this->request->getGet('tab') ?: 'overview')));
+        if (! in_array($tab, ['overview', 'rates', 'preview', 'proposals', 'ledger', 'reconcile'], true)) {
+            $tab = 'overview';
+        }
+
+        $snap   = service('commissionSimulationService')->adminSnapshot();
+        $engine = service('commissionPurchaseEngineService');
+        $status = $engine->status();
+        $plan   = $status['active_plan'] ?? null;
+        $lv     = is_array($plan) ? ($plan['levels'] ?? []) : [];
+
+        $purchaseRef = trim((string) $this->request->getGet('purchase'));
+        $purchaseCalc = null;
+        if ($purchaseRef !== '') {
+            try {
+                $purchaseCalc = $engine->calculateForPurchase($purchaseRef, false);
+            } catch (\Throwable $e) {
+                $purchaseCalc = ['error' => $e->getMessage()];
+            }
+        }
+
+        $calcRows = [];
+        if (db_connect()->tableExists('commission_purchase_calculations')) {
+            $calcRows = db_connect()->table('commission_purchase_calculations')
+                ->orderBy('id', 'DESC')
+                ->limit(100)
+                ->get()
+                ->getResultArray();
+        }
+
+        $proposals = [];
+        if ($tab === 'proposals' && db_connect()->tableExists('commission_posting_proposals')) {
+            $proposals = db_connect()->table('commission_posting_proposals')
+                ->orderBy('id', 'DESC')
+                ->limit(50)
+                ->get()
+                ->getResultArray();
+        }
+
+        $reconcile = $tab === 'reconcile' ? $engine->reconcile(null, 100) : null;
+        if ($tab === 'reconcile' && $this->canCommission('commission.wallet.reconcile')) {
+            $walletRec = service('commissionWalletReconciliationService')->run();
+            $reconcile['wallet_issues'] = $walletRec['issues'] ?? [];
+        }
+
+        $expectedPosted = '0.00000000';
+        foreach ($calcRows as $row) {
+            if (($row['status'] ?? '') === 'CALCULATED_NOT_POSTED') {
+                $expectedPosted = \App\Libraries\MoneyMath::add(
+                    $expectedPosted,
+                    (string) $row['expected_amount_usdt'],
+                    8
+                );
+            }
+        }
+
         $kpis = [
-            KpiCardFactory::ok('approved_purchases', 'Total Approved Purchases', $snap['approved_purchases'], 'green', 'bi-cart-check', 'requests'),
-            KpiCardFactory::ok('eligible', 'Eligible Purchases (today run)', $snap['eligible_purchases'], 'teal', 'bi-check2-circle', 'purchases'),
-            KpiCardFactory::ok('ineligible', 'Ineligible Purchases (today run)', $snap['ineligible_purchases'], 'orange', 'bi-x-circle', 'purchases'),
-            KpiCardFactory::ok('total_preview', 'Total Commission Preview', $snap['total_preview'], 'purple', 'bi-graph-up', 'usdt'),
-            KpiCardFactory::ok('today_preview', "Today's Commission Preview", $snap['today_preview'], 'cyan', 'bi-calendar-day', 'usdt'),
-            KpiCardFactory::ok('l1', 'Level 1 Commission Preview', $snap['level1_preview'], 'indigo', 'bi-1-circle', 'usdt'),
-            KpiCardFactory::ok('l2', 'Level 2 Commission Preview', $snap['level2_preview'], 'blue', 'bi-2-circle', 'usdt'),
-            KpiCardFactory::ok('l3', 'Level 3 Commission Preview', $snap['level3_preview'], 'teal', 'bi-3-circle', 'usdt'),
-            KpiCardFactory::ok('pending', 'Pending Plan Approvals', $snap['pending_plan_approvals'], 'amber', 'bi-hourglass', 'plans', site_url('admin/commissions/plans')),
-            KpiCardFactory::ok('errors', 'Simulation Errors', $snap['simulation_errors'], 'red', 'bi-exclamation-triangle', 'runs'),
-            KpiCardFactory::unavailable('actual', 'Actual Commission', 'gold', 'bi-safe', $snap['actual_commission_status']),
+            KpiCardFactory::ok('l1', 'L1 Rate (active)', ($lv[1] ?? '—') . '%', 'indigo', 'bi-1-circle', 'rates'),
+            KpiCardFactory::ok('l2', 'L2 Rate (active)', ($lv[2] ?? '—') . '%', 'blue', 'bi-2-circle', 'rates'),
+            KpiCardFactory::ok('l3', 'L3 Rate (active)', ($lv[3] ?? '—') . '%', 'teal', 'bi-3-circle', 'rates'),
+            KpiCardFactory::ok('approved_purchases', 'Approved Purchases', $snap['approved_purchases'], 'green', 'bi-cart-check', 'requests'),
+            KpiCardFactory::ok('expected', 'Expected (purchase calcs)', $expectedPosted, 'purple', 'bi-graph-up', 'usdt'),
+            KpiCardFactory::ok('sim_total', 'Simulation Preview Total', $snap['total_preview'], 'cyan', 'bi-lightning', 'usdt'),
+            KpiCardFactory::ok('pending', 'Pending Plan Approvals', $snap['pending_plan_approvals'], 'amber', 'bi-hourglass', 'plans'),
+            KpiCardFactory::unavailable('actual', 'Posting Status', 'gold', 'bi-safe', 'OFF — no wallet credits'),
         ];
 
         return view('admin/commissions/index', [
-            'title'       => 'Commission Simulation',
-            'kpis'        => $kpis,
-            'snap'        => $snap,
-            'canPropose'  => $this->canCommission('commission.plans.propose'),
-            'canApprove'  => $this->canCommission('commission.plans.approve'),
-            'canSimulate' => $this->canCommission('commission.simulate.run'),
-            'canExport'   => $this->canCommission('commission.export'),
+            'title'         => 'Commissions',
+            'tab'           => $tab,
+            'kpis'          => $kpis,
+            'snap'          => $snap,
+            'status'        => $status,
+            'plans'         => service('commissionPlanService')->listPlans(),
+            'calcRows'      => $calcRows,
+            'purchaseRef'   => $purchaseRef,
+            'purchaseCalc'  => $purchaseCalc,
+            'proposals'     => $proposals,
+            'reconcile'     => $reconcile,
+            'canPropose'    => $this->canCommission('commission.plans.propose'),
+            'canApprove'    => $this->canCommission('commission.plans.approve'),
+            'canSimulate'   => $this->canCommission('commission.simulate.run'),
+            'canExport'     => $this->canCommission('commission.export'),
+            'canPosting'    => $this->canCommission('commission.posting.propose'),
+            'canWallet'     => $this->canCommission('commission.wallet.view'),
         ]);
     }
 

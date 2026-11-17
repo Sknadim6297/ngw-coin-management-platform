@@ -116,7 +116,14 @@ class CommissionWalletReconciliationService
         // 6–7) Invalid / over withdrawal reservations
         $reservedWd = $db->table('commission_withdrawal_requests')
             ->where('is_reserved', 1)
-            ->whereNotIn('status', ['submitted', 'under_review', 'approved'])
+            ->whereNotIn('status', [
+                'submitted',
+                'under_review',
+                'pending_admin_review',
+                'approved',
+                'payout_in_progress',
+                'payout_submitted',
+            ])
             ->countAllResults();
         if ($reservedWd > 0) {
             $issues[] = [

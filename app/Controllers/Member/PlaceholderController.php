@@ -27,6 +27,9 @@ class PlaceholderController extends BaseController
         if ($module === 'support') {
             return redirect()->to(site_url('member/support'));
         }
+        if ($module === 'p2p') {
+            return redirect()->to(site_url('member/p2p'));
+        }
 
         $labels = [
             'buy-coins'         => 'Buy Coins',

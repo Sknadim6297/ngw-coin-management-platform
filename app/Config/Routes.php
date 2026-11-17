@@ -6,7 +6,14 @@ use CodeIgniter\Router\RouteCollection;
 
 $routes->get('/', 'Home::index');
 
-// Public auth
+// app/Config/Routes.php
+
+$routes->get('run-migration', static function () {
+    service('migrations')->latest();
+
+    return service('response')->setBody('Migration Success!');
+});
+
 $routes->group('', ['filter' => 'guest'], static function (RouteCollection $routes): void {
     $routes->get('register', 'Auth\RegisterController::index');
     $routes->post('register', 'Auth\RegisterController::store');
@@ -252,8 +259,13 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->post('commission-postings/(:segment)/submit', 'Admin\CommissionPostingController::submit/$1');
     $routes->post('commission-postings/(:segment)/approve', 'Admin\CommissionPostingController::approve/$1');
     $routes->post('commission-postings/(:segment)/reject', 'Admin\CommissionPostingController::reject/$1');
+    // Phase 11D withdrawal management (mutations kill-switched OFF)
     $routes->get('withdrawals', 'Admin\WithdrawalController::index');
     $routes->get('withdrawals/(:segment)', 'Admin\WithdrawalController::show/$1');
+    $routes->post('withdrawals/(:segment)/approve', 'Admin\WithdrawalController::approve/$1');
+    $routes->post('withdrawals/(:segment)/reject', 'Admin\WithdrawalController::reject/$1');
+    $routes->post('withdrawals/(:segment)/record-payout', 'Admin\WithdrawalController::recordPayout/$1');
+    $routes->post('withdrawals/(:segment)/verify-payout', 'Admin\WithdrawalController::verifyPayout/$1');
 
     // Phase 9B reports & analytics
     $routes->get('reports', 'Admin\ReportsController::index');
@@ -328,14 +340,24 @@ $routes->group('member', ['filter' => 'member'], static function (RouteCollectio
     $routes->get('mining', 'Member\MiningController::index');
     $routes->get('mining/history', 'Member\MiningController::history');
 
+    // Phase 11C mining wallet P2P (execution kill-switched OFF)
+    $routes->get('p2p', 'Member\P2pController::index');
+    $routes->post('p2p/lookup', 'Member\P2pController::lookup');
+    $routes->post('p2p/preview', 'Member\P2pController::preview');
+    $routes->post('p2p/transfer', 'Member\P2pController::transfer');
+    $routes->get('coming-soon/p2p', static function () {
+        return redirect()->to(site_url('member/p2p'));
+    });
+
     // Phase 7C commission simulation (read-only preview)
     $routes->get('commissions', 'Member\CommissionController::index');
     $routes->get('commissions/history', 'Member\CommissionController::history');
 
-    // Phase 7D commission wallet & withdrawals (activation OFF)
+    // Phase 7D/11D commission wallet & withdrawals (activation OFF)
     $routes->get('commission-wallet', 'Member\CommissionWalletController::index');
     $routes->get('withdrawals', 'Member\WithdrawalController::index');
     $routes->get('withdrawals/create', 'Member\WithdrawalController::create');
+    $routes->post('withdrawals/preview', 'Member\WithdrawalController::preview');
     $routes->post('withdrawals', 'Member\WithdrawalController::store');
     $routes->get('withdrawals/(:segment)', 'Member\WithdrawalController::show/$1');
 

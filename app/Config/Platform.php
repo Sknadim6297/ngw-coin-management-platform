@@ -153,4 +153,14 @@ class Platform extends BaseConfig
      * @var list<string>
      */
     public array $commissionWithdrawalNetworks = ['BEP20'];
+
+    /**
+     * Phase 11D — withdrawal fee / minimum are pending business decisions (null = not approved).
+     * Do not invent fee or minimum amounts in UI or execution paths.
+     */
+    public ?string $commissionWithdrawalFeeUsdt = null;
+
+    public ?string $commissionWithdrawalMinimumUsdt = null;
+
+    public string $commissionWithdrawalFeePolicyStatus = 'pending_business_decision';
 }

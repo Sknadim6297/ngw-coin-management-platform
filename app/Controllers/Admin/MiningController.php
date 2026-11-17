@@ -21,7 +21,7 @@ class MiningController extends BaseController
         }
 
         $tab = strtolower(trim((string) ($this->request->getGet('tab') ?: 'overview')));
-        if (! in_array($tab, ['overview', 'rates', 'preview', 'wallets', 'history'], true)) {
+        if (! in_array($tab, ['overview', 'rates', 'preview', 'wallets', 'history', 'p2p'], true)) {
             $tab = 'overview';
         }
 
@@ -53,6 +53,23 @@ class MiningController extends BaseController
                 ->getResultArray();
         }
 
+        $p2pTransfers = [];
+        $p2pReconcile = null;
+        $p2pStatus    = service('miningP2pTransferService')->status();
+        if ($tab === 'p2p') {
+            if (! $this->canMining('mining.p2p.monitor') && ! $this->canMining('mining.rates.view')) {
+                return $this->deny();
+            }
+            $p2pTransfers = service('miningP2pTransferService')->adminSearch([
+                'date_from'    => trim((string) ($this->request->getGet('date_from') ?: '')),
+                'date_to'      => trim((string) ($this->request->getGet('date_to') ?: '')),
+                'member_id'    => trim((string) ($this->request->getGet('member_id') ?: '')),
+                'status'       => trim((string) ($this->request->getGet('status') ?: '')),
+                'transfer_ref' => trim((string) ($this->request->getGet('transfer_ref') ?: '')),
+            ], 100);
+            $p2pReconcile = service('miningP2pTransferService')->reconcile(200);
+        }
+
         $kpis = [
             KpiCardFactory::ok('eligible_members', 'Eligible Members (preview)', (string) ($preview['totals']['eligible_count'] ?? 0), 'green', 'bi-person-check', 'members'),
             KpiCardFactory::ok('eligible_coins', 'Eligible Coins (total owned)', (string) ($preview['totals']['total_eligible_coins'] ?? '0'), 'purple', 'bi-coin', 'coins'),
@@ -62,23 +79,35 @@ class MiningController extends BaseController
             KpiCardFactory::unavailable('posting', 'Posting Status', 'gold', 'bi-slash-circle', 'OFF — dry-run / simulation only'),
             KpiCardFactory::ok('pending_rates', 'Pending Rate Approvals', $snap['pending_rate_approvals'], 'amber', 'bi-hourglass', 'rates'),
             KpiCardFactory::ok('missing_locks', 'Missing Mandatory Locks', (string) count($missing), 'orange', 'bi-lock', 'locks'),
+            KpiCardFactory::unavailable('p2p', 'P2P Transfers', 'gold', 'bi-arrow-left-right', 'OFF — monitoring only'),
         ];
 
         return view('admin/mining/index', [
-            'title'      => 'Mining',
-            'tab'        => $tab,
-            'date'       => $date,
-            'kpis'       => $kpis,
-            'status'     => $status,
-            'preview'    => $preview,
-            'snap'       => $snap,
-            'rates'      => service('miningRateService')->listRates(),
-            'runs'       => $runs,
-            'wallets'    => $walletRows,
-            'missing'    => $missing,
-            'canPropose' => $this->canMining('mining.rates.propose'),
-            'canApprove' => $this->canMining('mining.rates.approve'),
-            'canSimulate'=> $this->canMining('mining.simulate.run'),
+            'title'        => 'Mining',
+            'tab'          => $tab,
+            'date'         => $date,
+            'kpis'         => $kpis,
+            'status'       => $status,
+            'preview'      => $preview,
+            'snap'         => $snap,
+            'rates'        => service('miningRateService')->listRates(),
+            'runs'         => $runs,
+            'wallets'      => $walletRows,
+            'missing'      => $missing,
+            'p2pTransfers' => $p2pTransfers,
+            'p2pReconcile' => $p2pReconcile,
+            'p2pStatus'    => $p2pStatus,
+            'p2pFilters'   => [
+                'date_from'    => trim((string) ($this->request->getGet('date_from') ?: '')),
+                'date_to'      => trim((string) ($this->request->getGet('date_to') ?: '')),
+                'member_id'    => trim((string) ($this->request->getGet('member_id') ?: '')),
+                'status'       => trim((string) ($this->request->getGet('status') ?: '')),
+                'transfer_ref' => trim((string) ($this->request->getGet('transfer_ref') ?: '')),
+            ],
+            'canPropose'   => $this->canMining('mining.rates.propose'),
+            'canApprove'   => $this->canMining('mining.rates.approve'),
+            'canSimulate'  => $this->canMining('mining.simulate.run'),
+            'canP2p'       => $this->canMining('mining.p2p.monitor') || $this->canMining('mining.rates.view'),
         ]);
     }
 

@@ -33,6 +33,10 @@ use App\Services\MiningWalletService;
 use App\Services\MiningDailyEngineService;
 use App\Services\CoinPlanAuditService;
 use App\Services\ImpersonationService;
+use App\Services\CommissionPurchaseEngineService;
+use App\Services\CommissionPayoutVerificationService;
+use App\Services\CommissionWithdrawalReconciliationService;
+use App\Services\MiningP2pTransferService;
 use App\Services\CommissionPlanService;
 use App\Services\CommissionGenealogyService;
 use App\Services\CommissionEligibilityService;
@@ -434,6 +438,24 @@ class Services extends BaseService
         return new ImpersonationService();
     }
 
+    public static function commissionPurchaseEngineService(bool $getShared = true): CommissionPurchaseEngineService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionPurchaseEngineService');
+        }
+
+        return new CommissionPurchaseEngineService();
+    }
+
+    public static function miningP2pTransferService(bool $getShared = true): MiningP2pTransferService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningP2pTransferService');
+        }
+
+        return new MiningP2pTransferService();
+    }
+
     public static function commissionPlanService(bool $getShared = true): CommissionPlanService
     {
         if ($getShared) {
@@ -513,6 +535,24 @@ class Services extends BaseService
         }
 
         return new CommissionWalletReconciliationService();
+    }
+
+    public static function commissionPayoutVerificationService(bool $getShared = true): CommissionPayoutVerificationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionPayoutVerificationService');
+        }
+
+        return new CommissionPayoutVerificationService();
+    }
+
+    public static function commissionWithdrawalReconciliationService(bool $getShared = true): CommissionWithdrawalReconciliationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionWithdrawalReconciliationService');
+        }
+
+        return new CommissionWithdrawalReconciliationService();
     }
 
     public static function memberActivationService(bool $getShared = true): MemberActivationService

@@ -86,6 +86,9 @@ $sv = $supportViewContext ?? null;
             <i class="bi bi-layers"></i><span class="nav-label">Commission Simulation</span>
         </a>
         <?php if (! $supportViewMode): ?>
+        <a class="side-link <?= $is('member/p2p') ? 'active' : '' ?>" href="<?= site_url('member/p2p') ?>">
+            <i class="bi bi-arrow-left-right"></i><span class="nav-label">Mining P2P</span>
+        </a>
         <a class="side-link <?= $is('member/commission-wallet') ? 'active' : '' ?>" href="<?= site_url('member/commission-wallet') ?>">
             <i class="bi bi-wallet"></i><span class="nav-label">Commission Wallet</span>
         </a>

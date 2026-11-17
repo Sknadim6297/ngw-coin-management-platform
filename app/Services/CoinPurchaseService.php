@@ -470,6 +470,28 @@ class CoinPurchaseService
 
             $updated = $this->requests->find((int) $row['id']);
 
+            // Phase 11B: purchase-triggered commission calculation AFTER commit (never posts credits).
+            // Failures must not roll back an already-approved purchase.
+            $commissionCalc = null;
+            try {
+                $commissionCalc = service('commissionPurchaseEngineService')->onPurchaseApproved(
+                    $purchaseRef,
+                    $adminUserId
+                );
+            } catch (\Throwable $calcErr) {
+                log_message('error', 'Commission purchase calc failed for {ref}: {msg}', [
+                    'ref' => $purchaseRef,
+                    'msg' => $calcErr->getMessage(),
+                ]);
+                service('auditLogger')->log(
+                    'commission.purchase_calc_failed',
+                    $adminUserId,
+                    'coin_purchase_request',
+                    $purchaseRef,
+                    ['error' => $calcErr->getMessage()]
+                );
+            }
+
             $this->audit->log(
                 'coin.purchase_approved',
                 $adminUserId,
@@ -482,15 +504,18 @@ class CoinPurchaseService
                     'activated'                 => $activated,
                     'sponsor_snapshot'          => true,
                     'mandatory_lock_ref'        => $lockRow['lock_ref'] ?? null,
+                    'commission_calc_expected'  => $commissionCalc['totals']['expected_amount_usdt'] ?? null,
+                    'commission_posting'        => 'OFF',
                 ]
             );
 
             return [
-                'request'   => $updated,
-                'inventory' => $allocation['inventory'],
-                'ownership' => $ownership['balance'],
-                'activated' => $activated,
-                'lock'      => $lockRow,
+                'request'          => $updated,
+                'inventory'        => $allocation['inventory'],
+                'ownership'        => $ownership['balance'],
+                'activated'        => $activated,
+                'lock'             => $lockRow,
+                'commission_calc'  => $commissionCalc,
             ];
         } catch (\Throwable $e) {
             if ($db->transDepth > 0) {

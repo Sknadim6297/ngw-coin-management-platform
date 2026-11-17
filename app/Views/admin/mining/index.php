@@ -13,6 +13,7 @@
         'rates'    => 'Monthly Rate Settings',
         'preview'  => 'Daily Mining Preview',
         'wallets'  => 'Mining Wallet Monitoring',
+        'p2p'      => 'P2P Monitoring',
         'history'  => 'Run History',
     ];
     foreach ($tabs as $key => $label): ?>
@@ -172,6 +173,74 @@
                     <td><a href="<?= site_url('admin/mining/wallets/' . (int) $w['member_user_id']) ?>">Ledger</a></td>
                 </tr>
             <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+<?php endif; ?>
+
+<?php if ($tab === 'p2p'): ?>
+    <div class="alert alert-warning">P2P Transfers Not Activated · Kill-switch OFF · No admin execution · Ledger balances are not editable here.</div>
+    <?php if (! empty($p2pStatus)): ?>
+        <ul class="small mb-3">
+            <li>mining_p2p_enabled=<?= ! empty($p2pStatus['mining_p2p_enabled']) ? 'true' : 'false' ?></li>
+            <li>asset=<?= esc((string) ($p2pStatus['asset_code'] ?? '')) ?> <?= empty($p2pStatus['asset_approved']) ? '(DRAFT)' : '' ?></li>
+            <li>execution_authorized=<?= ! empty($p2pStatus['execution_authorized']) ? 'true' : 'false' ?></li>
+        </ul>
+    <?php endif; ?>
+    <?php if (! empty($p2pReconcile)): ?>
+        <div class="row g-3 mb-3">
+            <div class="col-md-3"><div class="card-premium p-3"><div class="small text-secondary">Completed</div><div class="h5 mb-0"><?= esc((string) ($p2pReconcile['summary']['completed'] ?? 0)) ?></div></div></div>
+            <div class="col-md-3"><div class="card-premium p-3"><div class="small text-secondary">Failed</div><div class="h5 mb-0"><?= esc((string) ($p2pReconcile['summary']['failed'] ?? 0)) ?></div></div></div>
+            <div class="col-md-3"><div class="card-premium p-3"><div class="small text-secondary">Volume</div><div class="h5 mb-0"><?= esc((string) ($p2pReconcile['summary']['volume'] ?? '0')) ?></div></div></div>
+            <div class="col-md-3"><div class="card-premium p-3"><div class="small text-secondary">Reconcile Mismatches</div><div class="h5 mb-0"><?= esc((string) ($p2pReconcile['summary']['mismatches'] ?? 0)) ?></div></div></div>
+        </div>
+        <?php if (! empty($p2pReconcile['mismatches'])): ?>
+            <div class="alert alert-danger small">
+                Suspicious / mismatch alerts:
+                <?php foreach (array_slice($p2pReconcile['mismatches'], 0, 10) as $m): ?>
+                    <div><?= esc(json_encode($m, JSON_UNESCAPED_SLASHES)) ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+    <form method="get" class="row g-2 mb-3">
+        <input type="hidden" name="tab" value="p2p">
+        <div class="col-md-2"><input class="form-control form-control-sm" type="date" name="date_from" value="<?= esc($p2pFilters['date_from'] ?? '') ?>" placeholder="From"></div>
+        <div class="col-md-2"><input class="form-control form-control-sm" type="date" name="date_to" value="<?= esc($p2pFilters['date_to'] ?? '') ?>" placeholder="To"></div>
+        <div class="col-md-2"><input class="form-control form-control-sm" type="text" name="member_id" value="<?= esc($p2pFilters['member_id'] ?? '') ?>" placeholder="Member ID"></div>
+        <div class="col-md-2">
+            <select class="form-select form-select-sm" name="status">
+                <option value="">All statuses</option>
+                <?php foreach (['completed', 'failed', 'rejected', 'pending'] as $st): ?>
+                    <option value="<?= $st ?>" <?= (($p2pFilters['status'] ?? '') === $st) ? 'selected' : '' ?>><?= $st ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2"><input class="form-control form-control-sm" type="text" name="transfer_ref" value="<?= esc($p2pFilters['transfer_ref'] ?? '') ?>" placeholder="Transfer ref"></div>
+        <div class="col-md-2"><button class="btn btn-outline-gold btn-sm w-100" type="submit">Filter</button></div>
+    </form>
+    <div class="table-responsive card-premium">
+        <table class="table table-sm mb-0">
+            <thead>
+            <tr><th>Ref</th><th>Created</th><th>Sender</th><th>Receiver</th><th>Amount</th><th>Asset</th><th>Status</th><th>Failure</th></tr>
+            </thead>
+            <tbody>
+            <?php if (empty($p2pTransfers)): ?>
+                <tr><td colspan="8" class="text-secondary">No P2P transfers recorded.</td></tr>
+            <?php else: ?>
+                <?php foreach ($p2pTransfers as $t): ?>
+                    <tr>
+                        <td><code><?= esc($t['transfer_ref']) ?></code></td>
+                        <td><?= esc($t['created_at']) ?></td>
+                        <td><?= esc($t['sender_member_id']) ?></td>
+                        <td><?= esc($t['receiver_member_id']) ?></td>
+                        <td><?= esc($t['amount']) ?></td>
+                        <td><?= esc($t['asset_code']) ?></td>
+                        <td><?= esc($t['status']) ?></td>
+                        <td class="small"><?= esc((string) ($t['failure_reason'] ?? '')) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
             </tbody>
         </table>
     </div>

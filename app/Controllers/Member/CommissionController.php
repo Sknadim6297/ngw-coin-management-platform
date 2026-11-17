@@ -6,11 +6,11 @@ namespace App\Controllers\Member;
 
 use App\Controllers\BaseController;
 use App\Libraries\Dashboard\KpiCardFactory;
+use App\Libraries\MoneyMath;
 use App\Models\MemberProfileModel;
 
 /**
- * Phase 7C member commission simulation views (read-only, non-payable).
- * Privacy: only beneficiary-scoped previews; no purchaser payment secrets.
+ * Phase 11B member commission panel — estimated purchase calcs vs actual posted wallet.
  */
 class CommissionController extends BaseController
 {
@@ -24,29 +24,49 @@ class CommissionController extends BaseController
 
         $snap = service('commissionSimulationService')->memberSnapshot($userId);
         $team = service('referralTeamService')->countsForSponsor($userId);
+        $calcs = service('commissionPurchaseEngineService')->calculationsForBeneficiary($userId, 50);
+        service('commissionWalletService')->ensureAccount($userId, (string) $profile->member_id);
+        $wallet = service('commissionWalletService')->getAccount($userId);
+
+        $l1 = MoneyMath::normalize('0', 8);
+        $l2 = MoneyMath::normalize('0', 8);
+        $l3 = MoneyMath::normalize('0', 8);
+        foreach ($calcs as $row) {
+            if (($row['status'] ?? '') !== 'CALCULATED_NOT_POSTED') {
+                continue;
+            }
+            $amt = (string) $row['expected_amount_usdt'];
+            $lvl = (int) $row['sponsor_level'];
+            if ($lvl === 1) {
+                $l1 = MoneyMath::add($l1, $amt, 8);
+            } elseif ($lvl === 2) {
+                $l2 = MoneyMath::add($l2, $amt, 8);
+            } elseif ($lvl === 3) {
+                $l3 = MoneyMath::add($l3, $amt, 8);
+            }
+        }
+        $estimatedTotal = MoneyMath::add(MoneyMath::add($l1, $l2, 8), $l3, 8);
 
         $kpis = [
-            KpiCardFactory::ok('direct', 'My Direct Referrals', $team['direct'], 'purple', 'bi-person-plus', 'members'),
-            KpiCardFactory::ok('l1m', 'Level 1 Team', $team['levels'][1]['total'] ?? 0, 'cyan', 'bi-1-circle', 'members'),
-            KpiCardFactory::ok('l2m', 'Level 2 Team', $team['levels'][2]['total'] ?? 0, 'indigo', 'bi-2-circle', 'members'),
-            KpiCardFactory::ok('l3m', 'Level 3 Team', $team['levels'][3]['total'] ?? 0, 'teal', 'bi-3-circle', 'members'),
-            KpiCardFactory::ok('l1', 'Level 1 Commission Preview', $snap['level1_preview'], 'indigo', 'bi-cash', 'usdt'),
-            KpiCardFactory::ok('l2', 'Level 2 Commission Preview', $snap['level2_preview'], 'blue', 'bi-cash', 'usdt'),
-            KpiCardFactory::ok('l3', 'Level 3 Commission Preview', $snap['level3_preview'], 'teal', 'bi-cash', 'usdt'),
-            KpiCardFactory::ok('today', "My Today's Commission Preview", $snap['today_preview'], 'cyan', 'bi-calendar-day', 'usdt'),
-            KpiCardFactory::ok('total', 'My Total Commission Preview', $snap['total_preview'], 'purple', 'bi-graph-up', 'usdt'),
-            KpiCardFactory::unavailable('actual', 'Actual Commission', 'gold', 'bi-safe', $snap['actual_status']),
+            KpiCardFactory::ok('direct', 'Direct Referrals', $team['direct'], 'purple', 'bi-person-plus', 'members'),
+            KpiCardFactory::ok('l1', 'Level 1 Estimated', $l1, 'indigo', 'bi-1-circle', 'usdt'),
+            KpiCardFactory::ok('l2', 'Level 2 Estimated', $l2, 'blue', 'bi-2-circle', 'usdt'),
+            KpiCardFactory::ok('l3', 'Level 3 Estimated', $l3, 'teal', 'bi-3-circle', 'usdt'),
+            KpiCardFactory::ok('est_total', 'Estimated Commission', $estimatedTotal, 'cyan', 'bi-graph-up', 'usdt'),
+            KpiCardFactory::ok('actual', 'Actual Posted Commission', $wallet['available_balance'] ?? '0.00000000', 'green', 'bi-safe', 'usdt'),
+            KpiCardFactory::unavailable('posting', 'Posting Status', 'gold', 'bi-slash-circle', 'OFF — estimates not withdrawable'),
+            KpiCardFactory::ok('sim', 'Legacy Simulation Total', $snap['total_preview'], 'amber', 'bi-lightning', 'usdt'),
         ];
 
-        $recent = service('commissionSimulationService')->historyForBeneficiary($userId, 15);
-
         return view('member/commissions/index', [
-            'title'   => 'Commission Simulation',
+            'title'   => 'Commissions',
             'profile' => $profile,
             'kpis'    => $kpis,
             'snap'    => $snap,
             'team'    => $team,
-            'recent'  => $recent,
+            'calcs'   => $calcs,
+            'wallet'  => $wallet,
+            'recent'  => service('commissionSimulationService')->historyForBeneficiary($userId, 15),
         ]);
     }
 
@@ -59,8 +79,9 @@ class CommissionController extends BaseController
         }
 
         return view('member/commissions/history', [
-            'title'   => 'Commission Simulation History',
+            'title'   => 'Commission History',
             'profile' => $profile,
+            'calcs'   => service('commissionPurchaseEngineService')->calculationsForBeneficiary($userId, 100),
             'rows'    => service('commissionSimulationService')->historyForBeneficiary($userId, 100),
         ]);
     }

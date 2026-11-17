@@ -121,13 +121,24 @@ class MiningWalletService
         throw new RuntimeException('Executable mining posting is not authorized in Phase 11A.');
     }
 
+    /**
+     * Legacy entry — delegates to Phase 11C service (execution remains blocked).
+     *
+     * @return never
+     */
     public function transferP2p(int $fromUserId, int $toUserId, string $amount): never
     {
-        if (! $this->p2pEnabled()) {
-            throw new RuntimeException('Mining P2P transfers are disabled (kill-switch).');
+        $receiver = model(\App\Models\MemberProfileModel::class)->findByUserId($toUserId);
+        if ($receiver === null) {
+            throw new InvalidArgumentException('Receiver not found.');
         }
-
-        throw new RuntimeException('Mining P2P transfers are not implemented in Phase 11A.');
+        service('miningP2pTransferService')->execute(
+            $fromUserId,
+            (string) $receiver->member_id,
+            $amount,
+            '', // password required by member UI path; empty fails reauth
+            null
+        );
     }
 
     public function withdrawExternal(int $memberUserId, string $amount): never

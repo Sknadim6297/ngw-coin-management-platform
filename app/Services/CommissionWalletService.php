@@ -10,17 +10,10 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Phase 7D commission wallet (USDT), separate from coin ownership.
+ * Commission wallet (USDT), separate from coin ownership / mining.
  *
- * Invariants (documented & enforced on mutation paths):
- * 1) Ledger is source of truth; account balances are projections.
- * 2) total = available + reserved (exact BCMath scale).
- * 3) available >= 0 and reserved >= 0.
- * 4) Append-only ledger; unique idempotency_key.
- * 5) No direct balance edits.
- * 6) Simulation / mining previews NEVER credit this wallet.
- * 7) All mutation paths refuse while commissionPostingEnabled /
- *    commissionWithdrawalEnabled kill-switches are false (Phase 7D).
+ * Phase 11D: reserve / release / settle architecture prepared.
+ * Mutations refuse while kill-switches are OFF; public posting remains blocked.
  */
 class CommissionWalletService
 {
@@ -38,8 +31,6 @@ class CommissionWalletService
     }
 
     /**
-     * Ensure account exists (zero balances). Safe / non-financial.
-     *
      * @return array<string, mixed>
      */
     public function ensureAccount(int $memberUserId, string $memberId, string $currency = self::CURRENCY): array
@@ -112,6 +103,41 @@ class CommissionWalletService
     }
 
     /**
+     * Member withdrawable summary (posted ledger only — never simulation/mining/coins).
+     *
+     * @return array<string, mixed>
+     */
+    public function withdrawableSummary(int $memberUserId): array
+    {
+        $scale   = $this->scale();
+        $account = $this->getAccount($memberUserId);
+        $credits = db_connect()->table('commission_wallet_ledger_entries')
+            ->selectSum('amount', 'qty')
+            ->where('member_user_id', $memberUserId)
+            ->where('entry_type', self::TYPE_COMMISSION_CREDIT)
+            ->get()
+            ->getRowArray();
+        $settled = db_connect()->table('commission_wallet_ledger_entries')
+            ->selectSum('amount', 'qty')
+            ->where('member_user_id', $memberUserId)
+            ->where('entry_type', self::TYPE_WITHDRAWAL_DEBIT)
+            ->get()
+            ->getRowArray();
+
+        return [
+            'currency'              => self::CURRENCY,
+            'total_posted_credits'  => MoneyMath::normalize((string) ($credits['qty'] ?? '0'), $scale),
+            'available_balance'     => MoneyMath::normalize((string) ($account['available_balance'] ?? '0'), $scale),
+            'reserved_balance'      => MoneyMath::normalize((string) ($account['reserved_balance'] ?? '0'), $scale),
+            'total_balance'         => MoneyMath::normalize((string) ($account['total_balance'] ?? '0'), $scale),
+            'total_withdrawn'       => MoneyMath::normalize((string) ($settled['qty'] ?? '0'), $scale),
+            'withdrawal_enabled'    => $this->withdrawalEnabled(),
+            'posting_enabled'       => $this->postingEnabled(),
+            'blockchain_enabled'    => $this->blockchainPayoutEnabled(),
+        ];
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     public function recentEntries(int $memberUserId, int $limit = 20): array
@@ -140,9 +166,6 @@ class CommissionWalletService
     }
 
     /**
-     * Phase 7D: mutation API exists for architecture/tests of guards only.
-     * Always refuses while kill-switch is off. Never used by simulation.
-     *
      * @param array{entry_type: string, amount: string, reference_type?: string, reference_id?: string, idempotency_key: string, notes?: string, created_by?: int} $data
      * @return array<string, mixed>
      */
@@ -152,11 +175,11 @@ class CommissionWalletService
             throw new RuntimeException('Commission posting is disabled (kill-switch). No wallet credit performed.');
         }
 
-        throw new RuntimeException('Executable commission posting is not implemented in Phase 7D.');
+        throw new RuntimeException('Executable commission posting is not authorized in Phase 11D.');
     }
 
     /**
-     * @param array{amount: string, reference_type?: string, reference_id?: string, idempotency_key: string, created_by?: int} $data
+     * @param array{amount: string, reference_type?: string, reference_id?: string, idempotency_key: string, created_by?: int, notes?: string} $data
      * @return array<string, mixed>
      */
     public function reserveForWithdrawal(int $memberUserId, string $memberId, array $data): array
@@ -165,12 +188,38 @@ class CommissionWalletService
             throw new RuntimeException('Withdrawals are disabled (kill-switch). No reservation performed.');
         }
 
-        throw new RuntimeException('Executable withdrawal reservation is not implemented in Phase 7D.');
+        return $this->applyLedger($memberUserId, $memberId, self::TYPE_WITHDRAWAL_RESERVE, $data);
     }
 
     /**
-     * Platform aggregates (actual ledger only — not simulation).
+     * @param array{amount: string, reference_type?: string, reference_id?: string, idempotency_key: string, created_by?: int, notes?: string} $data
+     * @return array<string, mixed>
+     */
+    public function releaseForWithdrawal(int $memberUserId, string $memberId, array $data): array
+    {
+        if (! $this->withdrawalEnabled()) {
+            throw new RuntimeException('Withdrawals are disabled (kill-switch). No reservation release performed.');
+        }
+
+        return $this->applyLedger($memberUserId, $memberId, self::TYPE_WITHDRAWAL_RELEASE, $data);
+    }
+
+    /**
+     * Settle reserved funds after verified PAID payout (consumes reservation once).
      *
+     * @param array{amount: string, reference_type?: string, reference_id?: string, idempotency_key: string, created_by?: int, notes?: string} $data
+     * @return array<string, mixed>
+     */
+    public function settleWithdrawal(int $memberUserId, string $memberId, array $data): array
+    {
+        if (! $this->withdrawalEnabled()) {
+            throw new RuntimeException('Withdrawals are disabled (kill-switch). No settlement performed.');
+        }
+
+        return $this->applyLedger($memberUserId, $memberId, self::TYPE_WITHDRAWAL_DEBIT, $data);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function platformSnapshot(): array
@@ -202,6 +251,160 @@ class CommissionWalletService
             'posting_status'      => $this->postingEnabled() ? 'ENABLED' : 'DISABLED',
             'withdrawal_status'   => $this->withdrawalEnabled() ? 'ENABLED' : 'Withdrawals Not Activated',
         ];
+    }
+
+    /**
+     * Atomic ledger apply with row lock. Caller must enforce kill-switch policy.
+     *
+     * @param array{amount: string, reference_type?: string, reference_id?: string, idempotency_key: string, created_by?: int, notes?: string} $data
+     * @return array<string, mixed>
+     */
+    public function applyLedger(int $memberUserId, string $memberId, string $entryType, array $data): array
+    {
+        $scale  = $this->scale();
+        $amount = MoneyMath::normalize((string) ($data['amount'] ?? ''), $scale);
+        if (! MoneyMath::isPositive($amount, $scale)) {
+            throw new InvalidArgumentException('Amount must be positive.');
+        }
+
+        $idem = trim((string) ($data['idempotency_key'] ?? ''));
+        if ($idem === '') {
+            throw new InvalidArgumentException('Idempotency key is required.');
+        }
+
+        $existing = db_connect()->table('commission_wallet_ledger_entries')
+            ->where('idempotency_key', $idem)
+            ->get()
+            ->getRowArray();
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $this->ensureAccount($memberUserId, $memberId);
+
+        $db = db_connect();
+        $db->transBegin();
+
+        try {
+            $account = $db->query(
+                'SELECT * FROM commission_wallet_accounts WHERE member_user_id = ? AND currency = ? FOR UPDATE',
+                [$memberUserId, self::CURRENCY]
+            )->getRowArray();
+            if ($account === null) {
+                throw new RuntimeException('Commission wallet account missing.');
+            }
+
+            $available = MoneyMath::normalize((string) $account['available_balance'], $scale);
+            $reserved  = MoneyMath::normalize((string) $account['reserved_balance'], $scale);
+            $total     = MoneyMath::normalize((string) $account['total_balance'], $scale);
+
+            $availDelta = MoneyMath::normalize('0', $scale);
+            $resDelta   = MoneyMath::normalize('0', $scale);
+            $direction  = 'debit';
+
+            switch ($entryType) {
+                case self::TYPE_COMMISSION_CREDIT:
+                    $availDelta = $amount;
+                    $direction  = 'credit';
+                    $available  = MoneyMath::add($available, $amount, $scale);
+                    $total      = MoneyMath::add($total, $amount, $scale);
+                    break;
+
+                case self::TYPE_WITHDRAWAL_RESERVE:
+                    if (MoneyMath::compare($amount, $available, $scale) === 1) {
+                        throw new InvalidArgumentException('Insufficient available posted commission balance.');
+                    }
+                    $availDelta = MoneyMath::mul($amount, '-1', $scale);
+                    $resDelta   = $amount;
+                    $available  = MoneyMath::sub($available, $amount, $scale);
+                    $reserved   = MoneyMath::add($reserved, $amount, $scale);
+                    break;
+
+                case self::TYPE_WITHDRAWAL_RELEASE:
+                    if (MoneyMath::compare($amount, $reserved, $scale) === 1) {
+                        throw new InvalidArgumentException('Release amount exceeds reserved balance.');
+                    }
+                    $availDelta = $amount;
+                    $resDelta   = MoneyMath::mul($amount, '-1', $scale);
+                    $direction  = 'credit';
+                    $available  = MoneyMath::add($available, $amount, $scale);
+                    $reserved   = MoneyMath::sub($reserved, $amount, $scale);
+                    break;
+
+                case self::TYPE_WITHDRAWAL_DEBIT:
+                    if (MoneyMath::compare($amount, $reserved, $scale) === 1) {
+                        throw new InvalidArgumentException('Settlement amount exceeds reserved balance.');
+                    }
+                    $resDelta = MoneyMath::mul($amount, '-1', $scale);
+                    $reserved = MoneyMath::sub($reserved, $amount, $scale);
+                    $total    = MoneyMath::sub($total, $amount, $scale);
+                    break;
+
+                default:
+                    throw new InvalidArgumentException('Unsupported ledger entry type.');
+            }
+
+            if (MoneyMath::compare($available, '0', $scale) === -1
+                || MoneyMath::compare($reserved, '0', $scale) === -1
+                || MoneyMath::compare($total, '0', $scale) === -1
+            ) {
+                throw new RuntimeException('Ledger mutation would create a negative balance.');
+            }
+
+            $expectedTotal = MoneyMath::add($available, $reserved, $scale);
+            if (MoneyMath::compare($expectedTotal, $total, $scale) !== 0) {
+                throw new RuntimeException('Ledger invariant total != available + reserved.');
+            }
+
+            $now      = date('Y-m-d H:i:s');
+            $entryRef = 'CWL-' . strtoupper(bin2hex(random_bytes(6)));
+
+            $db->table('commission_wallet_ledger_entries')->insert([
+                'entry_ref'                 => $entryRef,
+                'member_user_id'            => $memberUserId,
+                'member_id'                 => $memberId,
+                'currency'                  => self::CURRENCY,
+                'entry_type'                => $entryType,
+                'direction'                 => $direction,
+                'amount'                    => $amount,
+                'available_delta'           => $availDelta,
+                'reserved_delta'            => $resDelta,
+                'balance_after_available'   => $available,
+                'balance_after_reserved'    => $reserved,
+                'balance_after_total'       => $total,
+                'reference_type'            => $data['reference_type'] ?? null,
+                'reference_id'              => $data['reference_id'] ?? null,
+                'idempotency_key'           => $idem,
+                'notes'                     => $data['notes'] ?? null,
+                'created_by'                => $data['created_by'] ?? null,
+                'created_at'                => $now,
+            ]);
+
+            $db->table('commission_wallet_accounts')->where('id', (int) $account['id'])->update([
+                'available_balance' => $available,
+                'reserved_balance'  => $reserved,
+                'total_balance'     => $total,
+                'updated_at'        => $now,
+            ]);
+
+            if ($db->transStatus() === false) {
+                $db->transRollback();
+                throw new RuntimeException('Commission wallet ledger write failed.');
+            }
+            $db->transCommit();
+
+            $this->audit->log('commission.wallet_ledger_' . $entryType, (int) ($data['created_by'] ?? $memberUserId), 'commission_wallet', $entryRef, [
+                'amount'       => $amount,
+                'reference_id' => $data['reference_id'] ?? null,
+            ]);
+
+            return $db->table('commission_wallet_ledger_entries')->where('entry_ref', $entryRef)->get()->getRowArray() ?? [];
+        } catch (\Throwable $e) {
+            if ($db->transDepth > 0) {
+                $db->transRollback();
+            }
+            throw $e;
+        }
     }
 
     private function scale(): int
