@@ -88,10 +88,10 @@ class CoinPlanAuditService
             [
                 'rule'           => '5. 1000-day lock + sell after maturity',
                 'requirement'    => 'Purchased coins locked 1000 days; after maturity coins can be sold.',
-                'implementation' => 'Phase 11A: approveRequest → lockMandatoryForPurchase (LOCK1000, early unlock forbidden). Coin selling still Coming Soon.',
+                'implementation' => 'Phase 11A mandatory LOCK1000 + Phase 11E CoinSellingService (lot maturity, reserve/release/debit, member/admin UI); coinSellingEnabled=false; settlement/fee/counterparty pending business decision.',
                 'status'         => (bool) $cfg->mandatoryPurchaseLockEnabled ? 'PARTIALLY MATCHED' : 'NOT IMPLEMENTED',
-                'missing'        => 'Coin selling after maturity; historical backfill only after explicit approval.',
-                'evidence'       => 'CoinPurchaseService::approveRequest + CoinLockingService::lockMandatoryForPurchase',
+                'missing'        => 'Authorize selling execution; approve fee/settlement/counterparty/post-sale mining policy.',
+                'evidence'       => 'CoinLockingService::lockMandatoryForPurchase; CoinSellingService; Platform::coinSellingEnabled=false',
             ],
             [
                 'rule'           => '6. L1/L2/L3 dynamic commission',
@@ -213,7 +213,9 @@ class CoinPlanAuditService
             'mining_p2p_enabled'                   => (bool) $cfg->miningP2pEnabled,
             'p2p_exists'                           => class_exists(MiningP2pTransferService::class)
                 && db_connect()->tableExists('mining_p2p_transfers'),
-            'coin_selling_exists'                  => false,
+            'coin_selling_exists'                  => class_exists(CoinSellingService::class)
+                && db_connect()->tableExists('coin_sell_requests'),
+            'coin_selling_enabled'                 => (bool) $cfg->coinSellingEnabled,
             'auto_lock_on_purchase'                => (bool) $cfg->mandatoryPurchaseLockEnabled,
             'client_lock_days'                     => self::CLIENT_LOCK_DAYS,
             'app_timezone'                         => (string) config('App')->appTimezone,

@@ -34,6 +34,8 @@ use App\Services\MiningDailyEngineService;
 use App\Services\CoinPlanAuditService;
 use App\Services\ImpersonationService;
 use App\Services\CommissionPurchaseEngineService;
+use App\Services\CoinSellingReconciliationService;
+use App\Services\CoinSellingService;
 use App\Services\CommissionPayoutVerificationService;
 use App\Services\CommissionWithdrawalReconciliationService;
 use App\Services\MiningP2pTransferService;
@@ -58,6 +60,13 @@ use App\Services\FinanceDashboardService;
 use App\Services\FinancialAlertService;
 use App\Services\FinancialNotificationService;
 use App\Services\FinancialRemediationService;
+use App\Services\FinancialSandboxService;
+use App\Services\FinancialTestWindowService;
+use App\Services\MandatoryLockRemediationService;
+use App\Services\MemberIdSequenceCorrectionService;
+use App\Services\Phase12BStagingE2EService;
+use App\Services\ProductionSafetyGate;
+use App\Services\StagingIsolationService;
 use App\Services\PaymentApprovalsService;
 use App\Services\PaymentAuditService;
 use App\Services\PaymentHealthService;
@@ -339,6 +348,33 @@ class Services extends BaseService
         return new CoinLockingService();
     }
 
+    public static function productionSafetyGate(bool $getShared = true): ProductionSafetyGate
+    {
+        if ($getShared) {
+            return static::getSharedInstance('productionSafetyGate');
+        }
+
+        return new ProductionSafetyGate();
+    }
+
+    public static function memberIdSequenceCorrectionService(bool $getShared = true): MemberIdSequenceCorrectionService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('memberIdSequenceCorrectionService');
+        }
+
+        return new MemberIdSequenceCorrectionService();
+    }
+
+    public static function mandatoryLockRemediationService(bool $getShared = true): MandatoryLockRemediationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mandatoryLockRemediationService');
+        }
+
+        return new MandatoryLockRemediationService();
+    }
+
     public static function memberWalletService(bool $getShared = true): MemberWalletService
     {
         if ($getShared) {
@@ -454,6 +490,60 @@ class Services extends BaseService
         }
 
         return new MiningP2pTransferService();
+    }
+
+    public static function financialSandboxService(bool $getShared = true): FinancialSandboxService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('financialSandboxService');
+        }
+
+        return new FinancialSandboxService();
+    }
+
+    public static function financialTestWindowService(bool $getShared = true): FinancialTestWindowService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('financialTestWindowService');
+        }
+
+        return new FinancialTestWindowService();
+    }
+
+    public static function stagingIsolationService(bool $getShared = true): StagingIsolationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('stagingIsolationService');
+        }
+
+        return new StagingIsolationService();
+    }
+
+    public static function phase12BStagingE2EService(bool $getShared = true): Phase12BStagingE2EService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('phase12BStagingE2EService');
+        }
+
+        return new Phase12BStagingE2EService();
+    }
+
+    public static function coinSellingService(bool $getShared = true): CoinSellingService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('coinSellingService');
+        }
+
+        return new CoinSellingService();
+    }
+
+    public static function coinSellingReconciliationService(bool $getShared = true): CoinSellingReconciliationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('coinSellingReconciliationService');
+        }
+
+        return new CoinSellingReconciliationService();
     }
 
     public static function commissionPlanService(bool $getShared = true): CommissionPlanService

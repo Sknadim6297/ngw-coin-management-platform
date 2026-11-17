@@ -38,6 +38,7 @@ final class AdminSidebarConsolidationTest extends CIUnitTestCase
         $platform->adminName = 'Test Admin';
         $platform->rootSponsorId = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
         $platform->requireVerifiedDepositForApproval = true;
         $platform->commissionPostingEnabled = false;
         $platform->commissionWithdrawalEnabled = false;

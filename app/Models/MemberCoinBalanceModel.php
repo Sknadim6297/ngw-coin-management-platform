@@ -20,6 +20,7 @@ class MemberCoinBalanceModel extends Model
         'balance',
         'available_balance',
         'locked_balance',
+        'reserved_balance',
         'total_acquired',
     ];
 

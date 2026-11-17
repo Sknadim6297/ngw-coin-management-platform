@@ -1,0 +1,48 @@
+﻿
+CodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:16:44 UTC+00:00
+
+=== members:correct-sequence ===
+db-group=default dry_run=yes
+{
+    "database": "coin_platform",
+    "group": "default",
+    "is_live": true,
+    "existing_ids": [
+        {
+            "member_id": "NGW000001",
+            "numeric": 1,
+            "digits": 6
+        }
+    ],
+    "preserved": [
+        "ROOT0001",
+        "NGW000001"
+    ],
+    "before": {
+        "memberIdStartNumber": 981234,
+        "memberIdPadding": 6,
+        "sequence_last": 981233,
+        "max_existing_numeric": 1,
+        "preview_next": "NGW981234"
+    },
+    "after_projected": {
+        "memberIdStartNumber": 1234,
+        "memberIdPadding": 4,
+        "sequence_last": 1233,
+        "max_existing_numeric": 1,
+        "preview_next": "NGW1234",
+        "env_lines": [
+            "platform.memberIdStartNumber = 1234",
+            "platform.memberIdPadding = 4"
+        ]
+    },
+    "collision_next_id": false,
+    "blocked_by_high_existing": false,
+    "ready": true,
+    "note": "Safe to apply sequence last_number=1233 after config update; existing IDs unchanged.",
+    "executed": false,
+    "dry_run": true
+}
+DRY-RUN only — no sequence write.
+Remember: update .env platform.memberIdStartNumber / memberIdPadding separately for production.
+Kill-switches: {"miningPostingEnabled":false,"miningP2pEnabled":false,"commissionPostingEnabled":false,"commissionWithdrawalEnabled":false,"commissionBlockchainPayoutEnabled":false,"coinSellingEnabled":false,"sandbox_window_open":false}

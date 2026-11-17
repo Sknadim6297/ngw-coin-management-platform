@@ -40,6 +40,7 @@ final class CommissionSimulationTest extends CIUnitTestCase
         $platform->adminName     = 'Test Admin';
         $platform->rootSponsorId = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
         $platform->requireVerifiedDepositForApproval = false;
 
         $this->seed(\App\Database\Seeds\RootSponsorSeeder::class);
@@ -345,7 +346,7 @@ final class CommissionSimulationTest extends CIUnitTestCase
 
         $member = $this->registerMember('histamt');
         $purchase = $this->approvePurchase($member, '200');
-        // Snapshot preserved â€” do not use live price
+        // Snapshot preserved — do not use live price
         service('coinPriceService')->updatePrice('9.99', $this->adminUserId, 'price change');
         $this->assertSame('100.00000000', MoneyMath::normalize((string) $purchase['total_usdt'], 8));
     }
@@ -397,7 +398,7 @@ final class CommissionSimulationTest extends CIUnitTestCase
         $this->assertSame($ownBefore, db_connect()->table('member_coin_ownership_transactions')->countAllResults());
         $this->assertSame($mineBefore, db_connect()->table('mining_simulation_items')->countAllResults());
 
-        // No withdrawal / payout tables mutated â€” commission items remain non-posted
+        // No withdrawal / payout tables mutated — commission items remain non-posted
         $posted = db_connect()->table('commission_simulation_items')->where('is_posted', 1)->countAllResults();
         $this->assertSame(0, $posted);
         $this->assertGreaterThan(0, $itemCount);

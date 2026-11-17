@@ -42,6 +42,7 @@ final class UsdtDepositTest extends CIUnitTestCase
         $platform->adminName      = 'Test Admin';
         $platform->rootSponsorId  = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
         $platform->requireVerifiedDepositForApproval = true;
 
         // Isolate from EvmVerificationTest / shared Blockchain mutations.
@@ -414,7 +415,7 @@ final class UsdtDepositTest extends CIUnitTestCase
             'pur-paygate'
         );
 
-        // Deposit exists but is only submitted â€” not verified.
+        // Deposit exists but is only submitted — not verified.
         service('usdtDepositService')->submitRequest(
             (int) $member['user']->id,
             $this->networkId,

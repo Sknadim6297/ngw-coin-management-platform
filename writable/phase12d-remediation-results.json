@@ -1,0 +1,49 @@
+{
+  "phase": "12D",
+  "generated_at": "2026-11-17T12:21:00+00:00",
+  "live_database": "coin_platform",
+  "isolated_database": "coin_platform_phase12d",
+  "deployed": false,
+  "live_mutations": false,
+  "kill_switches": {
+    "miningPostingEnabled": false,
+    "miningP2pEnabled": false,
+    "commissionPostingEnabled": false,
+    "commissionWithdrawalEnabled": false,
+    "commissionBlockchainPayoutEnabled": false,
+    "coinSellingEnabled": false
+  },
+  "live_after": {
+    "sequence_last_number": 981233,
+    "NGW000001": {
+      "available_balance": "5.00000000",
+      "locked_balance": "0.00000000",
+      "balance": "5.00000000"
+    },
+    "member_coin_locks": 0
+  },
+  "sections": {
+    "A_member_id": "READY_FOR_APPROVAL",
+    "B_lock1000": "READY_FOR_APPROVAL",
+    "C_mining_policy": "BLOCKED",
+    "D_commission_policy": "READY_FOR_APPROVAL",
+    "E_bep20": "BLOCKED",
+    "F_backup_restore": "PASS",
+    "G_security": "READY_FOR_APPROVAL",
+    "H_scheduler": "READY_FOR_APPROVAL",
+    "I_focused_tests": "PASS",
+    "J_prod_changes_made": "PASS",
+    "K_prod_changes_need_approval": "READY_FOR_APPROVAL",
+    "L_blockers": "BLOCKED"
+  },
+  "commands": {
+    "member_id": "php spark members:correct-sequence",
+    "lock_remediation": "php spark locking:remediate-mandatory"
+  },
+  "evidence": {
+    "report": "docs/phase12d-production-remediation-report.md",
+    "restore": "writable/phase12d-restore-evidence.json",
+    "lock_isolated": "writable/phase12d-lock-remediation-result.json",
+    "member_id_apply": "writable/phase12d-memberid-apply.log"
+  }
+}

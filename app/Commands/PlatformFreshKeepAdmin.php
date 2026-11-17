@@ -145,12 +145,13 @@ class PlatformFreshKeepAdmin extends BaseCommand
                 ]);
             }
 
-            // Reset ID sequence for NGW members.
-            $prefix = trim((string) $config->memberIdPrefix) ?: 'NGW';
+            // Reset ID sequence for NGW members (next ID = memberIdStartNumber).
+            $prefix = strtoupper(trim((string) $config->memberIdPrefix)) ?: 'NGW';
+            $start  = max(1, (int) ($config->memberIdStartNumber ?? 981234));
             $db->table('member_id_sequences')->truncate();
             $db->table('member_id_sequences')->insert([
                 'prefix'      => $prefix,
-                'last_number' => 0,
+                'last_number' => $start - 1,
                 'created_at'  => $now,
                 'updated_at'  => $now,
             ]);

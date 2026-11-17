@@ -157,7 +157,7 @@ class CreateCoinLockingAndBalanceSplit extends Migration
         // Remove Phase 5 ledger rows before shrinking the ENUM (MySQL truncates otherwise).
         if ($this->db->tableExists('member_coin_ownership_transactions')) {
             $this->db->query(
-                "DELETE FROM member_coin_ownership_transactions WHERE type IN ('LOCK','UNLOCK')"
+                "DELETE FROM member_coin_ownership_transactions WHERE type IN ('LOCK','UNLOCK','SALE_RESERVE','SALE_RELEASE','SALE_DEBIT')"
             );
 
             $indexes = $this->db->getIndexData('member_coin_ownership_transactions');
@@ -167,10 +167,13 @@ class CreateCoinLockingAndBalanceSplit extends Migration
                 );
             }
 
-            $fields = $this->db->getFieldNames('member_coin_ownership_transactions');
-            foreach (['lock_ref', 'previous_available', 'new_available', 'previous_locked', 'new_locked'] as $col) {
-                if (in_array($col, $fields, true)) {
-                    $this->forge->dropColumn('member_coin_ownership_transactions', $col);
+            foreach (['sell_ref', 'previous_reserved', 'new_reserved', 'lock_ref', 'previous_available', 'new_available', 'previous_locked', 'new_locked'] as $col) {
+                if ($this->db->fieldExists($col, 'member_coin_ownership_transactions')) {
+                    try {
+                        $this->forge->dropColumn('member_coin_ownership_transactions', $col);
+                    } catch (\Throwable) {
+                        // Already removed by a later migration rollback.
+                    }
                 }
             }
 
@@ -181,10 +184,13 @@ class CreateCoinLockingAndBalanceSplit extends Migration
         }
 
         if ($this->db->tableExists('member_coin_balances')) {
-            $fields = $this->db->getFieldNames('member_coin_balances');
-            foreach (['available_balance', 'locked_balance'] as $col) {
-                if (in_array($col, $fields, true)) {
-                    $this->forge->dropColumn('member_coin_balances', $col);
+            foreach (['reserved_balance', 'available_balance', 'locked_balance'] as $col) {
+                if ($this->db->fieldExists($col, 'member_coin_balances')) {
+                    try {
+                        $this->forge->dropColumn('member_coin_balances', $col);
+                    } catch (\Throwable) {
+                        // Already removed by a later migration rollback.
+                    }
                 }
             }
         }

@@ -1,7 +1,11 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
 <p class="page-subtitle">Coin locking overview. Disabling a plan does not alter existing active locks. Maturity never creates ROI.</p>
-<div class="alert alert-warning">Coin Plan gap: purchases are <strong>not</strong> auto-locked for 1000 days on approval. Members must lock voluntarily using an enabled plan. Coin selling after maturity is not implemented.</div>
+<div class="alert alert-info">
+    New approved purchases receive a mandatory <strong>LOCK1000</strong> (1000-day) lock automatically when <code>mandatoryPurchaseLockEnabled</code> is on.
+    Voluntary plans remain available for optional locks. Coin selling UI exists; execution remains OFF until business authorization.
+    Use Mining → Legacy mandatory lock preview / <code>php spark mining:status</code> to detect approved purchases missing a mandatory lock (read-only; no auto-repair).
+</div>
 
 <div class="row g-3 mb-4">
     <div class="col-md-3"><div class="card-premium"><div class="text-secondary mb-1">Active</div><strong><?= (int) $counts['active'] ?></strong></div></div>

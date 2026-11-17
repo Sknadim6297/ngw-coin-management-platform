@@ -156,9 +156,9 @@ class MiningP2pTransferService
     }
 
     /**
-     * Attempt execution — always blocked in Phase 11C after validation / kill-switch checks.
+     * Attempt execution. Production remains blocked; Financial Sandbox may call performAtomicTransfer.
      *
-     * @return never
+     * @return array<string, mixed>
      */
     public function execute(
         int $senderUserId,
@@ -166,7 +166,7 @@ class MiningP2pTransferService
         string $amount,
         string $password,
         ?string $idempotencyKey = null
-    ): never {
+    ): array {
         $this->assertNotImpersonation();
         $this->assertRateLimit($senderUserId);
 
@@ -207,7 +207,15 @@ class MiningP2pTransferService
             throw new RuntimeException('Mining P2P transfers are disabled (kill-switch).');
         }
 
-        // Kill-switch ON still blocked in Phase 11C (architecture prepared, not authorized).
+        $sandbox = service('financialSandboxService');
+        if (! (bool) ($this->config ?? config('Platform'))->miningP2pEnabled) {
+            $sandbox->assertActive('mining_p2p');
+            $sandbox->assertSyntheticMember((string) $preview['sender_member_id'], 'mining_p2p_sender');
+            $sandbox->assertSyntheticMember((string) $preview['receiver']['member_id'], 'mining_p2p_receiver');
+
+            return $this->performAtomicTransfer($preview, $idempotencyKey, $senderUserId);
+        }
+
         $this->audit->log('mining.p2p_denied', $senderUserId, 'mining_p2p', null, [
             'reason' => 'phase_11c_execution_not_authorized',
         ]);
@@ -227,6 +235,10 @@ class MiningP2pTransferService
     {
         if (! $this->enabled()) {
             throw new RuntimeException('Mining P2P transfers are disabled (kill-switch).');
+        }
+
+        if ($this->findByIdempotency($idempotencyKey) !== null) {
+            throw new InvalidArgumentException('Duplicate transfer request (idempotency).');
         }
 
         $asset  = (string) $preview['asset_code'];
@@ -620,9 +632,12 @@ class MiningP2pTransferService
         if (service('impersonationService')->activeContext() !== null) {
             throw new RuntimeException('P2P transfers are not allowed from Admin support-view impersonation.');
         }
-        $uri = uri_string();
-        if (str_starts_with($uri, 'support-view')) {
-            throw new RuntimeException('P2P transfers are not allowed from Admin support-view.');
+        // Web-only URI guard — ignore stale request paths under CLI/PHPUnit.
+        if (! is_cli()) {
+            $uri = uri_string();
+            if (str_starts_with($uri, 'support-view')) {
+                throw new RuntimeException('P2P transfers are not allowed from Admin support-view.');
+            }
         }
     }
 

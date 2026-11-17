@@ -84,26 +84,28 @@ class MigrateMemberIdPrefix extends BaseCommand
                 CLI::write('users.username: ' . $db->affectedRows() . ' row(s)');
             }
 
-            // Sequence row: move counter to new prefix.
-            $oldSeq = $db->table('member_id_sequences')->where('prefix', $from)->get()->getRowArray();
-            $newSeq = $db->table('member_id_sequences')->where('prefix', $to)->get()->getRowArray();
-            $last   = (int) ($oldSeq['last_number'] ?? 0);
+            // Sequence row: move counter to new prefix; respect start floor + highest existing ID.
+            $oldSeq      = $db->table('member_id_sequences')->where('prefix', $from)->get()->getRowArray();
+            $newSeq      = $db->table('member_id_sequences')->where('prefix', $to)->get()->getRowArray();
+            $last        = (int) ($oldSeq['last_number'] ?? 0);
+            $start       = max(1, (int) (config('Platform')->memberIdStartNumber ?? 981234));
+            $maxExisting = service('memberIdGenerator')->maxExistingNumber($db, $to);
+            $mergedFloor = max($last, (int) ($newSeq['last_number'] ?? 0), $maxExisting, $start - 1);
 
             if ($newSeq === null) {
                 $db->table('member_id_sequences')->insert([
                     'prefix'      => $to,
-                    'last_number' => $last,
+                    'last_number' => $mergedFloor,
                     'created_at'  => date('Y-m-d H:i:s'),
                     'updated_at'  => date('Y-m-d H:i:s'),
                 ]);
-                CLI::write("Created sequence {$to} at {$last}");
+                CLI::write("Created sequence {$to} at {$mergedFloor}");
             } else {
-                $merged = max($last, (int) $newSeq['last_number']);
                 $db->table('member_id_sequences')->where('prefix', $to)->update([
-                    'last_number' => $merged,
+                    'last_number' => $mergedFloor,
                     'updated_at'  => date('Y-m-d H:i:s'),
                 ]);
-                CLI::write("Updated sequence {$to} to {$merged}");
+                CLI::write("Updated sequence {$to} to {$mergedFloor}");
             }
 
             if ($oldSeq !== null) {
@@ -123,7 +125,7 @@ class MigrateMemberIdPrefix extends BaseCommand
 
             $db->transCommit();
             CLI::write("Done. Prefix {$from} → {$to}. Touched ~{$total} column updates.", 'green');
-            CLI::write('New registrations will use IDs like ' . $to . '000001');
+            CLI::write('New registrations will use IDs like ' . $to . $start . ' (sequential).');
         } catch (\Throwable $e) {
             $db->transRollback();
             CLI::error($e->getMessage());

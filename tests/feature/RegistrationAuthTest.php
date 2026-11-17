@@ -35,13 +35,15 @@ final class RegistrationAuthTest extends CIUnitTestCase
         putenv('platform.adminName=Test Admin');
         putenv('platform.rootSponsorId=ROOT0001');
         putenv('platform.memberIdPrefix=CPM');
+        putenv('platform.memberIdStartNumber=1');
 
-        $platform                 = config('Platform');
-        $platform->adminEmail     = 'admin@test.local';
-        $platform->adminPassword  = 'AdminPass123!';
-        $platform->adminName      = 'Test Admin';
-        $platform->rootSponsorId  = 'ROOT0001';
-        $platform->memberIdPrefix = 'CPM';
+        $platform                      = config('Platform');
+        $platform->adminEmail          = 'admin@test.local';
+        $platform->adminPassword       = 'AdminPass123!';
+        $platform->adminName           = 'Test Admin';
+        $platform->rootSponsorId       = 'ROOT0001';
+        $platform->memberIdPrefix      = 'CPM';
+        $platform->memberIdStartNumber = 1;
 
         $this->seed(\App\Database\Seeds\RootSponsorSeeder::class);
 

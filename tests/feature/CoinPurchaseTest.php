@@ -39,6 +39,7 @@ final class CoinPurchaseTest extends CIUnitTestCase
         $platform->adminName      = 'Test Admin';
         $platform->rootSponsorId  = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
         // Phase 4A payment gate: Phase 3 suite exercises legacy unpaid approval path.
         $platform->requireVerifiedDepositForApproval = false;
 
@@ -333,7 +334,7 @@ final class CoinPurchaseTest extends CIUnitTestCase
         );
 
         $member = $this->registerMember('nostock');
-        // Request creation also checks inventory â€” seed tiny stock then deplete after request.
+        // Request creation also checks inventory — seed tiny stock then deplete after request.
         service('coinInventoryService')->addInventory('10', $this->adminUserId, null, null, 'temp-stock');
         $created = service('coinPurchaseService')->createRequest(
             (int) $member['user']->id,

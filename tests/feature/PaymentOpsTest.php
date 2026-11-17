@@ -53,6 +53,7 @@ final class PaymentOpsTest extends CIUnitTestCase
         $platform->adminName = 'Test Admin';
         $platform->rootSponsorId = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
         $platform->requireVerifiedDepositForApproval = true;
 
         $chain = config('Blockchain');
@@ -276,7 +277,7 @@ final class PaymentOpsTest extends CIUnitTestCase
         );
 
         $this->rpcMap['eth_chainId'] = '0x38';
-        $this->rpcMap['eth_getTransactionByHash'] = null; // not found â€” retryable
+        $this->rpcMap['eth_getTransactionByHash'] = null; // not found — retryable
         $this->rpcMap['eth_getTransactionReceipt'] = null;
         $this->rpcMap['eth_blockNumber'] = '0x10';
 

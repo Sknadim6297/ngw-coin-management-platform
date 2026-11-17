@@ -916,9 +916,12 @@ class CommissionWithdrawalService
         if (service('impersonationService')->activeContext() !== null) {
             throw new RuntimeException('Withdrawals are not allowed from Admin support-view impersonation.');
         }
-        $uri = uri_string();
-        if (str_starts_with($uri, 'support-view')) {
-            throw new RuntimeException('Withdrawals are not allowed from Admin support-view.');
+        // Web-only URI guard — ignore stale request paths under CLI/PHPUnit.
+        if (! is_cli()) {
+            $uri = uri_string();
+            if (str_starts_with($uri, 'support-view')) {
+                throw new RuntimeException('Withdrawals are not allowed from Admin support-view.');
+            }
         }
     }
 

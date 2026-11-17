@@ -1,0 +1,168 @@
+{
+    "phase": "12A",
+    "started_at": "2026-11-17T11:47:55+00:00",
+    "seconds_authorized": 120,
+    "environment": {
+        "database": "coin_platform_phase12a",
+        "hostname": "localhost",
+        "group": "phase12a",
+        "is_allowed": true,
+        "is_forbidden": false
+    },
+    "switches_before": {
+        "miningPostingEnabled": false,
+        "miningP2pEnabled": false,
+        "commissionPostingEnabled": false,
+        "commissionWithdrawalEnabled": false,
+        "commissionBlockchainPayoutEnabled": false,
+        "coinSellingEnabled": false,
+        "sandbox_window_open": true
+    },
+    "switches_after": {
+        "miningPostingEnabled": false,
+        "miningP2pEnabled": false,
+        "commissionPostingEnabled": false,
+        "commissionWithdrawalEnabled": false,
+        "commissionBlockchainPayoutEnabled": false,
+        "coinSellingEnabled": false,
+        "sandbox_window_open": true
+    },
+    "audit_findings": [
+        {
+            "finding": "PUR-10D7174B7FF\u2026 on coin_platform has no mandatory lock; NGW000001 has 5 available / 0 locked",
+            "status": "PENDING_LIVE_REMEDIATION",
+            "proposal": "Do not auto-fix live DB. Controlled remediation: CoinLockingService::lockMandatoryForPurchase for that purchase_ref after admin approval. Phase 12A validates LOCK1000 on synthetic purchases only."
+        },
+        {
+            "finding": "Approved purchase missing commission calculation / no approved plan on live DB",
+            "status": "SANDBOX_COVERED",
+            "proposal": "Approve 10/5/3 plan in sandbox and post via CommissionPurchaseEngineService::postPurchase. Live plan approval remains a business decision."
+        },
+        {
+            "finding": "Mining formula decisions unresolved",
+            "status": "SANDBOX_TEMPORARY_ASSUMPTIONS",
+            "proposal": "Sandbox uses calendar_days divisor, full_day approval policy, COIN asset, total-owned base. Not applied to production .env."
+        },
+        {
+            "finding": "Member ID start NGW1234 vs NGW981234",
+            "status": "PENDING_BUSINESS_CONFIRMATION",
+            "proposal": "Production remains NGW981234 per prior confirmed policy. Sandbox uses SYN* prefix only. Change production start only after explicit business confirmation."
+        }
+    ],
+    "steps": {
+        "seed": {
+            "ok": true,
+            "actors": [
+                "admin",
+                "approver"
+            ]
+        },
+        "hierarchy": {
+            "l1": "SYN000001",
+            "l2": "SYN000002",
+            "l3": "SYN000003",
+            "buyer": "SYN000004",
+            "p2p_peer": "SYN000005"
+        },
+        "commission": {
+            "plan_ref": "CPL-20261117-CF73457A",
+            "purchase_ref": "PUR-1AE6733D659EE776",
+            "expected": {
+                "L1": "10.00000000",
+                "L2": "5.00000000",
+                "L3": "3.00000000",
+                "total": "18.00000000"
+            },
+            "actual_by_level": {
+                "L1": "10.00000000",
+                "L2": "5.00000000",
+                "L3": "3.00000000"
+            },
+            "total_posted": "18.00000000",
+            "first_posted_lines": 3,
+            "second_duplicates": 3,
+            "second_new_posts": 0,
+            "math_ok": true,
+            "idempotent_ok": true,
+            "lock_ref": "LCK-M-8E65E005F11AC517",
+            "lock_ok": true
+        },
+        "mining": {
+            "assumptions": {
+                "base": "total_owned_coins_includes_locked",
+                "divisor_mode": "calendar_days",
+                "approval_day_policy": "full_day",
+                "earning_asset": "COIN",
+                "monthly_rate": "3.00000000",
+                "label": "SANDBOX_TEMPORARY_ONLY"
+            },
+            "business_date": "2026-11-17",
+            "rate_ref": "MRC-20261117-66B60854",
+            "buyer_owned": "100.00000000",
+            "buyer_locked": "100.00000000",
+            "expected_buyer": "0.10000000",
+            "actual_buyer_posted": "0.10000000",
+            "first_credited": 5,
+            "second_duplicates": 5,
+            "second_credited": 0,
+            "math_ok": true,
+            "idempotent_ok": true,
+            "includes_locked": true
+        },
+        "p2p": {
+            "transfer_ref": "MPT-20261117-DB74E9A1",
+            "amount": "0.00100000",
+            "sender_before": "0.10000000",
+            "sender_after": "0.09900000",
+            "receiver_before": "0.01000000",
+            "receiver_after": "0.01100000",
+            "debit_ok": true,
+            "credit_ok": true,
+            "duplicate_blocked": true,
+            "reconcile_mismatches": 0
+        },
+        "withdrawal": {
+            "submit_status": "pending_admin_review",
+            "reject_status": "rejected",
+            "approve_status": "approved",
+            "evidence_ref": null,
+            "paid": {
+                "skipped": true,
+                "reason": "Phase12A does not mark PAID; evidence recorded only"
+            },
+            "reconcile_mismatches": 0,
+            "real_usdt_sent": false
+        },
+        "selling": {
+            "sell_ref": "CSL-20261117-C322C969",
+            "status": "completed",
+            "owned_before": "20.00000000",
+            "owned_after": "15.00000000",
+            "debit_ok": true,
+            "duplicate_blocked": true,
+            "reconcile_mismatches": 0,
+            "real_member_coins": false
+        }
+    },
+    "reconciliation": {
+        "ownership_rows": 6,
+        "hard_failures": [],
+        "notes": [],
+        "mining_p2p_mismatches": 0,
+        "selling_mismatches": 0,
+        "withdrawal_mismatches": 0,
+        "commission_mismatches": 1
+    },
+    "errors": [],
+    "production_switches_ok": true,
+    "success": true,
+    "window": {
+        "token": "FSW-6E5A4C9E138C0F52",
+        "started_at": "2026-11-17T11:47:55+00:00",
+        "expires_at": "2026-11-17T11:49:55+00:00",
+        "seconds": 120,
+        "database": "coin_platform_phase12a"
+    },
+    "finished_at": "2026-11-17T11:48:04+00:00",
+    "window_closed": true
+}

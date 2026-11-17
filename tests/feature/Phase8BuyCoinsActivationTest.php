@@ -40,6 +40,7 @@ final class Phase8BuyCoinsActivationTest extends CIUnitTestCase
         $platform->adminName = 'Test Admin';
         $platform->rootSponsorId = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
         $platform->requireVerifiedDepositForApproval = false;
         $platform->commissionPostingEnabled = false;
         $platform->commissionWithdrawalEnabled = false;
@@ -158,8 +159,37 @@ final class Phase8BuyCoinsActivationTest extends CIUnitTestCase
             'to_destination_wallet' => '0x' . str_repeat('3', 40),
         ], $this->adminUserId);
 
+        // Default path: self-approval still blocked for dual-control operators.
         $this->expectException(\InvalidArgumentException::class);
-        service('paymentDestinationChangeService')->approve($proposal['proposal_ref'], $this->adminUserId);
+        service('paymentDestinationChangeService')->approve($proposal['proposal_ref'], $this->adminUserId, false);
+    }
+
+    public function testPlatformAdminMaySelfApproveDestinationChange(): void
+    {
+        $network = service('usdtPaymentNetworkService')->create([
+            'network_key'           => 'p8adm' . bin2hex(random_bytes(2)),
+            'network_name'          => 'Phase8 Admin Self',
+            'verifier_type'         => 'none',
+            'destination_wallet'    => '0x' . str_repeat('d', 40),
+            'is_enabled'            => 0,
+            'min_deposit_usdt'      => '5',
+            'max_deposit_usdt'      => '100000',
+        ], $this->adminUserId);
+
+        $proposal = service('paymentDestinationChangeService')->propose([
+            'network_id'            => (int) $network['id'],
+            'to_destination_wallet' => '0x' . str_repeat('e', 40),
+            'display_enabled'       => true,
+        ], $this->adminUserId);
+
+        $approved = service('paymentDestinationChangeService')->approve(
+            $proposal['proposal_ref'],
+            $this->adminUserId,
+            true
+        );
+        $this->assertSame('approved', $approved['status']);
+        $updated = service('usdtPaymentNetworkService')->find((int) $network['id']);
+        $this->assertSame('0x' . str_repeat('e', 40), $updated['destination_wallet']);
     }
 
     public function testDestinationChangeApprovalDoesNotAlterDepositSnapshot(): void

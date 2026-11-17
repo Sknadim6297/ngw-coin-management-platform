@@ -149,12 +149,17 @@ class MiningEligibilityService
         $owned     = MoneyMath::normalize($summary['balance'], $scale);
         $available = MoneyMath::normalize($summary['available'], $scale);
         $locked    = MoneyMath::normalize($summary['locked'], $scale);
+        $reserved  = MoneyMath::normalize((string) ($summary['reserved'] ?? '0'), $scale);
 
-        if (MoneyMath::isNegative($owned, $scale) || MoneyMath::isNegative($available, $scale) || MoneyMath::isNegative($locked, $scale)) {
+        if (MoneyMath::isNegative($owned, $scale)
+            || MoneyMath::isNegative($available, $scale)
+            || MoneyMath::isNegative($locked, $scale)
+            || MoneyMath::isNegative($reserved, $scale)
+        ) {
             $reasons[] = 'negative_balance';
         }
 
-        $sumParts = MoneyMath::add($available, $locked, $scale);
+        $sumParts = MoneyMath::add(MoneyMath::add($available, $locked, $scale), $reserved, $scale);
         if (MoneyMath::compare($sumParts, $owned, $scale) !== 0) {
             $reasons[] = 'balance_invariant_broken';
         }

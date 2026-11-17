@@ -25,6 +25,13 @@ class Platform extends BaseConfig
      */
     public int $memberIdPadding = 6;
 
+    /**
+     * Minimum first numeric Member ID (NGW981234). Next IDs are sequential.
+     * Generator also advances past the highest existing PREFIX+digits ID.
+     * Override via .env platform.memberIdStartNumber.
+     */
+    public int $memberIdStartNumber = 981234;
+
     public string $adminEmail = '';
 
     public string $adminPassword = '';
@@ -143,6 +150,26 @@ class Platform extends BaseConfig
     public string $miningEarningAsset = 'COIN';
 
     /**
+     * Phase 12D — explicit policy approval statuses (pending = not production-approved).
+     * Do not treat draft Platform assumptions as approved business rules.
+     */
+    public string $miningMonthlyPercentStatus = 'pending_business_decision';
+
+    public string $miningDayDivisorStatus = 'pending_business_decision';
+
+    public string $miningDenominationStatus = 'pending_business_decision';
+
+    public string $miningApprovalDayPolicyStatus = 'pending_business_decision';
+
+    public string $miningLockedCoinEligibilityStatus = 'pending_business_decision';
+
+    public string $miningPostMaturityEligibilityStatus = 'pending_business_decision';
+
+    public string $miningPostSaleEligibilityStatus = 'pending_business_decision';
+
+    public string $miningRoundingPolicyStatus = 'pending_business_decision';
+
+    /**
      * When true, purchase approval creates a mandatory 1000-day lock (Phase 11A).
      */
     public bool $mandatoryPurchaseLockEnabled = true;
@@ -163,4 +190,24 @@ class Platform extends BaseConfig
     public ?string $commissionWithdrawalMinimumUsdt = null;
 
     public string $commissionWithdrawalFeePolicyStatus = 'pending_business_decision';
+
+    /**
+     * Phase 11E — coin selling execution kill-switch. Fail-closed OFF until authorized.
+     */
+    public bool $coinSellingEnabled = false;
+
+    /**
+     * Phase 11E unresolved business decisions (null / pending = not approved).
+     */
+    public ?string $coinSellingFeeUsdt = null;
+
+    public ?string $coinSellingMinimumQuantity = null;
+
+    public string $coinSellingFeePolicyStatus = 'pending_business_decision';
+
+    public string $coinSellingSettlementAssetStatus = 'pending_business_decision';
+
+    public string $coinSellingCounterpartyStatus = 'pending_business_decision';
+
+    public string $coinSellingPostSaleMiningPolicyStatus = 'pending_business_decision';
 }

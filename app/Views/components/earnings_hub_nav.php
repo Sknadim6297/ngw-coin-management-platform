@@ -4,9 +4,11 @@ $section = $section ?? '';
 ?>
 <div class="section-hub-links">
     <?php if ($section === 'mining'): ?>
-        <a class="admin-tab active" href="<?= site_url('admin/mining') ?>">Mining Dashboard</a>
-        <a class="admin-tab" href="<?= site_url('admin/mining/rates') ?>">Rate Config</a>
-        <span class="admin-tab" style="opacity:.7;cursor:default">Simulation only · posting off</span>
+        <?php $miningTab = (string) service('request')->getGet('tab'); ?>
+        <a class="admin-tab <?= $miningTab !== 'p2p' && ! str_contains(uri_string(), 'rates') ? 'active' : '' ?>" href="<?= site_url('admin/mining') ?>">Mining Dashboard</a>
+        <a class="admin-tab <?= str_contains(uri_string(), 'rates') ? 'active' : '' ?>" href="<?= site_url('admin/mining/rates') ?>">Rate Config</a>
+        <a class="admin-tab <?= $miningTab === 'p2p' ? 'active' : '' ?>" href="<?= site_url('admin/mining?tab=p2p') ?>">P2P Monitoring</a>
+        <span class="admin-tab" style="opacity:.7;cursor:default">Simulation only · posting/P2P off</span>
     <?php elseif ($section === 'commissions'): ?>
         <a class="admin-tab <?= str_starts_with(uri_string(), 'admin/commissions') && ! str_contains(uri_string(), 'wallet') ? 'active' : '' ?>" href="<?= site_url('admin/commissions') ?>">Commissions</a>
         <a class="admin-tab <?= str_starts_with(uri_string(), 'admin/referrals') || uri_string() === 'admin/genealogy' ? 'active' : '' ?>" href="<?= site_url('admin/referrals') ?>">Referrals &amp; Genealogy</a>

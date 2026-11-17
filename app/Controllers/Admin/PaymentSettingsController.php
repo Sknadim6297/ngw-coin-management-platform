@@ -60,7 +60,9 @@ class PaymentSettingsController extends BaseController
         }
 
         try {
-            service('paymentDestinationChangeService')->approve($ref, (int) auth()->id());
+            $user = auth()->user();
+            $allowSelf = $user !== null && $user->can('admin.settings');
+            service('paymentDestinationChangeService')->approve($ref, (int) auth()->id(), $allowSelf);
         } catch (InvalidArgumentException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
@@ -115,7 +117,9 @@ class PaymentSettingsController extends BaseController
     {
         $user = auth()->user();
 
-        // Approvers only — keeps dual-control when admin proposed.
-        return $user !== null && $user->can('finance.remediation.approve');
+        return $user !== null && (
+            $user->can('finance.remediation.approve')
+            || $user->can('admin.settings')
+        );
     }
 }

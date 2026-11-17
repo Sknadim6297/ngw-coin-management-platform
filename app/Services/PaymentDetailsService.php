@@ -91,9 +91,10 @@ class PaymentDetailsService
     public function paymentReadiness(): array
     {
         $row = $this->networks->findByKey(self::NETWORK_KEY);
+        $wallet = trim((string) ($row['destination_wallet'] ?? ''));
         if ($row === null
             || (int) ($row['is_enabled'] ?? 0) !== 1
-            || trim((string) ($row['destination_wallet'] ?? '')) === ''
+            || ! $this->isUsableBep20Address($wallet)
         ) {
             return [
                 'ready'   => false,
@@ -103,7 +104,7 @@ class PaymentDetailsService
             ];
         }
 
-        if ($this->qr->isDemoNetwork($row) || $this->qr->isBurnOrNullWallet((string) ($row['destination_wallet'] ?? ''))) {
+        if ($this->qr->isDemoNetwork($row) || $this->qr->isBurnOrNullWallet($wallet)) {
             return [
                 'ready'   => false,
                 'code'    => 'payment_details_missing',
@@ -208,7 +209,9 @@ class PaymentDetailsService
             $logoMime = $logoMeta['mime'];
         }
 
-        $currentWallet = trim((string) ($network['destination_wallet'] ?? ''));
+        // Treat placeholder / invalid stored values as empty so first real setup is bootstrap (not dual-control).
+        $storedWallet = trim((string) ($network['destination_wallet'] ?? ''));
+        $currentWallet = $this->isUsableBep20Address($storedWallet) ? $storedWallet : '';
         if ($wallet === '') {
             $wallet = $currentWallet;
         }
@@ -225,7 +228,8 @@ class PaymentDetailsService
         $pending = $this->pendingDestinationChange();
         if ($pending !== null) {
             throw new InvalidArgumentException(
-                'A destination change is already pending approval (' . ($pending['proposal_ref'] ?? '') . ').'
+                'A destination change is already pending approval (' . ($pending['proposal_ref'] ?? '')
+                . '). Approve, or Cancel the pending change first.'
             );
         }
 
@@ -243,13 +247,15 @@ class PaymentDetailsService
             'instructions'     => $instructions !== '' ? $instructions : null,
             'token_contract_address' => $contract !== ''
                 ? $contract
-                : ($network['token_contract_address'] ?? null),
+                : ($this->isUsableBep20Address((string) ($network['token_contract_address'] ?? ''))
+                    ? $network['token_contract_address']
+                    : null),
             'address_pattern'  => $pattern,
             'tx_hash_pattern'  => '/^0x[a-fA-F0-9]{64}$/',
         ], $actorUserId);
 
-        // Bootstrap first live wallet: allow immediate enable for platform setup.
-        if ($walletBootstrap || ($currentWallet === '' && $wallet !== '')) {
+        // Bootstrap first usable wallet (including replacing placeholder text): apply live immediately.
+        if ($walletBootstrap) {
             return $this->applyLiveDestination(
                 $network,
                 $actorUserId,
@@ -526,5 +532,19 @@ class PaymentDetailsService
         }
 
         return $path;
+    }
+
+    /**
+     * True when value is a real BEP20 address (not empty/placeholder UI text).
+     */
+    public function isUsableBep20Address(string $value): bool
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return false;
+        }
+        $pattern = ($this->config ?? config('Platform'))->bep20Pattern;
+
+        return preg_match($pattern, $value) === 1;
     }
 }

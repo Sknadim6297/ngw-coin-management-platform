@@ -49,6 +49,7 @@ final class EvmVerificationTest extends CIUnitTestCase
         $platform->adminName = 'Test Admin';
         $platform->rootSponsorId = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
         $platform->requireVerifiedDepositForApproval = true;
 
         $chain = config('Blockchain');

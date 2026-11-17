@@ -405,15 +405,92 @@ class CommissionPurchaseEngineService
     }
 
     /**
-     * Authorization-gated posting entry — always blocked in Phase 11B.
+     * Post calculated commission lines to commission wallets.
+     * Production remains blocked unless Financial Sandbox window is open.
+     *
+     * @return array{purchase_ref: string, posted_lines: int, total_posted: string, duplicates: int, lines: list<array<string, mixed>>}
      */
-    public function postPurchase(string $purchaseRef): never
+    public function postPurchase(string $purchaseRef, ?int $actorUserId = null): array
     {
         if (! $this->wallets->postingEnabled()) {
             throw new RuntimeException('Commission posting is disabled (kill-switch).');
         }
 
-        throw new RuntimeException('Executable commission posting is not authorized in Phase 11B.');
+        $sandbox = service('financialSandboxService');
+        if (! (bool) ($this->config ?? config('Platform'))->commissionPostingEnabled) {
+            $sandbox->assertActive('commission_post_purchase');
+        }
+
+        $purchaseRef = trim($purchaseRef);
+        $calc = $this->calculateForPurchase($purchaseRef, true, $actorUserId);
+        $scale = $this->scale();
+        $postedLines = 0;
+        $duplicates  = 0;
+        $totalPosted = MoneyMath::normalize('0', $scale);
+        $out         = [];
+
+        foreach ($calc['lines'] as $line) {
+            if (($line['status'] ?? '') !== self::STATUS_CALCULATED) {
+                continue;
+            }
+            $uid = (int) ($line['beneficiary_user_id'] ?? 0);
+            $mid = (string) ($line['beneficiary_member_id'] ?? '');
+            $amt = MoneyMath::normalize((string) ($line['expected_amount_usdt'] ?? '0'), $scale);
+            if ($uid <= 0 || $mid === '' || ! MoneyMath::isPositive($amt, $scale)) {
+                continue;
+            }
+            if ($sandbox->isWindowOpen()) {
+                $sandbox->assertSyntheticMember($mid, 'commission_post_purchase');
+            }
+
+            $level = (int) $line['sponsor_level'];
+            $idem  = 'comm-post:' . $purchaseRef . ':L' . $level;
+            $before = db_connect()->table('commission_wallet_ledger_entries')
+                ->where('idempotency_key', $idem)
+                ->countAllResults();
+
+            $entry = $this->wallets->creditCommission($uid, $mid, [
+                'amount'          => $amt,
+                'reference_type'  => 'commission_purchase',
+                'reference_id'    => $purchaseRef . ':L' . $level,
+                'idempotency_key' => $idem,
+                'created_by'      => $actorUserId,
+                'notes'           => 'Phase12A sandbox commission post',
+            ]);
+
+            if ($before > 0) {
+                $duplicates++;
+            } else {
+                $postedLines++;
+            }
+            $totalPosted = MoneyMath::add($totalPosted, $amt, $scale);
+
+            if (db_connect()->tableExists('commission_purchase_calculations')) {
+                db_connect()->table('commission_purchase_calculations')
+                    ->where('purchase_ref', $purchaseRef)
+                    ->where('sponsor_level', $level)
+                    ->update([
+                        'posted_amount_usdt' => $amt,
+                        'status'             => 'POSTED',
+                        'updated_at'         => date('Y-m-d H:i:s'),
+                    ]);
+            }
+
+            $out[] = [
+                'level'     => $level,
+                'member_id' => $mid,
+                'amount'    => $amt,
+                'entry_ref' => $entry['entry_ref'] ?? null,
+            ];
+        }
+
+        return [
+            'purchase_ref'  => $purchaseRef,
+            'posted_lines'  => $postedLines,
+            'duplicates'    => $duplicates,
+            'total_posted'  => $totalPosted,
+            'lines'         => $out,
+        ];
     }
 
     /**

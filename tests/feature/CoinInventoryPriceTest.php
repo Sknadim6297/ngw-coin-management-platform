@@ -38,6 +38,7 @@ final class CoinInventoryPriceTest extends CIUnitTestCase
         $platform->adminName      = 'Test Admin';
         $platform->rootSponsorId  = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
 
         $this->seed(\App\Database\Seeds\RootSponsorSeeder::class);
         $this->adminUserId = (int) model(MemberProfileModel::class)->findByMemberId('ROOT0001')->user_id;

@@ -1,0 +1,18 @@
+{
+    "purchase_ref": "PUR-P12D-LOCK-TEST001",
+    "dry_exit": 0,
+    "apply_exit": 0,
+    "balance": {
+        "available_balance": "0.00000000",
+        "locked_balance": "5.00000000",
+        "balance": "5.00000000"
+    },
+    "lock": {
+        "lock_ref": "LCK-M-800A0F8FA150F663",
+        "plan_code": "LOCK1000",
+        "quantity": "5.00000000",
+        "status": "active",
+        "locked_at": "2026-11-17 13:20:32",
+        "matures_at": "2029-08-13 13:20:32"
+    }
+}

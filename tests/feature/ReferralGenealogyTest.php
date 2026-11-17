@@ -36,6 +36,7 @@ final class ReferralGenealogyTest extends CIUnitTestCase
         $platform->adminName     = 'Test Admin';
         $platform->rootSponsorId = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
         $platform->requireVerifiedDepositForApproval = false;
 
         $this->seed(\App\Database\Seeds\RootSponsorSeeder::class);

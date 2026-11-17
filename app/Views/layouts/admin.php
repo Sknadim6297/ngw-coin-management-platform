@@ -74,6 +74,9 @@ $isWallets = $is('admin/wallets') || $is('admin/withdrawals');
         <a class="side-link <?= str_starts_with($uri, 'admin/locking') ? 'active' : '' ?>" href="<?= site_url('admin/locking') ?>">
             <i class="bi bi-lock"></i><span class="nav-label">Coin Locking</span>
         </a>
+        <a class="side-link <?= str_starts_with($uri, 'admin/coins/selling') ? 'active' : '' ?>" href="<?= site_url('admin/coins/selling') ?>">
+            <i class="bi bi-shop"></i><span class="nav-label">Coin Selling</span>
+        </a>
 
         <div class="nav-section-title">Payment Management</div>
         <a class="side-link <?= $isPaymentApprovals ? 'active' : '' ?>" href="<?= site_url('admin/payment-approvals') ?>">

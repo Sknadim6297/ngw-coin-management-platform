@@ -47,6 +47,8 @@ $routes->group('support-view', ['filter' => 'supportView'], static function (Rou
     $routes->get('wallet', 'SupportView\PortalController::wallet');
     $routes->get('locking', 'SupportView\PortalController::locking');
     $routes->post('locking', 'SupportView\PortalController::blocked');
+    $routes->get('coin-selling', 'SupportView\PortalController::blocked');
+    $routes->post('coin-selling', 'SupportView\PortalController::blocked');
     $routes->get('referrals', 'SupportView\PortalController::referrals');
     $routes->get('genealogy', 'SupportView\PortalController::genealogy');
     $routes->get('mining', 'SupportView\PortalController::mining');
@@ -99,6 +101,14 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->get('coins/price', 'Admin\CoinController::price');
     $routes->post('coins/price', 'Admin\CoinController::priceUpdate');
     $routes->get('coins/price/history', 'Admin\CoinController::priceHistory');
+    // Phase 11E coin selling (execution OFF)
+    $routes->get('coins/selling', 'Admin\CoinSellingController::index');
+    $routes->get('coins/selling/(:segment)', 'Admin\CoinSellingController::show/$1');
+    $routes->post('coins/selling/(:segment)/approve', 'Admin\CoinSellingController::approve/$1');
+    $routes->post('coins/selling/(:segment)/reject', 'Admin\CoinSellingController::reject/$1');
+    $routes->get('coming-soon/coin-selling', static function () {
+        return redirect()->to(site_url('admin/coins/selling'));
+    });
 
     // Unified Payment Approvals (purchase + deposit workflows)
     $routes->get('payment-approvals', 'Admin\PaymentApprovalsController::index');
@@ -324,6 +334,14 @@ $routes->group('member', ['filter' => 'member'], static function (RouteCollectio
     $routes->get('locking/history', 'Member\CoinLockingController::history');
     $routes->get('locking/(:segment)', 'Member\CoinLockingController::show/$1');
     $routes->post('locking/(:segment)/unlock', 'Member\CoinLockingController::unlock/$1');
+
+    // Phase 11E coin selling (execution OFF)
+    $routes->get('coin-selling', 'Member\CoinSellingController::index');
+    $routes->post('coin-selling/preview', 'Member\CoinSellingController::preview');
+    $routes->post('coin-selling', 'Member\CoinSellingController::store');
+    $routes->get('coming-soon/coin-selling', static function () {
+        return redirect()->to(site_url('member/coin-selling'));
+    });
 
     // Phase 6 internal coin wallet
     $routes->get('wallet', 'Member\WalletController::index');

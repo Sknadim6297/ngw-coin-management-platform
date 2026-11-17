@@ -152,12 +152,18 @@ class CommissionWalletService
 
     public function postingEnabled(): bool
     {
-        return (bool) ($this->config ?? config('Platform'))->commissionPostingEnabled;
+        $cfg = $this->config ?? config('Platform');
+
+        return (bool) $cfg->commissionPostingEnabled
+            || service('financialSandboxService')->allows('commission_posting');
     }
 
     public function withdrawalEnabled(): bool
     {
-        return (bool) ($this->config ?? config('Platform'))->commissionWithdrawalEnabled;
+        $cfg = $this->config ?? config('Platform');
+
+        return (bool) $cfg->commissionWithdrawalEnabled
+            || service('financialSandboxService')->allows('commission_withdrawal');
     }
 
     public function blockchainPayoutEnabled(): bool
@@ -175,7 +181,16 @@ class CommissionWalletService
             throw new RuntimeException('Commission posting is disabled (kill-switch). No wallet credit performed.');
         }
 
-        throw new RuntimeException('Executable commission posting is not authorized in Phase 11D.');
+        $sandbox = service('financialSandboxService');
+        if (! (bool) ($this->config ?? config('Platform'))->commissionPostingEnabled) {
+            $sandbox->assertActive('commission_posting');
+            $sandbox->assertSyntheticMember($memberId, 'commission_posting');
+        }
+
+        $payload = $data;
+        $payload['entry_type'] = self::TYPE_COMMISSION_CREDIT;
+
+        return $this->applyLedger($memberUserId, $memberId, self::TYPE_COMMISSION_CREDIT, $payload);
     }
 
     /**

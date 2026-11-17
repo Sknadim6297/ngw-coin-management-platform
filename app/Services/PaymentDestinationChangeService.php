@@ -117,14 +117,18 @@ class PaymentDestinationChangeService
     /**
      * @return array<string, mixed>
      */
-    public function approve(string $proposalRef, int $actorUserId): array
+    public function approve(string $proposalRef, int $actorUserId, bool $allowPlatformAdminSelfApprove = false): array
     {
         $row = $this->require($proposalRef);
         if (($row['status'] ?? '') !== 'pending') {
             throw new InvalidArgumentException('Only pending proposals can be approved.');
         }
-        if ((int) ($row['proposed_by'] ?? 0) === $actorUserId) {
-            throw new InvalidArgumentException('Self-approval is not allowed for payment destination changes.');
+        $isSelf = (int) ($row['proposed_by'] ?? 0) === $actorUserId;
+        if ($isSelf && ! $allowPlatformAdminSelfApprove) {
+            throw new InvalidArgumentException(
+                'Self-approval is not allowed for payment destination changes. '
+                . 'Use a second finance approver, or sign in as a platform admin with Settings permission to approve your own proposal.'
+            );
         }
 
         $network = $this->networks->find((int) $row['network_id']);
@@ -223,8 +227,9 @@ class PaymentDestinationChangeService
         ]);
         $this->recordEvent($proposalRef, 'approved', $actorUserId, 'pending', 'approved', null);
         $this->audit->log('payment.destination_change_approved', $actorUserId, 'payment_destination_change', $proposalRef, [
-            'network_id' => $row['network_id'],
-            'note'       => 'Existing deposit destination snapshots remain unchanged.',
+            'network_id'              => $row['network_id'],
+            'note'                    => 'Existing deposit destination snapshots remain unchanged.',
+            'platform_admin_self_approve' => $isSelf && $allowPlatformAdminSelfApprove,
         ]);
 
         return $this->findByRef($proposalRef) ?? $row;

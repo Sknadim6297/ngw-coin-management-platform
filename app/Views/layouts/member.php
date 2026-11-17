@@ -69,6 +69,11 @@ $sv = $supportViewContext ?? null;
         <a class="side-link <?= $is($panelBase . '/locking') ? 'active' : '' ?>" href="<?= $panelUrl('locking') ?>">
             <i class="bi bi-lock"></i><span class="nav-label">Coin Locking</span>
         </a>
+        <?php if (! $supportViewMode): ?>
+        <a class="side-link <?= $is('member/coin-selling') ? 'active' : '' ?>" href="<?= site_url('member/coin-selling') ?>">
+            <i class="bi bi-shop"></i><span class="nav-label">Coin Selling</span>
+        </a>
+        <?php endif; ?>
 
         <div class="nav-section-title">Team</div>
         <a class="side-link <?= $is($panelBase . '/referrals') ? 'active' : '' ?>" href="<?= $panelUrl('referrals') ?>">

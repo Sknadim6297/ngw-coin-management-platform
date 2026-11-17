@@ -14,13 +14,17 @@ use RuntimeException;
 /**
  * Append-only member coin ownership ledger + cached balances.
  *
- * Invariant: balance (total owned) = available_balance + locked_balance.
+ * Invariant: balance (total owned) = available_balance + locked_balance + reserved_balance.
+ * SALE_RESERVE is not an ownership debit; SALE_DEBIT settles a reservation exactly once.
  */
 class MemberCoinOwnershipService
 {
     public const TYPE_PURCHASE_CREDIT = 'PURCHASE_CREDIT';
     public const TYPE_LOCK            = 'LOCK';
     public const TYPE_UNLOCK          = 'UNLOCK';
+    public const TYPE_SALE_RESERVE    = 'SALE_RESERVE';
+    public const TYPE_SALE_RELEASE    = 'SALE_RELEASE';
+    public const TYPE_SALE_DEBIT      = 'SALE_DEBIT';
 
     public function __construct(
         private readonly MemberCoinBalanceModel $balances = new MemberCoinBalanceModel(),
@@ -34,6 +38,7 @@ class MemberCoinOwnershipService
      *   balance: string,
      *   available: string,
      *   locked: string,
+     *   reserved: string,
      *   total_acquired: string,
      *   member_id: ?string
      * }
@@ -50,6 +55,7 @@ class MemberCoinOwnershipService
                 'balance'        => $zero,
                 'available'      => $zero,
                 'locked'         => $zero,
+                'reserved'       => $zero,
                 'total_acquired' => $zero,
                 'member_id'      => null,
             ];
@@ -113,17 +119,20 @@ class MemberCoinOwnershipService
             $prevTotal     = MoneyMath::normalize((string) $row['balance'], $scale);
             $prevAvailable = MoneyMath::normalize((string) ($row['available_balance'] ?? $row['balance']), $scale);
             $prevLocked    = MoneyMath::normalize((string) ($row['locked_balance'] ?? '0'), $scale);
-            $this->assertInvariant($prevTotal, $prevAvailable, $prevLocked, $scale);
+            $prevReserved  = MoneyMath::normalize((string) ($row['reserved_balance'] ?? '0'), $scale);
+            $this->assertInvariant($prevTotal, $prevAvailable, $prevLocked, $scale, $prevReserved);
 
             $newAvailable = MoneyMath::add($prevAvailable, $qty, $scale);
             $newLocked    = $prevLocked;
-            $newTotal     = MoneyMath::add($newAvailable, $newLocked, $scale);
+            $newReserved  = $prevReserved;
+            $newTotal     = MoneyMath::add(MoneyMath::add($newAvailable, $newLocked, $scale), $newReserved, $scale);
             $acquired     = MoneyMath::add((string) $row['total_acquired'], $qty, $scale);
 
             $db->table('member_coin_balances')->where('id', (int) $row['id'])->update([
                 'balance'           => $newTotal,
                 'available_balance' => $newAvailable,
                 'locked_balance'    => $newLocked,
+                'reserved_balance'  => $newReserved,
                 'total_acquired'    => $acquired,
                 'updated_at'        => $now,
             ]);
@@ -142,6 +151,8 @@ class MemberCoinOwnershipService
                 'new_available'             => $newAvailable,
                 'previous_locked'           => $prevLocked,
                 'new_locked'                => $newLocked,
+                'previous_reserved'         => $prevReserved,
+                'new_reserved'              => $newReserved,
                 'purchase_ref'              => $purchaseRef,
                 'inventory_transaction_ref' => $inventoryTransactionRef,
                 'actor_user_id'             => $actorUserId,
@@ -170,6 +181,7 @@ class MemberCoinOwnershipService
                     'balance'        => $newTotal,
                     'available'      => $newAvailable,
                     'locked'         => $newLocked,
+                    'reserved'       => $newReserved,
                     'total_acquired' => $acquired,
                     'member_id'      => $memberId,
                 ],
@@ -301,8 +313,10 @@ class MemberCoinOwnershipService
             $prevTotal     = MoneyMath::normalize((string) $row['balance'], $scale);
             $prevAvailable = MoneyMath::normalize((string) ($row['available_balance'] ?? $row['balance']), $scale);
             $prevLocked    = MoneyMath::normalize((string) ($row['locked_balance'] ?? '0'), $scale);
-            $this->assertInvariant($prevTotal, $prevAvailable, $prevLocked, $scale);
+            $prevReserved  = MoneyMath::normalize((string) ($row['reserved_balance'] ?? '0'), $scale);
+            $this->assertInvariant($prevTotal, $prevAvailable, $prevLocked, $scale, $prevReserved);
 
+            $newReserved = $prevReserved;
             if ($type === self::TYPE_LOCK) {
                 if (MoneyMath::compare($prevAvailable, $qty, $scale) < 0) {
                     throw new InvalidArgumentException('Insufficient available coins to lock.');
@@ -319,7 +333,7 @@ class MemberCoinOwnershipService
                 $direction    = 'credit';
             }
 
-            $newTotal = MoneyMath::add($newAvailable, $newLocked, $scale);
+            $newTotal = MoneyMath::add(MoneyMath::add($newAvailable, $newLocked, $scale), $newReserved, $scale);
             if (MoneyMath::compare($newTotal, $prevTotal, $scale) !== 0) {
                 throw new RuntimeException('Lock transfer must not change total owned balance.');
             }
@@ -332,6 +346,7 @@ class MemberCoinOwnershipService
                 'balance'           => $newTotal,
                 'available_balance' => $newAvailable,
                 'locked_balance'    => $newLocked,
+                'reserved_balance'  => $newReserved,
                 'updated_at'        => $now,
             ]);
 
@@ -349,6 +364,8 @@ class MemberCoinOwnershipService
                 'new_available'      => $newAvailable,
                 'previous_locked'    => $prevLocked,
                 'new_locked'         => $newLocked,
+                'previous_reserved'  => $prevReserved,
+                'new_reserved'       => $newReserved,
                 'lock_ref'           => $lockRef,
                 'actor_user_id'      => $actorUserId,
                 'idempotency_key'    => $idempotencyKey,
@@ -380,6 +397,7 @@ class MemberCoinOwnershipService
                     'balance'        => $newTotal,
                     'available'      => $newAvailable,
                     'locked'         => $newLocked,
+                    'reserved'       => $newReserved,
                     'total_acquired' => MoneyMath::normalize((string) $row['total_acquired'], $scale),
                     'member_id'      => $memberId,
                 ],
@@ -407,32 +425,284 @@ class MemberCoinOwnershipService
     }
 
     /**
+     * Reserve available coins for a sell request (not an ownership debit).
+     *
+     * @return array{balance: array<string, string|null>, transaction: array<string, mixed>, duplicate?: bool}
+     */
+    public function reserveForSale(
+        int $memberUserId,
+        string $memberId,
+        string $quantity,
+        string $sellRef,
+        int $actorUserId,
+        ?string $idempotencyKey = null,
+        bool $manageTransaction = true
+    ): array {
+        return $this->applySaleTransfer(
+            self::TYPE_SALE_RESERVE,
+            $memberUserId,
+            $memberId,
+            $quantity,
+            $sellRef,
+            $actorUserId,
+            $idempotencyKey,
+            $manageTransaction
+        );
+    }
+
+    /**
+     * Release a sell reservation back to available.
+     *
+     * @return array{balance: array<string, string|null>, transaction: array<string, mixed>, duplicate?: bool}
+     */
+    public function releaseSaleReserve(
+        int $memberUserId,
+        string $memberId,
+        string $quantity,
+        string $sellRef,
+        int $actorUserId,
+        ?string $idempotencyKey = null,
+        bool $manageTransaction = true
+    ): array {
+        return $this->applySaleTransfer(
+            self::TYPE_SALE_RELEASE,
+            $memberUserId,
+            $memberId,
+            $quantity,
+            $sellRef,
+            $actorUserId,
+            $idempotencyKey,
+            $manageTransaction
+        );
+    }
+
+    /**
+     * Settle reserved coins after verified sale completion (ownership debit once).
+     *
+     * @return array{balance: array<string, string|null>, transaction: array<string, mixed>, duplicate?: bool}
+     */
+    public function debitSale(
+        int $memberUserId,
+        string $memberId,
+        string $quantity,
+        string $sellRef,
+        int $actorUserId,
+        ?string $idempotencyKey = null,
+        bool $manageTransaction = true
+    ): array {
+        return $this->applySaleTransfer(
+            self::TYPE_SALE_DEBIT,
+            $memberUserId,
+            $memberId,
+            $quantity,
+            $sellRef,
+            $actorUserId,
+            $idempotencyKey,
+            $manageTransaction
+        );
+    }
+
+    /**
+     * @return array{balance: array<string, string|null>, transaction: array<string, mixed>, duplicate?: bool}
+     */
+    private function applySaleTransfer(
+        string $type,
+        int $memberUserId,
+        string $memberId,
+        string $quantity,
+        string $sellRef,
+        int $actorUserId,
+        ?string $idempotencyKey,
+        bool $manageTransaction
+    ): array {
+        $scale = $this->scale();
+        $qty   = MoneyMath::normalize($quantity, $scale);
+        if (! MoneyMath::isPositive($qty, $scale)) {
+            throw new InvalidArgumentException('Sale quantity must be greater than zero.');
+        }
+        if (trim($sellRef) === '') {
+            throw new InvalidArgumentException('Sell reference is required.');
+        }
+        if ($idempotencyKey !== null && $idempotencyKey !== '') {
+            $existing = $this->transactions->findByIdempotencyKey($idempotencyKey);
+            if ($existing !== null) {
+                return [
+                    'balance'     => $this->summaryForUser($memberUserId),
+                    'transaction' => $existing,
+                    'duplicate'   => true,
+                ];
+            }
+        }
+
+        $db = db_connect();
+        if ($manageTransaction) {
+            $db->transBegin();
+        }
+
+        try {
+            $row = $db->query(
+                'SELECT * FROM member_coin_balances WHERE member_user_id = ? FOR UPDATE',
+                [$memberUserId]
+            )->getRowArray();
+            if ($row === null) {
+                throw new InvalidArgumentException('No coin balance available for sale transfer.');
+            }
+
+            $prevTotal     = MoneyMath::normalize((string) $row['balance'], $scale);
+            $prevAvailable = MoneyMath::normalize((string) ($row['available_balance'] ?? $row['balance']), $scale);
+            $prevLocked    = MoneyMath::normalize((string) ($row['locked_balance'] ?? '0'), $scale);
+            $prevReserved  = MoneyMath::normalize((string) ($row['reserved_balance'] ?? '0'), $scale);
+            $this->assertInvariant($prevTotal, $prevAvailable, $prevLocked, $scale, $prevReserved);
+
+            $newAvailable = $prevAvailable;
+            $newLocked    = $prevLocked;
+            $newReserved  = $prevReserved;
+            $newTotal     = $prevTotal;
+            $direction    = 'debit';
+
+            if ($type === self::TYPE_SALE_RESERVE) {
+                if (MoneyMath::compare($prevAvailable, $qty, $scale) < 0) {
+                    throw new InvalidArgumentException('Insufficient available coins to reserve for sale.');
+                }
+                $newAvailable = MoneyMath::sub($prevAvailable, $qty, $scale);
+                $newReserved  = MoneyMath::add($prevReserved, $qty, $scale);
+            } elseif ($type === self::TYPE_SALE_RELEASE) {
+                if (MoneyMath::compare($prevReserved, $qty, $scale) < 0) {
+                    throw new InvalidArgumentException('Release exceeds reserved sale balance.');
+                }
+                $newReserved  = MoneyMath::sub($prevReserved, $qty, $scale);
+                $newAvailable = MoneyMath::add($prevAvailable, $qty, $scale);
+                $direction    = 'credit';
+            } elseif ($type === self::TYPE_SALE_DEBIT) {
+                if (MoneyMath::compare($prevReserved, $qty, $scale) < 0) {
+                    throw new InvalidArgumentException('Settlement exceeds reserved sale balance.');
+                }
+                $newReserved = MoneyMath::sub($prevReserved, $qty, $scale);
+                $newTotal    = MoneyMath::sub($prevTotal, $qty, $scale);
+            } else {
+                throw new InvalidArgumentException('Unsupported sale transfer type.');
+            }
+
+            $expected = MoneyMath::add(MoneyMath::add($newAvailable, $newLocked, $scale), $newReserved, $scale);
+            if (MoneyMath::compare($expected, $newTotal, $scale) !== 0) {
+                throw new RuntimeException('Sale transfer broke ownership invariant.');
+            }
+            $this->assertInvariant($newTotal, $newAvailable, $newLocked, $scale, $newReserved);
+
+            $now = date('Y-m-d H:i:s');
+            $db->table('member_coin_balances')->where('id', (int) $row['id'])->update([
+                'balance'           => $newTotal,
+                'available_balance' => $newAvailable,
+                'locked_balance'    => $newLocked,
+                'reserved_balance'  => $newReserved,
+                'updated_at'        => $now,
+            ]);
+
+            $ref = 'OWN-' . strtoupper(bin2hex(random_bytes(8)));
+            $id  = $this->transactions->insert([
+                'transaction_ref'    => $ref,
+                'member_user_id'     => $memberUserId,
+                'member_id'          => $memberId,
+                'type'               => $type,
+                'direction'          => $direction,
+                'quantity'           => $qty,
+                'previous_balance'   => $prevTotal,
+                'new_balance'        => $newTotal,
+                'previous_available' => $prevAvailable,
+                'new_available'      => $newAvailable,
+                'previous_locked'    => $prevLocked,
+                'new_locked'         => $newLocked,
+                'previous_reserved'  => $prevReserved,
+                'new_reserved'       => $newReserved,
+                'sell_ref'           => $sellRef,
+                'actor_user_id'      => $actorUserId,
+                'idempotency_key'    => $idempotencyKey,
+                'metadata'           => json_encode(['source' => 'coin_selling', 'sell_ref' => $sellRef], JSON_THROW_ON_ERROR),
+            ], true);
+            if ($id === false) {
+                throw new RuntimeException('Unable to write sale ownership ledger entry.');
+            }
+            $txn = $this->transactions->find($id);
+            if ($txn === null) {
+                throw new RuntimeException('Sale ownership ledger entry missing after insert.');
+            }
+
+            if ($manageTransaction) {
+                if ($db->transStatus() === false) {
+                    $db->transRollback();
+                    throw new RuntimeException('Sale ownership transfer failed.');
+                }
+                $db->transCommit();
+            }
+
+            return [
+                'balance'     => [
+                    'balance'   => $newTotal,
+                    'available' => $newAvailable,
+                    'locked'    => $newLocked,
+                    'reserved'  => $newReserved,
+                    'member_id' => $memberId,
+                ],
+                'transaction' => $txn,
+                'duplicate'   => false,
+            ];
+        } catch (\Throwable $e) {
+            if ($manageTransaction && $db->transDepth > 0) {
+                $db->transRollback();
+            }
+            if ($idempotencyKey && $this->isDuplicateKeyException($e)) {
+                $existing = $this->transactions->findByIdempotencyKey($idempotencyKey);
+                if ($existing !== null) {
+                    return [
+                        'balance'     => $this->summaryForUser($memberUserId),
+                        'transaction' => $existing,
+                        'duplicate'   => true,
+                    ];
+                }
+            }
+            throw $e;
+        }
+    }
+
+    /**
      * @param array<string, mixed> $row
-     * @return array{balance: string, available: string, locked: string, total_acquired: string, member_id: string}
+     * @return array{balance: string, available: string, locked: string, reserved: string, total_acquired: string, member_id: string}
      */
     private function normalizeBalanceRow(array $row, int $scale): array
     {
         $total     = MoneyMath::normalize((string) $row['balance'], $scale);
         $available = MoneyMath::normalize((string) ($row['available_balance'] ?? $row['balance']), $scale);
         $locked    = MoneyMath::normalize((string) ($row['locked_balance'] ?? '0'), $scale);
-        $this->assertInvariant($total, $available, $locked, $scale);
+        $reserved  = MoneyMath::normalize((string) ($row['reserved_balance'] ?? '0'), $scale);
+        $this->assertInvariant($total, $available, $locked, $scale, $reserved);
 
         return [
             'balance'        => $total,
             'available'      => $available,
             'locked'         => $locked,
+            'reserved'       => $reserved,
             'total_acquired' => MoneyMath::normalize((string) $row['total_acquired'], $scale),
             'member_id'      => (string) $row['member_id'],
         ];
     }
 
-    private function assertInvariant(string $total, string $available, string $locked, int $scale): void
-    {
-        $sum = MoneyMath::add($available, $locked, $scale);
+    private function assertInvariant(
+        string $total,
+        string $available,
+        string $locked,
+        int $scale,
+        string $reserved = '0'
+    ): void {
+        $reserved = MoneyMath::normalize($reserved, $scale);
+        $sum = MoneyMath::add(MoneyMath::add($available, $locked, $scale), $reserved, $scale);
         if (MoneyMath::compare($total, $sum, $scale) !== 0) {
-            throw new RuntimeException('Coin balance invariant violated: total must equal available + locked.');
+            throw new RuntimeException('Coin balance invariant violated: total must equal available + locked + reserved.');
         }
-        if (MoneyMath::isNegative($available, $scale) || MoneyMath::isNegative($locked, $scale) || MoneyMath::isNegative($total, $scale)) {
+        if (MoneyMath::isNegative($available, $scale)
+            || MoneyMath::isNegative($locked, $scale)
+            || MoneyMath::isNegative($reserved, $scale)
+            || MoneyMath::isNegative($total, $scale)
+        ) {
             throw new RuntimeException('Negative coin balances are not allowed.');
         }
     }
@@ -457,6 +727,7 @@ class MemberCoinOwnershipService
                 'balance'           => $zero,
                 'available_balance' => $zero,
                 'locked_balance'    => $zero,
+                'reserved_balance'  => $zero,
                 'total_acquired'    => $zero,
                 'created_at'        => $now,
                 'updated_at'        => $now,

@@ -52,42 +52,55 @@ class CreateNotificationOutboxAndRemediationExtras extends Migration
         $this->forge->addKey('outbox_ref');
         $this->forge->createTable('notification_delivery_events', true);
 
-        $this->forge->addColumn('financial_remediation_proposals', [
-            'reason_code' => [
-                'type'       => 'VARCHAR',
-                'constraint' => 64,
-                'null'       => true,
-                'after'      => 'remediation_type',
-            ],
-            'evidence_stored_name' => [
-                'type'       => 'VARCHAR',
-                'constraint' => 255,
-                'null'       => true,
-                'after'      => 'evidence_notes',
-            ],
-            'evidence_original_name' => [
-                'type'       => 'VARCHAR',
-                'constraint' => 255,
-                'null'       => true,
-                'after'      => 'evidence_stored_name',
-            ],
-            'evidence_mime' => [
-                'type'       => 'VARCHAR',
-                'constraint' => 120,
-                'null'       => true,
-                'after'      => 'evidence_original_name',
-            ],
-        ]);
+        if ($this->db->tableExists('financial_remediation_proposals')) {
+            $columns = [];
+            if (! $this->db->fieldExists('reason_code', 'financial_remediation_proposals')) {
+                $columns['reason_code'] = [
+                    'type'       => 'VARCHAR',
+                    'constraint' => 64,
+                    'null'       => true,
+                    'after'      => 'remediation_type',
+                ];
+            }
+            if (! $this->db->fieldExists('evidence_stored_name', 'financial_remediation_proposals')) {
+                $columns['evidence_stored_name'] = [
+                    'type'       => 'VARCHAR',
+                    'constraint' => 255,
+                    'null'       => true,
+                    'after'      => 'evidence_notes',
+                ];
+            }
+            if (! $this->db->fieldExists('evidence_original_name', 'financial_remediation_proposals')) {
+                $columns['evidence_original_name'] = [
+                    'type'       => 'VARCHAR',
+                    'constraint' => 255,
+                    'null'       => true,
+                    'after'      => 'evidence_stored_name',
+                ];
+            }
+            if (! $this->db->fieldExists('evidence_mime', 'financial_remediation_proposals')) {
+                $columns['evidence_mime'] = [
+                    'type'       => 'VARCHAR',
+                    'constraint' => 120,
+                    'null'       => true,
+                    'after'      => 'evidence_original_name',
+                ];
+            }
+            if ($columns !== []) {
+                $this->forge->addColumn('financial_remediation_proposals', $columns);
+            }
+        }
     }
 
     public function down(): void
     {
-        $this->forge->dropColumn('financial_remediation_proposals', [
-            'reason_code',
-            'evidence_stored_name',
-            'evidence_original_name',
-            'evidence_mime',
-        ]);
+        if ($this->db->tableExists('financial_remediation_proposals')) {
+            foreach (['reason_code', 'evidence_stored_name', 'evidence_original_name', 'evidence_mime'] as $col) {
+                if ($this->db->fieldExists($col, 'financial_remediation_proposals')) {
+                    $this->forge->dropColumn('financial_remediation_proposals', $col);
+                }
+            }
+        }
         $this->forge->dropTable('notification_delivery_events', true);
         $this->forge->dropTable('notification_outbox', true);
     }

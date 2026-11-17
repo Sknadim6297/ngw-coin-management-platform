@@ -40,6 +40,7 @@ final class Phase10AMemberProductionReadinessTest extends CIUnitTestCase
         $platform->adminName                         = 'Test Admin';
         $platform->rootSponsorId                     = 'ROOT0001';
         $platform->memberIdPrefix                    = 'CPM';
+        $platform->memberIdStartNumber = 1;
         $platform->requireVerifiedDepositForApproval = false;
         $platform->commissionPostingEnabled          = false;
         $platform->commissionWithdrawalEnabled       = false;
@@ -210,7 +211,7 @@ final class Phase10AMemberProductionReadinessTest extends CIUnitTestCase
         $index = $this->withSession()->get('member/withdrawals');
         $index->assertOK();
         $index->assertSee('Not Available');
-        $index->assertSee('Request Withdrawal â€” Not Available');
+        $index->assertSee('Request Withdrawal — Not Available');
 
         $create = $this->withSession()->get('member/withdrawals/create');
         $create->assertRedirectTo(site_url('member/withdrawals'));

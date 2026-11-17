@@ -1,0 +1,10 @@
+﻿
+CodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:17:01 UTC+00:00
+
+php : --purchase-ref is required
+At line:1 char:200
++ ... TEXITCODE"; php spark locking:remediate-mandatory '--purchase-ref=PUR ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (--purchase-ref is required:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

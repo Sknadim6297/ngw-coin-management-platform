@@ -1,0 +1,20 @@
+{
+    "generated_at": "2026-11-17T13:19:09+01:00",
+    "steps": {
+        "member_id_phase12d_dry": 0,
+        "member_id_phase12d_apply": 1,
+        "member_id_phase12b_dry": 1,
+        "lock_staging_dry": 1,
+        "lock_staging_apply": "SKIPPED_ALREADY_LOCKED",
+        "lock_prod_dry": 0,
+        "lock_prod_refuse": 1,
+        "mining_status": 0
+    },
+    "phase12d_sequence_after": {
+        "last_number": "981233"
+    },
+    "lock_note": "No missing lock on staging; dry-run against latest approved for duplicate protection check",
+    "staging_purchase_ref": "PUR-53A2BCAC7216BECC",
+    "commission_draft": "Prepared via service on staging in follow-up if DB has actor user; see report",
+    "production_untouched": true
+}

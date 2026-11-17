@@ -1,6 +1,10 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
-<p class="page-subtitle">Manage BEP20 USDT receiving details. Wallet / QR / enable changes require dual-control after initial setup.</p>
+<p class="page-subtitle">Manage BEP20 USDT receiving details. First real wallet setup applies immediately. Later wallet / QR / enable changes use dual-control (platform admin with Settings may approve their own proposal).</p>
+
+<?php if (! empty($setupHint)): ?>
+<div class="alert alert-info"><?= esc($setupHint) ?></div>
+<?php endif; ?>
 
 <?php if (! empty($pending)): ?>
 <div class="alert alert-warning">
@@ -8,18 +12,25 @@
     <code><?= esc($pending['proposal_ref'] ?? '') ?></code>
     → <code><?= esc($pending['to_destination_wallet'] ?? '') ?></code>
     · Enable: <?= ! empty($pending['display_enabled']) ? 'Yes' : 'No' ?>
-    <?php if (! empty($canApprove)): ?>
+    <?php
+        $actorId = (int) (auth()->id() ?? 0);
+        $isOwnPending = (int) ($pending['proposed_by'] ?? 0) === $actorId;
+        $showApprove = ! empty($canApprove) && (! $isOwnPending || ! empty($allowSelfApprove));
+    ?>
+    <?php if ($showApprove): ?>
         <form method="post" action="<?= site_url('admin/payment-details/approve/' . rawurlencode((string) $pending['proposal_ref'])) ?>" class="d-inline ms-2">
             <?= csrf_field() ?>
-            <button class="btn btn-gold btn-sm" type="submit">Approve</button>
+            <button class="btn btn-gold btn-sm" type="submit"><?= $isOwnPending ? 'Approve (platform admin)' : 'Approve' ?></button>
         </form>
+    <?php elseif ($isOwnPending && empty($allowSelfApprove)): ?>
+        <span class="ms-2 small">Awaiting a second finance approver (or a platform admin with Settings).</span>
+    <?php endif; ?>
+    <?php if (! empty($canCancelPending)): ?>
         <form method="post" action="<?= site_url('admin/payment-details/reject/' . rawurlencode((string) $pending['proposal_ref'])) ?>" class="d-inline">
             <?= csrf_field() ?>
-            <input type="hidden" name="reason" value="Rejected by finance approver.">
-            <button class="btn btn-outline-gold btn-sm" type="submit">Reject</button>
+            <input type="hidden" name="reason" value="<?= $isOwnPending ? 'Cancelled by proposer.' : 'Rejected by finance approver.' ?>">
+            <button class="btn btn-outline-gold btn-sm" type="submit"><?= $isOwnPending ? 'Cancel pending' : 'Reject' ?></button>
         </form>
-    <?php else: ?>
-        <span class="ms-2 small">Awaiting finance approver (self-approval blocked).</span>
     <?php endif; ?>
 </div>
 <?php endif; ?>
@@ -35,16 +46,28 @@
             </div>
             <div class="col-md-8">
                 <label class="form-label">USDT Token Contract Address</label>
+                <?php
+                    $contractVal = old('token_contract_address', $network['token_contract_address'] ?? '');
+                    if ($contractVal !== '' && ! preg_match('/^0x[a-fA-F0-9]{40}$/', (string) $contractVal)) {
+                        $contractVal = '';
+                    }
+                ?>
                 <input class="form-control form-control-sm" name="token_contract_address" maxlength="128"
-                       value="<?= esc(old('token_contract_address', $network['token_contract_address'] ?? '')) ?>"
-                       placeholder="0x..." <?= empty($canSave) || ! empty($pending) ? 'disabled' : '' ?>>
+                       value="<?= esc($contractVal) ?>"
+                       placeholder="0x… (BSC USDT contract)" <?= empty($canSave) || ! empty($pending) ? 'disabled' : '' ?>>
             </div>
 
             <div class="col-md-8">
                 <label class="form-label">Receiving Wallet Address</label>
+                <?php
+                    $walletVal = old('receiving_wallet_address', $network['destination_wallet'] ?? '');
+                    if ($walletVal !== '' && ! preg_match('/^0x[a-fA-F0-9]{40}$/', (string) $walletVal)) {
+                        $walletVal = '';
+                    }
+                ?>
                 <input class="form-control form-control-sm" name="receiving_wallet_address" maxlength="128"
-                       value="<?= esc(old('receiving_wallet_address', $network['destination_wallet'] ?? '')) ?>"
-                       placeholder="0x..." pattern="^0x[a-fA-F0-9]{40}$"
+                       value="<?= esc($walletVal) ?>"
+                       placeholder="0x… (your deposit receiving wallet)" pattern="^0x[a-fA-F0-9]{40}$"
                        <?= empty($canSave) || ! empty($pending) ? 'disabled' : '' ?>>
             </div>
             <div class="col-md-4">
@@ -103,6 +126,8 @@
             <div class="col-md-6 d-flex align-items-end justify-content-md-end">
                 <?php if (! empty($canSave) && empty($pending)): ?>
                     <button class="btn btn-gold btn-sm" type="submit">Save Deposit Settings</button>
+                <?php elseif (! empty($pending)): ?>
+                    <span class="small text-secondary">Form locked until pending change is approved or cancelled.</span>
                 <?php endif; ?>
             </div>
         </div>

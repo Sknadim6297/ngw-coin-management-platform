@@ -291,6 +291,7 @@ class WalletReconciliationService
         $zero      = MoneyMath::normalize('0', $scale);
         $available = $zero;
         $locked    = $zero;
+        $reserved  = $zero;
 
         $rows = db_connect()->table('member_coin_ownership_transactions')
             ->where('member_user_id', $memberUserId)
@@ -309,13 +310,22 @@ class WalletReconciliationService
             } elseif ($type === MemberCoinOwnershipService::TYPE_UNLOCK) {
                 $locked    = MoneyMath::sub($locked, $qty, $scale);
                 $available = MoneyMath::add($available, $qty, $scale);
+            } elseif ($type === MemberCoinOwnershipService::TYPE_SALE_RESERVE) {
+                $available = MoneyMath::sub($available, $qty, $scale);
+                $reserved  = MoneyMath::add($reserved, $qty, $scale);
+            } elseif ($type === MemberCoinOwnershipService::TYPE_SALE_RELEASE) {
+                $reserved  = MoneyMath::sub($reserved, $qty, $scale);
+                $available = MoneyMath::add($available, $qty, $scale);
+            } elseif ($type === MemberCoinOwnershipService::TYPE_SALE_DEBIT) {
+                $reserved = MoneyMath::sub($reserved, $qty, $scale);
             }
         }
 
         return [
-            'balance'   => MoneyMath::add($available, $locked, $scale),
+            'balance'   => MoneyMath::add(MoneyMath::add($available, $locked, $scale), $reserved, $scale),
             'available' => $available,
             'locked'    => $locked,
+            'reserved'  => $reserved,
         ];
     }
 
@@ -336,17 +346,19 @@ class WalletReconciliationService
             $total     = MoneyMath::normalize((string) $row['balance'], $scale);
             $available = MoneyMath::normalize((string) ($row['available_balance'] ?? '0'), $scale);
             $locked    = MoneyMath::normalize((string) ($row['locked_balance'] ?? '0'), $scale);
-            $sum       = MoneyMath::add($available, $locked, $scale);
+            $reserved  = MoneyMath::normalize((string) ($row['reserved_balance'] ?? '0'), $scale);
+            $sum       = MoneyMath::add(MoneyMath::add($available, $locked, $scale), $reserved, $scale);
             if (MoneyMath::compare($total, $sum, $scale) !== 0) {
                 $out[] = [
                     'code'           => 'invariant_broken',
                     'severity'       => 'critical',
-                    'message'        => 'Cached total owned != available + locked.',
+                    'message'        => 'Cached total owned != available + locked + reserved.',
                     'member_user_id' => (int) $row['member_user_id'],
                     'member_id'      => $row['member_id'],
                     'balance'        => $total,
                     'available'      => $available,
                     'locked'         => $locked,
+                    'reserved'       => $reserved,
                 ];
                 continue;
             }
@@ -355,6 +367,7 @@ class WalletReconciliationService
             if (MoneyMath::compare($total, $replay['balance'], $scale) !== 0
                 || MoneyMath::compare($available, $replay['available'], $scale) !== 0
                 || MoneyMath::compare($locked, $replay['locked'], $scale) !== 0
+                || MoneyMath::compare($reserved, (string) ($replay['reserved'] ?? '0'), $scale) !== 0
             ) {
                 $out[] = [
                     'code'           => 'cache_ledger_drift',

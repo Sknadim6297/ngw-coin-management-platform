@@ -99,12 +99,14 @@ class RootSponsorSeeder extends Seeder
             'is_root_sponsor' => 1,
         ]);
 
-        $prefix = (string) env('platform.memberIdPrefix', $config->memberIdPrefix);
+        $prefix = strtoupper(trim((string) env('platform.memberIdPrefix', $config->memberIdPrefix))) ?: 'NGW';
+        $start  = max(1, (int) ($config->memberIdStartNumber ?? 981234));
+        $floor  = $start - 1;
         $exists = $this->db->table('member_id_sequences')->where('prefix', $prefix)->countAllResults();
         if ($exists === 0) {
             $this->db->table('member_id_sequences')->insert([
                 'prefix'      => $prefix,
-                'last_number' => 0,
+                'last_number' => $floor,
                 'created_at'  => date('Y-m-d H:i:s'),
                 'updated_at'  => date('Y-m-d H:i:s'),
             ]);

@@ -31,6 +31,7 @@ final class HttpAuthPagesTest extends CIUnitTestCase
         $platform->adminName      = 'Test Admin';
         $platform->rootSponsorId  = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
 
         putenv('platform.adminEmail=admin@test.local');
         putenv('platform.adminPassword=AdminPass123!');

@@ -56,6 +56,7 @@ final class PaymentAllocationLifecycleTest extends CIUnitTestCase
         $platform->adminName = 'Test Admin';
         $platform->rootSponsorId = 'ROOT0001';
         $platform->memberIdPrefix = 'CPM';
+        $platform->memberIdStartNumber = 1;
         $platform->requireVerifiedDepositForApproval = true;
 
         $chain = config('Blockchain');
@@ -297,7 +298,7 @@ final class PaymentAllocationLifecycleTest extends CIUnitTestCase
 
         $this->assertTrue($r1['ran']);
         $this->assertSame($before, $after);
-        // Second run also completes (lock released) â€” idempotent regarding ledgers.
+        // Second run also completes (lock released) — idempotent regarding ledgers.
         $this->assertTrue($r2['ran'] || $r2['skipped']);
     }
 

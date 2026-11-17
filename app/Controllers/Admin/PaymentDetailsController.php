@@ -24,18 +24,29 @@ class PaymentDetailsController extends BaseController
         $svc = service('paymentDetailsService');
         $network = $svc->ensureBep20();
 
+        $pending = $svc->pendingDestinationChange();
+        $actorId = (int) (auth()->id() ?? 0);
+
         return view('admin/payment_details/index', [
-            'title'     => 'Payment Details',
-            'network'   => $network,
-            'pending'   => $svc->pendingDestinationChange(),
-            'canSave'   => $this->canPropose(),
-            'canApprove'=> $this->canApprove(),
-            'qrUrl'     => service('paymentQrService')->publicMediaUrl(
+            'title'      => 'Payment Details',
+            'network'    => $network,
+            'pending'    => $pending,
+            'canSave'    => $this->canPropose(),
+            'canApprove' => $this->canApprove(),
+            'canCancelPending' => $pending !== null && (
+                $this->canApprove()
+                || ((int) ($pending['proposed_by'] ?? 0) === $actorId && $this->canPropose())
+            ),
+            'allowSelfApprove' => $this->canPlatformAdminSelfApprove(),
+            'qrUrl'      => service('paymentQrService')->publicMediaUrl(
                 (string) $network['network_key'],
                 $network['qr_stored_name'] ?? null
             ),
-            'logoUrl'   => ! empty($network['logo_stored_name'])
+            'logoUrl'    => ! empty($network['logo_stored_name'])
                 ? site_url('media/payment-logo/' . rawurlencode((string) $network['network_key']))
+                : null,
+            'setupHint'  => ! $svc->isUsableBep20Address((string) ($network['destination_wallet'] ?? ''))
+                ? 'Current receiving wallet is not set (placeholder). Enter a real BEP20 wallet and Save — first setup applies immediately.'
                 : null,
         ]);
     }
@@ -80,7 +91,11 @@ class PaymentDetailsController extends BaseController
         }
 
         try {
-            service('paymentDestinationChangeService')->approve($ref, (int) auth()->id());
+            service('paymentDestinationChangeService')->approve(
+                $ref,
+                (int) auth()->id(),
+                $this->canPlatformAdminSelfApprove()
+            );
         } catch (InvalidArgumentException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
@@ -91,22 +106,32 @@ class PaymentDetailsController extends BaseController
 
     public function rejectDestination(string $ref)
     {
-        if (! $this->canApprove()) {
+        $actorId = (int) auth()->id();
+        $pending = service('paymentDestinationChangeService')->findByRef($ref);
+        $isProposer = $pending !== null && (int) ($pending['proposed_by'] ?? 0) === $actorId;
+
+        // Approvers may reject; proposer may cancel their own pending change to unlock the form.
+        if (! $this->canApprove() && ! ($isProposer && $this->canPropose())) {
             return redirect()->to(site_url('admin/dashboard'))->with('error', 'Permission denied.');
         }
 
         try {
             service('paymentDestinationChangeService')->reject(
                 $ref,
-                (int) auth()->id(),
-                (string) ($this->request->getPost('reason') ?: 'Rejected by finance approver.')
+                $actorId,
+                (string) ($this->request->getPost('reason')
+                    ?: ($isProposer && ! $this->canApprove()
+                        ? 'Cancelled by proposer.'
+                        : 'Rejected by finance approver.'))
             );
         } catch (InvalidArgumentException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
 
         return redirect()->to(site_url('admin/payment-details'))
-            ->with('success', 'Destination change rejected.');
+            ->with('success', $isProposer && ! $this->canApprove()
+                ? 'Pending destination change cancelled. You can save payment details again.'
+                : 'Destination change rejected.');
     }
 
     public function logo(string $networkKey): ResponseInterface
@@ -169,6 +194,20 @@ class PaymentDetailsController extends BaseController
     {
         $user = auth()->user();
 
-        return $user !== null && $user->can('finance.remediation.approve');
+        return $user !== null && (
+            $user->can('finance.remediation.approve')
+            || $user->can('admin.settings')
+        );
+    }
+
+    /**
+     * Solo platform admins may approve their own destination proposals (audited).
+     * Dedicated finance operators without admin.settings remain dual-control only.
+     */
+    private function canPlatformAdminSelfApprove(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && $user->can('admin.settings');
     }
 }

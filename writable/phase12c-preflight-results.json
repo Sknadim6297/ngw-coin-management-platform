@@ -1,0 +1,70 @@
+{
+  "phase": "12C",
+  "generated_at": "2026-11-17T12:12:33+00:00",
+  "database": "coin_platform",
+  "mutations": "none",
+  "deployed": false,
+  "kill_switches": {
+    "miningPostingEnabled": false,
+    "miningP2pEnabled": false,
+    "commissionPostingEnabled": false,
+    "commissionWithdrawalEnabled": false,
+    "commissionBlockchainPayoutEnabled": false,
+    "coinSellingEnabled": false,
+    "mandatoryPurchaseLockEnabled": true,
+    "blockchain.depositVerifier": "not_configured"
+  },
+  "sections": {
+    "A_baseline": "READY_WITH_RESTRICTIONS",
+    "B_member_id_plan": "BLOCKED",
+    "C_lock1000_preview": "BLOCKED",
+    "D_mining_decisions": "BLOCKED",
+    "E_commission_decisions": "BLOCKED",
+    "F_withdrawal_selling": "BLOCKED",
+    "G_security": "READY_WITH_RESTRICTIONS",
+    "H_blockchain": "BLOCKED",
+    "I_scheduler": "BLOCKED",
+    "J_backup_restore": "BLOCKED",
+    "K_focused_tests": "READY_WITH_RESTRICTIONS",
+    "L_activation_blockers": "BLOCKED",
+    "M_activation_sequence": "READY_WITH_RESTRICTIONS"
+  },
+  "focused_phpunit": {
+    "full_suite_run": false,
+    "completed_filter_run": {
+      "tests": 22,
+      "assertions": 85,
+      "passed": 19,
+      "errors": 2,
+      "failures": 1,
+      "note": "Failures addressed in code; operator stopped further PHPUnit re-run"
+    },
+    "phase12a_staging": "PASS",
+    "phase12b_staging_e2e": "PASS"
+  },
+  "member_id": {
+    "production_start": 981234,
+    "production_padding": 6,
+    "sequence_last_number": 981233,
+    "target_start": 1234,
+    "target_padding": 4,
+    "applied": false,
+    "collision_NGW1234": false
+  },
+  "lock1000_remediation": {
+    "purchase_ref": "PUR-10D7174B7FF83054",
+    "member_id": "NGW000001",
+    "executed": false,
+    "preview_only": true
+  },
+  "verdict": {
+    "deployment_review": "READY_WITH_RESTRICTIONS",
+    "mining_posting": false,
+    "commission_posting": false,
+    "p2p": false,
+    "withdrawals": false,
+    "coin_selling": false
+  },
+  "report": "docs/phase12c-production-preflight-report.md",
+  "baseline": "writable/phase12c-baseline-raw.json"
+}
