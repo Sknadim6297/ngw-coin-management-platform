@@ -19,7 +19,8 @@
         </div>
         <div class="col-md-4">
             <label class="form-label" for="duration_days">Duration (days)</label>
-            <input class="form-control" type="number" id="duration_days" name="duration_days" min="1" max="3650" value="<?= esc(old('duration_days') ?? '30') ?>" required>
+            <input class="form-control" type="number" id="duration_days" name="duration_days" min="1" max="3650" value="<?= esc(old('duration_days') ?? '1000') ?>" required>
+            <div class="field-hint">Client Coin Plan default is 1000 days. Plans do not auto-lock purchases until an activation phase enables that policy.</div>
         </div>
         <div class="col-md-4">
             <label class="form-label" for="min_quantity">Minimum Quantity</label>

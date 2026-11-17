@@ -9,7 +9,7 @@ use App\Libraries\Dashboard\KpiCardFactory;
 use App\Models\MemberProfileModel;
 
 /**
- * Phase 7B member mining simulation views (read-only, non-payable).
+ * Phase 11A member mining preview (own records only; no credits / withdraw / P2P).
  */
 class MiningController extends BaseController
 {
@@ -21,30 +21,40 @@ class MiningController extends BaseController
             return redirect()->to(site_url('login'))->with('error', 'Member profile not found.');
         }
 
-        $today   = date('Y-m-d');
-        $preview = service('miningSimulationService')->memberPreview($userId, $today);
-        $eval    = $preview['eligibility'];
-        $rate    = $preview['rate'];
+        $today = service('miningEligibilityService')->businessDate();
+        $rate  = service('miningRateService')->approvedForDate($today);
+        $eval  = service('miningEligibilityService')->evaluate($userId, $today, $rate);
+        $expected = '0.00000000';
+        if ($rate !== null && ! empty($eval['eligible'])) {
+            $expected = service('miningRateService')->previewAmount(
+                (string) $eval['eligible_coins'],
+                $rate,
+                $today
+            );
+        }
+        $wallet = service('miningWalletService')->balanceFor($userId);
+        $ledger = service('miningWalletService')->ledgerFor($userId, 20);
 
         $kpis = [
             KpiCardFactory::ok('owned', 'Total Owned Coins', $eval['total_owned'], 'purple', 'bi-coin', 'coins'),
-            KpiCardFactory::ok('available', 'Available Coins', $eval['available'], 'green', 'bi-wallet2', 'coins'),
-            KpiCardFactory::ok('locked', 'Locked Coins', $eval['locked'], 'orange', 'bi-lock-fill', 'coins'),
-            KpiCardFactory::ok('eligible', 'Eligible Coins', $eval['eligible_coins'], 'cyan', 'bi-check2-circle', 'coins'),
-            KpiCardFactory::ok('ineligible', 'Ineligible Coins', $eval['ineligible_coins'], 'amber', 'bi-x-circle', 'coins'),
-            KpiCardFactory::ok('today_preview', "Today's Mining Preview", $preview['preview_amount'], 'teal', 'bi-lightning-charge', 'coins'),
-            KpiCardFactory::ok('total_preview', 'My Total Mining Preview', service('miningSimulationService')->memberPreviewTotal($userId), 'indigo', 'bi-graph-up', 'coins'),
-            KpiCardFactory::unavailable('actual', 'Actual Mining', 'gold', 'bi-safe', 'Actual Mining: Not Activated'),
+            KpiCardFactory::ok('eligible', 'Eligible Mining Coins', $eval['eligible_coins'], 'cyan', 'bi-check2-circle', 'coins'),
+            KpiCardFactory::ok('rate', 'Approved Monthly Rate', $rate['rate_percent'] ?? 'Not configured', 'teal', 'bi-percent', 'rates'),
+            KpiCardFactory::ok('today_preview', 'Expected Daily Mining', $expected, 'indigo', 'bi-lightning-charge', 'coins'),
+            KpiCardFactory::ok('start', 'Mining Start Date', $eval['mining_start_date'] ?? '—', 'green', 'bi-calendar', 'dates'),
+            KpiCardFactory::ok('wallet', 'Mining Wallet Balance', $wallet['available_balance'], 'amber', 'bi-wallet2', 'coins'),
+            KpiCardFactory::unavailable('actual', 'Posting Status', 'gold', 'bi-safe', 'Mining Preview — Actual Credits Not Activated'),
         ];
 
         return view('member/mining/index', [
-            'title'   => 'Mining Simulation',
-            'profile' => $profile,
-            'kpis'    => $kpis,
-            'preview' => $preview,
-            'eval'    => $eval,
-            'rate'    => $rate,
-            'today'   => $today,
+            'title'    => 'Mining',
+            'profile'  => $profile,
+            'kpis'     => $kpis,
+            'eval'     => $eval,
+            'rate'     => $rate,
+            'today'    => $today,
+            'expected' => $expected,
+            'wallet'   => $wallet,
+            'ledger'   => $ledger,
         ]);
     }
 
@@ -57,9 +67,10 @@ class MiningController extends BaseController
         }
 
         return view('member/mining/history', [
-            'title'   => 'Mining Simulation History',
+            'title'   => 'Mining History',
             'profile' => $profile,
-            'rows'    => service('miningSimulationService')->historyForMember($userId, 50),
+            'rows'    => service('miningWalletService')->ledgerFor($userId, 50),
+            'simRows' => service('miningSimulationService')->historyForMember($userId, 50),
         ]);
     }
 }

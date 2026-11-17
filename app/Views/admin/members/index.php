@@ -10,6 +10,7 @@ $statusKey = $status ?? 'all';
 if ($statusKey === null || $statusKey === '') {
     $statusKey = 'all';
 }
+$canImpersonate = ! empty($canImpersonate);
 ?>
 <?= view('components/admin_tabs', [
     'active' => $statusKey,
@@ -46,7 +47,7 @@ if ($statusKey === null || $statusKey === '') {
                 <th>Sponsor</th>
                 <th>Status</th>
                 <th>Purchased Coins</th>
-                <th></th>
+                <th class="text-nowrap">Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -65,7 +66,21 @@ if ($statusKey === null || $statusKey === '') {
                         <td><?= esc($sponsor) ?></td>
                         <td><span class="badge-status <?= esc($member->account_status) ?>"><?= esc(ucfirst($member->account_status)) ?></span></td>
                         <td><?= esc($coins) ?></td>
-                        <td><a href="<?= site_url('admin/members/' . $member->member_id) ?>">View Profile</a></td>
+                        <td class="text-nowrap">
+                            <a class="btn btn-sm btn-outline-gold" href="<?= site_url('admin/members/' . $member->member_id) ?>">View</a>
+                            <?php if ($canImpersonate): ?>
+                                <button
+                                    class="btn btn-sm btn-gold"
+                                    type="button"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#impersonateModal"
+                                    data-member-id="<?= esc($member->member_id) ?>"
+                                    data-member-name="<?= esc($member->member_name) ?>"
+                                    title="Login as Member">
+                                    <i class="bi bi-box-arrow-up-right"></i><span class="d-none d-lg-inline"> Login as Member</span>
+                                </button>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -74,4 +89,39 @@ if ($statusKey === null || $statusKey === '') {
     </div>
     <div class="mt-3"><?= $pager->links() ?></div>
 </div>
+
+<?php if ($canImpersonate): ?>
+    <?= view('components/impersonate_modal', [
+        'modalId'    => 'impersonateModal',
+        'memberId'   => '',
+        'memberName' => '',
+    ]) ?>
+<?php endif; ?>
 <?= $this->endSection() ?>
+
+<?php if ($canImpersonate): ?>
+<?= $this->section('scripts') ?>
+<script>
+(() => {
+  const modal = document.getElementById('impersonateModal');
+  if (!modal) return;
+  const form = modal.querySelector('[data-impersonate-form]');
+  const idEl = modal.querySelector('[data-impersonate-member-id]');
+  const nameEl = modal.querySelector('[data-impersonate-member-name]');
+  const pwd = modal.querySelector('input[name="admin_password"]');
+  const base = form?.dataset.actionBase || '';
+
+  modal.addEventListener('show.bs.modal', (event) => {
+    const btn = event.relatedTarget;
+    if (!btn || !form) return;
+    const memberId = btn.getAttribute('data-member-id') || '';
+    const memberName = btn.getAttribute('data-member-name') || '';
+    if (idEl) idEl.textContent = memberId;
+    if (nameEl) nameEl.textContent = memberName;
+    form.action = base.replace(/\/$/, '') + '/' + encodeURIComponent(memberId) + '/impersonate';
+    if (pwd) pwd.value = '';
+  });
+})();
+</script>
+<?= $this->endSection() ?>
+<?php endif; ?>

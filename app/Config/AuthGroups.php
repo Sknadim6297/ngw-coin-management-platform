@@ -41,6 +41,7 @@ class AuthGroups extends ShieldAuthGroups
     public array $permissions = [
         'admin.access'         => 'Can access the admin panel',
         'admin.members.manage' => 'Can manage members',
+        'admin.members.impersonate' => 'Login as member (read-only support view)',
         'admin.settings'       => 'Can access platform settings',
         'admin.support.manage' => 'Manage member support tickets',
         'admin.reports.view'   => 'View admin reports and analytics',

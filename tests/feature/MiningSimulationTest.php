@@ -176,23 +176,15 @@ final class MiningSimulationTest extends CIUnitTestCase
         service('miningRateService')->assertImmutable($draft['rate_ref']);
     }
 
-    public function testEligibilityUsesAvailableOnlyAndRequiresActive(): void
+    public function testEligibilityUsesTotalOwnedIncludingLocked(): void
     {
         $member = $this->registerMember('elig');
         $inactive = service('miningEligibilityService')->evaluate($member['user_id'], date('Y-m-d'), null);
         $this->assertFalse($inactive['eligible']);
         $this->assertContains('member_inactive', $inactive['reason_codes']);
 
+        // Phase 11A: purchase approval mandatory-locks full quantity; locked coins remain eligible.
         $this->credit($member, '80');
-        $plan = service('coinLockingService')->createPlan([
-            'plan_code' => 'M' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6)),
-            'name' => 'Mine Lock',
-            'min_quantity' => '1',
-            'max_quantity' => '1000',
-            'duration_days' => 30,
-        ], $this->adminUserId);
-        service('coinLockingService')->setPlanEnabled((int) $plan['id'], true, $this->adminUserId);
-        service('coinLockingService')->lockCoins($member['user_id'], (int) $plan['id'], '30');
 
         $rate = service('miningRateService')->createDraft([
             'effective_month' => date('Y-m'),
@@ -204,9 +196,11 @@ final class MiningSimulationTest extends CIUnitTestCase
 
         $eval = service('miningEligibilityService')->evaluate($member['user_id'], date('Y-m-d'), $rate);
         $this->assertTrue($eval['eligible']);
-        $this->assertSame('50.00000000', $eval['eligible_coins']); // 80 - 30 locked
-        $this->assertSame('30.00000000', $eval['locked']);
-        $this->assertContains('locked_excluded', $eval['reason_codes']);
+        $this->assertSame('80.00000000', $eval['eligible_coins']);
+        $this->assertSame('80.00000000', $eval['locked']);
+        $this->assertSame('0.00000000', $eval['available']);
+        $this->assertContains('eligible_total_owned', $eval['reason_codes']);
+        $this->assertSame('total_owned_active', $eval['policy']);
     }
 
     public function testMonthlyRateConversionAndPrecision(): void

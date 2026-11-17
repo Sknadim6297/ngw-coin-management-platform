@@ -77,13 +77,14 @@ class MemberController extends BaseController
         }
 
         return view('admin/members/index', [
-            'title'          => $title,
-            'status'         => $status ?? 'all',
-            'search'         => $search,
-            'members'        => $members,
-            'pager'          => $profiles->pager,
-            'sponsors'       => $sponsors,
-            'purchasedCoins' => $purchasedCoins,
+            'title'           => $title,
+            'status'          => $status ?? 'all',
+            'search'          => $search,
+            'members'         => $members,
+            'pager'           => $profiles->pager,
+            'sponsors'        => $sponsors,
+            'purchasedCoins'  => $purchasedCoins,
+            'canImpersonate'  => $this->userCan('admin.members.impersonate'),
         ]);
     }
 
@@ -176,6 +177,7 @@ class MemberController extends BaseController
             'email'          => $email,
             'activation'     => $activation,
             'purchasedCoins' => $owned['total_acquired'] ?? '0',
+            'canImpersonate' => $this->userCan('admin.members.impersonate'),
         ]);
     }
 }

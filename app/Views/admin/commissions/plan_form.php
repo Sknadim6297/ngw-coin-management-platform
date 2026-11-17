@@ -27,15 +27,15 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">Level 1 %</label>
-                <input class="form-control" name="level_1_percent" required value="<?= esc(old('level_1_percent', '')) ?>" placeholder="e.g. 10">
+                <input class="form-control" name="level_1_percent" required value="<?= esc(old('level_1_percent', '10')) ?>" placeholder="10">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Level 2 %</label>
-                <input class="form-control" name="level_2_percent" value="<?= esc(old('level_2_percent', '')) ?>" placeholder="e.g. 5">
+                <input class="form-control" name="level_2_percent" value="<?= esc(old('level_2_percent', '5')) ?>" placeholder="5">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Level 3 %</label>
-                <input class="form-control" name="level_3_percent" value="<?= esc(old('level_3_percent', '')) ?>" placeholder="e.g. 3">
+                <input class="form-control" name="level_3_percent" value="<?= esc(old('level_3_percent', '3')) ?>" placeholder="3">
             </div>
             <div class="col-md-4">
                 <label class="form-label">Commission Currency</label>

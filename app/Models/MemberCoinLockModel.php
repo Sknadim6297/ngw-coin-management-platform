@@ -18,6 +18,8 @@ class MemberCoinLockModel extends Model
         'lock_ref',
         'member_user_id',
         'member_id',
+        'purchase_ref',
+        'lock_kind',
         'plan_id',
         'plan_code',
         'plan_name',
@@ -43,6 +45,11 @@ class MemberCoinLockModel extends Model
     public function findByIdempotencyKey(string $key): ?array
     {
         return $this->where('idempotency_key', $key)->first();
+    }
+
+    public function findByPurchaseRef(string $purchaseRef): ?array
+    {
+        return $this->where('purchase_ref', $purchaseRef)->first();
     }
 
     /**

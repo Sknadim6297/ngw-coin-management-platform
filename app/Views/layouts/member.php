@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token-name" content="<?= csrf_token() ?>">
     <meta name="csrf-token" content="<?= csrf_hash() ?>">
+    <?php if (! empty($supportViewMode)): ?>
+        <meta http-equiv="Cache-Control" content="no-store">
+    <?php endif; ?>
     <title><?= esc($title ?? 'Member') ?> · <?= esc(config('Platform')->appName) ?></title>
     <link rel="icon" type="image/svg+xml" href="<?= base_url('assets/images/coin.svg') ?>">
     <link rel="alternate icon" type="image/png" href="<?= base_url('assets/images/coin.png') ?>">
@@ -17,10 +20,16 @@
 </head>
 <body>
 <?php
-$uri = uri_string();
+$supportViewMode = ! empty($supportViewMode);
+$panelBase       = $supportViewMode ? 'support-view' : 'member';
+$uri             = uri_string();
 $is = static function (string $prefix) use ($uri): bool {
     return $uri === $prefix || str_starts_with($uri, $prefix . '/');
 };
+$panelUrl = static function (string $path) use ($panelBase): string {
+    return site_url($panelBase . '/' . ltrim($path, '/'));
+};
+$sv = $supportViewContext ?? null;
 ?>
 <div class="app-shell" data-app-shell>
     <aside class="sidebar">
@@ -30,62 +39,77 @@ $is = static function (string $prefix) use ($uri): bool {
         </div>
 
         <div class="nav-section-title">Account</div>
-        <a class="side-link <?= $uri === 'member/dashboard' ? 'active' : '' ?>" href="<?= site_url('member/dashboard') ?>">
+        <a class="side-link <?= $is($panelBase . '/dashboard') ? 'active' : '' ?>" href="<?= $panelUrl('dashboard') ?>">
             <i class="bi bi-grid-1x2"></i><span class="nav-label">Dashboard</span>
         </a>
-        <a class="side-link <?= $uri === 'member/profile' ? 'active' : '' ?>" href="<?= site_url('member/profile') ?>">
+        <a class="side-link <?= $is($panelBase . '/profile') ? 'active' : '' ?>" href="<?= $panelUrl('profile') ?>">
             <i class="bi bi-person-circle"></i><span class="nav-label">My Profile</span>
         </a>
+        <?php if (! $supportViewMode): ?>
         <a class="side-link <?= $uri === 'member/security' ? 'active' : '' ?>" href="<?= site_url('member/security') ?>">
             <i class="bi bi-shield-lock"></i><span class="nav-label">Security</span>
         </a>
+        <?php endif; ?>
 
         <div class="nav-section-title">Coins &amp; Payments</div>
+        <?php if (! $supportViewMode): ?>
         <a class="side-link <?= $is('member/buy-coins') || $uri === 'member/purchases/buy' ? 'active' : '' ?>" href="<?= site_url('member/buy-coins') ?>">
             <i class="bi bi-cart-plus"></i><span class="nav-label">Buy Coins</span>
         </a>
-        <a class="side-link <?= $uri === 'member/purchases' || ($is('member/purchases') && $uri !== 'member/purchases/buy' && $uri !== 'member/purchases/holdings') ? 'active' : '' ?>" href="<?= site_url('member/purchases') ?>">
+        <?php endif; ?>
+        <a class="side-link <?= $is($panelBase . '/purchases') ? 'active' : '' ?>" href="<?= $panelUrl('purchases') ?>">
             <i class="bi bi-receipt"></i><span class="nav-label">My Purchases</span>
         </a>
-        <a class="side-link <?= $is('member/deposits') ? 'active' : '' ?>" href="<?= site_url('member/deposits') ?>">
+        <a class="side-link <?= $is($panelBase . '/deposits') ? 'active' : '' ?>" href="<?= $panelUrl('deposits') ?>">
             <i class="bi bi-clock-history"></i><span class="nav-label">Payment History</span>
         </a>
-        <a class="side-link <?= $uri === 'member/wallet' || $uri === 'member/purchases/holdings' || $is('member/wallet/transactions') ? 'active' : '' ?>" href="<?= site_url('member/wallet') ?>">
+        <a class="side-link <?= $is($panelBase . '/wallet') ? 'active' : '' ?>" href="<?= $panelUrl('wallet') ?>">
             <i class="bi bi-coin"></i><span class="nav-label">My Wallet</span>
         </a>
-        <a class="side-link <?= $is('member/locking') ? 'active' : '' ?>" href="<?= site_url('member/locking') ?>">
+        <a class="side-link <?= $is($panelBase . '/locking') ? 'active' : '' ?>" href="<?= $panelUrl('locking') ?>">
             <i class="bi bi-lock"></i><span class="nav-label">Coin Locking</span>
         </a>
 
         <div class="nav-section-title">Team</div>
-        <a class="side-link <?= $uri === 'member/referrals' ? 'active' : '' ?>" href="<?= site_url('member/referrals') ?>">
+        <a class="side-link <?= $is($panelBase . '/referrals') ? 'active' : '' ?>" href="<?= $panelUrl('referrals') ?>">
             <i class="bi bi-people"></i><span class="nav-label">My Referrals</span>
         </a>
-        <a class="side-link <?= $is('member/genealogy') ? 'active' : '' ?>" href="<?= site_url('member/genealogy') ?>">
+        <a class="side-link <?= $is($panelBase . '/genealogy') ? 'active' : '' ?>" href="<?= $panelUrl('genealogy') ?>">
             <i class="bi bi-diagram-3"></i><span class="nav-label">Genealogy</span>
         </a>
 
         <div class="nav-section-title">Earnings (Preview)</div>
-        <a class="side-link <?= $is('member/mining') ? 'active' : '' ?>" href="<?= site_url('member/mining') ?>">
+        <a class="side-link <?= $is($panelBase . '/mining') ? 'active' : '' ?>" href="<?= $panelUrl('mining') ?>">
             <i class="bi bi-cpu"></i><span class="nav-label">Mining Simulation</span>
         </a>
-        <a class="side-link <?= $is('member/commissions') ? 'active' : '' ?>" href="<?= site_url('member/commissions') ?>">
+        <a class="side-link <?= $is($panelBase . '/commissions') ? 'active' : '' ?>" href="<?= $panelUrl('commissions') ?>">
             <i class="bi bi-layers"></i><span class="nav-label">Commission Simulation</span>
         </a>
+        <?php if (! $supportViewMode): ?>
         <a class="side-link <?= $is('member/commission-wallet') ? 'active' : '' ?>" href="<?= site_url('member/commission-wallet') ?>">
             <i class="bi bi-wallet"></i><span class="nav-label">Commission Wallet</span>
         </a>
         <a class="side-link <?= $is('member/withdrawals') ? 'active' : '' ?>" href="<?= site_url('member/withdrawals') ?>">
             <i class="bi bi-cash-coin"></i><span class="nav-label">Withdrawals</span>
         </a>
+        <?php endif; ?>
 
         <div class="nav-section-title">Help</div>
-        <a class="side-link <?= str_starts_with($uri, 'member/support') || str_contains($uri, 'coming-soon/support') ? 'active' : '' ?>" href="<?= site_url('member/support') ?>">
+        <a class="side-link <?= $is($panelBase . '/support') ? 'active' : '' ?>" href="<?= $panelUrl('support') ?>">
             <i class="bi bi-life-preserver"></i><span class="nav-label">Support</span>
         </a>
+        <?php if ($supportViewMode): ?>
+        <form method="post" action="<?= site_url('support-view/end') ?>" class="px-3 mt-2">
+            <?= csrf_field() ?>
+            <button class="btn btn-outline-gold btn-sm w-100" type="submit">
+                <i class="bi bi-x-circle"></i> End Member View
+            </button>
+        </form>
+        <?php else: ?>
         <a class="side-link" href="<?= site_url('logout') ?>">
             <i class="bi bi-box-arrow-left"></i><span class="nav-label">Logout</span>
         </a>
+        <?php endif; ?>
     </aside>
 
     <div class="main-area">
@@ -99,9 +123,23 @@ $is = static function (string $prefix) use ($uri): bool {
                 </button>
                 <strong><?= esc($title ?? 'Member') ?></strong>
             </div>
-            <div class="text-secondary small">Member Panel</div>
+            <div class="text-secondary small"><?= $supportViewMode ? 'Admin Support View' : 'Member Panel' ?></div>
         </header>
         <main class="content">
+            <?php if ($supportViewMode && is_array($sv)): ?>
+                <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3" role="status">
+                    <div>
+                        <strong>ADMIN VIEW — Viewing member <?= esc((string) ($sv['target_member_id'] ?? '')) ?></strong>
+                        <div class="small mb-0">
+                            <?= esc((string) ($sv['target_name'] ?? '')) ?> · Read-only Support Mode · Not a member login
+                        </div>
+                    </div>
+                    <form method="post" action="<?= site_url('support-view/end') ?>" class="m-0">
+                        <?= csrf_field() ?>
+                        <button class="btn btn-sm btn-dark" type="submit">End Session</button>
+                    </form>
+                </div>
+            <?php endif; ?>
             <?= view('components/alerts') ?>
             <?= $this->renderSection('content') ?>
         </main>

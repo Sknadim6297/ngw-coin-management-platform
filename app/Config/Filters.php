@@ -5,6 +5,7 @@ namespace Config;
 use App\Filters\AdminFilter;
 use App\Filters\GuestFilter;
 use App\Filters\MemberFilter;
+use App\Filters\SupportViewFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -41,6 +42,7 @@ class Filters extends BaseFilters
         'admin'         => AdminFilter::class,
         'member'        => MemberFilter::class,
         'guest'         => GuestFilter::class,
+        'supportView'   => SupportViewFilter::class,
     ];
 
     public array $required = [
@@ -79,6 +81,9 @@ class Filters extends BaseFilters
                 'reset-password*',
                 'confirm-email-change*',
                 'admin/login*',
+                'admin/members/*/impersonate',
+                'support-view/start',
+                'support-view/end',
                 'member/profile',
                 'member/profile/*',
                 'member/security/password',

@@ -22,6 +22,11 @@ class CoinLockingService
     public const STATUS_UNLOCKED  = 'unlocked';
     public const STATUS_CANCELLED = 'cancelled';
 
+    public const KIND_VOLUNTARY          = 'voluntary';
+    public const KIND_MANDATORY_PURCHASE = 'mandatory_purchase';
+
+    public const MANDATORY_PLAN_CODE = 'LOCK1000';
+
     public function __construct(
         private readonly CoinLockingPlanModel $plans = new CoinLockingPlanModel(),
         private readonly MemberCoinLockModel $locks = new MemberCoinLockModel(),
@@ -131,6 +136,242 @@ class CoinLockingService
         );
 
         return $updated;
+    }
+
+    /**
+     * Ensure the system LOCK1000 plan exists and is enabled (Phase 11A mandatory locks).
+     *
+     * @return array<string, mixed>
+     */
+    public function ensureMandatoryPlan(int $actorUserId = 0): array
+    {
+        $days = (int) (($this->config ?? config('Platform'))->coinPlanLockDays);
+        if ($days < 1 || $days > 3650) {
+            throw new InvalidArgumentException(
+                'Invalid mandatory lock duration configuration (coinPlanLockDays must be 1–3650).'
+            );
+        }
+        $existing = $this->plans->findByCode(self::MANDATORY_PLAN_CODE);
+        if ($existing === null) {
+            $existing = $this->createPlan([
+                'plan_code'     => self::MANDATORY_PLAN_CODE,
+                'name'          => 'Mandatory 1000-Day Purchase Lock',
+                'description'   => 'System plan for Coin Plan mandatory locks after purchase approval.',
+                'min_quantity'  => '0.00000001',
+                'max_quantity'  => '',
+                'duration_days' => $days,
+            ], $actorUserId > 0 ? $actorUserId : 1);
+        }
+
+        if ((int) ($existing['is_enabled'] ?? 0) !== 1) {
+            $existing = $this->setPlanEnabled((int) $existing['id'], true, $actorUserId > 0 ? $actorUserId : 1);
+        }
+
+        if ((int) ($existing['duration_days'] ?? 0) !== $days) {
+            // Do not rewrite historical plan duration silently; new locks use plan row as stored.
+            // Report mismatch via audit only.
+            $this->audit->log('coin.lock_plan_duration_mismatch', $actorUserId, 'coin_locking_plan', self::MANDATORY_PLAN_CODE, [
+                'expected_days' => $days,
+                'actual_days'   => (int) ($existing['duration_days'] ?? 0),
+            ]);
+        }
+
+        return $existing;
+    }
+
+    /**
+     * Create a mandatory 1000-day lock for an approved purchase (idempotent by purchase_ref).
+     * When $manageTransaction=false, caller must own the DB transaction.
+     *
+     * @return array{lock: array<string, mixed>, balance: array<string, string|null>, duplicate?: bool}
+     */
+    public function lockMandatoryForPurchase(
+        int $memberUserId,
+        string $memberId,
+        string $quantity,
+        string $purchaseRef,
+        int $actorUserId,
+        ?string $lockedAt = null,
+        bool $manageTransaction = true
+    ): array {
+        $purchaseRef = trim($purchaseRef);
+        if ($purchaseRef === '') {
+            throw new InvalidArgumentException('Purchase reference is required for mandatory lock.');
+        }
+
+        $existing = $this->locks->findByPurchaseRef($purchaseRef);
+        if ($existing !== null) {
+            return [
+                'lock'      => $existing,
+                'balance'   => $this->ownership->summaryForUser($memberUserId),
+                'duplicate' => true,
+            ];
+        }
+
+        $idem = 'mandatory-lock:' . $purchaseRef;
+        $byIdem = $this->locks->findByIdempotencyKey($idem);
+        if ($byIdem !== null) {
+            return [
+                'lock'      => $byIdem,
+                'balance'   => $this->ownership->summaryForUser($memberUserId),
+                'duplicate' => true,
+            ];
+        }
+
+        $plan     = $this->ensureMandatoryPlan($actorUserId);
+        $scale    = $this->scale();
+        $qty      = MoneyMath::normalize($quantity, $scale);
+        $lockedAt = $lockedAt !== null && $lockedAt !== '' ? $lockedAt : date('Y-m-d H:i:s');
+        $days     = (int) ($plan['duration_days'] ?? 0);
+        if ($days < 1) {
+            throw new InvalidArgumentException('Mandatory lock plan duration is invalid.');
+        }
+        $maturesAt = date('Y-m-d H:i:s', strtotime($lockedAt . ' +' . $days . ' days'));
+
+        if (! MoneyMath::isPositive($qty, $scale)) {
+            throw new InvalidArgumentException('Mandatory lock quantity must be greater than zero.');
+        }
+
+        $db = db_connect();
+        if ($manageTransaction) {
+            $db->transBegin();
+        }
+
+        try {
+            $again = $db->query(
+                'SELECT * FROM member_coin_locks WHERE purchase_ref = ? FOR UPDATE',
+                [$purchaseRef]
+            )->getRowArray();
+            if ($again !== null) {
+                if ($manageTransaction) {
+                    $db->transCommit();
+                }
+
+                return [
+                    'lock'      => $again,
+                    'balance'   => $this->ownership->summaryForUser($memberUserId),
+                    'duplicate' => true,
+                ];
+            }
+
+            $lockRef = 'LCK-M-' . strtoupper(substr(hash('sha256', $purchaseRef), 0, 16));
+            $own = $this->ownership->applyLock(
+                $memberUserId,
+                $memberId,
+                $qty,
+                $lockRef,
+                $actorUserId,
+                'own-lock:' . $idem,
+                false
+            );
+
+            if (! empty($own['duplicate'])) {
+                $existingLock = $this->locks->findByIdempotencyKey($idem) ?? $this->locks->findByPurchaseRef($purchaseRef);
+                if ($existingLock !== null) {
+                    if ($manageTransaction) {
+                        $db->transCommit();
+                    }
+
+                    return [
+                        'lock'      => $existingLock,
+                        'balance'   => $this->ownership->summaryForUser($memberUserId),
+                        'duplicate' => true,
+                    ];
+                }
+            }
+
+            $id = $this->locks->insert([
+                'lock_ref'               => $lockRef,
+                'member_user_id'         => $memberUserId,
+                'member_id'              => $memberId,
+                'purchase_ref'           => $purchaseRef,
+                'lock_kind'              => self::KIND_MANDATORY_PURCHASE,
+                'plan_id'                => (int) $plan['id'],
+                'plan_code'              => (string) $plan['plan_code'],
+                'plan_name'              => (string) $plan['name'],
+                'quantity'               => $qty,
+                'duration_days'          => $days,
+                'status'                 => self::STATUS_ACTIVE,
+                'locked_at'              => $lockedAt,
+                'matures_at'             => $maturesAt,
+                'ownership_lock_txn_ref' => $own['transaction']['transaction_ref'] ?? null,
+                'idempotency_key'        => $idem,
+            ], true);
+
+            if ($id === false) {
+                throw new RuntimeException('Unable to create mandatory purchase lock.');
+            }
+
+            $lock = $this->locks->find($id);
+            $this->recordEvent($lockRef, 'lock.mandatory_created', $actorUserId, 'Mandatory purchase lock', [
+                'purchase_ref' => $purchaseRef,
+                'quantity'     => $qty,
+                'matures_at'   => $maturesAt,
+                'days'         => $days,
+            ]);
+
+            if ($manageTransaction) {
+                if ($db->transStatus() === false) {
+                    $db->transRollback();
+                    throw new RuntimeException('Mandatory lock failed.');
+                }
+                $db->transCommit();
+            }
+
+            $this->audit->log('coin.lock_mandatory_created', $actorUserId, 'member_coin_lock', $lockRef, [
+                'purchase_ref' => $purchaseRef,
+                'quantity'     => $qty,
+                'days'         => $days,
+            ]);
+
+            return [
+                'lock'      => $lock,
+                'balance'   => $own['balance'] ?? $this->ownership->summaryForUser($memberUserId),
+                'duplicate' => false,
+            ];
+        } catch (\Throwable $e) {
+            if ($manageTransaction && $db->transDepth > 0) {
+                $db->transRollback();
+            }
+            if ($this->isDuplicateKeyException($e)) {
+                $existingLock = $this->locks->findByPurchaseRef($purchaseRef) ?? $this->locks->findByIdempotencyKey($idem);
+                if ($existingLock !== null) {
+                    return [
+                        'lock'      => $existingLock,
+                        'balance'   => $this->ownership->summaryForUser($memberUserId),
+                        'duplicate' => true,
+                    ];
+                }
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Read-only preview of approved purchases missing mandatory locks (no writes).
+     *
+     * @return list<array{purchase_ref: string, member_id: string, coin_quantity: string, reviewed_at: ?string}>
+     */
+    public function previewMissingMandatoryLocks(int $limit = 200): array
+    {
+        if (! db_connect()->tableExists('member_coin_locks')) {
+            return [];
+        }
+
+        $rows = db_connect()->query(
+            'SELECT p.purchase_ref, p.member_id, p.coin_quantity, p.reviewed_at
+             FROM coin_purchase_requests p
+             LEFT JOIN member_coin_locks l
+               ON l.purchase_ref = p.purchase_ref AND l.lock_kind = ?
+             WHERE p.status = ?
+               AND l.id IS NULL
+             ORDER BY p.id ASC
+             LIMIT ' . (int) max(1, min(2000, $limit)),
+            [self::KIND_MANDATORY_PURCHASE, 'approved']
+        )->getResultArray();
+
+        return $rows;
     }
 
     /**
@@ -322,7 +563,11 @@ class CoinLockingService
                 throw new InvalidArgumentException('Cancelled locks cannot be unlocked.');
             }
             if ($row['status'] === self::STATUS_ACTIVE) {
-                // Early unlock disabled by default.
+                // Mandatory purchase locks never allow early unlock.
+                if (($row['lock_kind'] ?? self::KIND_VOLUNTARY) === self::KIND_MANDATORY_PURCHASE) {
+                    throw new InvalidArgumentException('Mandatory purchase locks cannot be unlocked before maturity.');
+                }
+                // Voluntary early unlock disabled by default.
                 $plan = $this->plans->find((int) $row['plan_id']);
                 $allowEarly = $plan !== null && (int) ($plan['allow_early_unlock'] ?? 0) === 1;
                 if (! $allowEarly) {

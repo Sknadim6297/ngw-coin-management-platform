@@ -39,6 +39,10 @@ class LoginController extends BaseController
 
     public function logout()
     {
+        $userId = (int) (auth()->id() ?? 0);
+        if ($userId > 0 && auth()->user()?->can('admin.members.impersonate')) {
+            service('impersonationService')->revokeAllForAdmin($userId, 'admin_logout');
+        }
         auth()->logout();
 
         return redirect()->to(site_url('login'))->with('success', 'You have been signed out.');

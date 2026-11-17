@@ -24,6 +24,36 @@ $routes->post('api/sponsor-lookup', 'Auth\SponsorLookupController::lookup');
 $routes->get('logout', 'Auth\LoginController::logout');
 $routes->post('logout', 'Auth\LoginController::logout');
 
+// Phase 10D isolated admin support-view (path-scoped cookie; Shield admin session unchanged)
+$routes->group('support-view', ['filter' => 'supportView'], static function (RouteCollection $routes): void {
+    $routes->post('start', 'SupportView\SessionController::start');
+    $routes->post('end', 'SupportView\SessionController::end');
+    $routes->get('ended', 'SupportView\SessionController::ended');
+    $routes->get('dashboard', 'SupportView\PortalController::dashboard');
+    $routes->get('profile', 'SupportView\PortalController::profile');
+    $routes->post('profile', 'SupportView\PortalController::blocked');
+    $routes->get('purchases', 'SupportView\PortalController::purchases');
+    $routes->get('purchases/(:segment)', 'SupportView\PortalController::purchaseShow/$1');
+    $routes->post('purchases', 'SupportView\PortalController::blocked');
+    $routes->get('deposits', 'SupportView\PortalController::deposits');
+    $routes->post('deposits', 'SupportView\PortalController::blocked');
+    $routes->get('wallet', 'SupportView\PortalController::wallet');
+    $routes->get('locking', 'SupportView\PortalController::locking');
+    $routes->post('locking', 'SupportView\PortalController::blocked');
+    $routes->get('referrals', 'SupportView\PortalController::referrals');
+    $routes->get('genealogy', 'SupportView\PortalController::genealogy');
+    $routes->get('mining', 'SupportView\PortalController::mining');
+    $routes->get('commissions', 'SupportView\PortalController::commissions');
+    $routes->get('support', 'SupportView\PortalController::support');
+    $routes->post('support', 'SupportView\PortalController::blocked');
+    $routes->get('buy-coins', 'SupportView\PortalController::blocked');
+    $routes->post('buy-coins', 'SupportView\PortalController::blocked');
+    $routes->get('withdrawals', 'SupportView\PortalController::blocked');
+    $routes->post('withdrawals', 'SupportView\PortalController::blocked');
+    $routes->get('security', 'SupportView\PortalController::blocked');
+    $routes->post('security/password', 'SupportView\PortalController::blocked');
+});
+
 // Pending email-change confirmation (single-use token; login identity switches only after verify)
 $routes->get('confirm-email-change/(:segment)', 'ConfirmEmailChangeController::confirm/$1');
 
@@ -43,6 +73,8 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->get('members/inactive', 'Admin\MemberController::index/inactive');
     $routes->get('members/create', 'Admin\MemberController::create');
     $routes->post('members', 'Admin\MemberController::store');
+    // Phase 10D — POST only; opens new-tab support view grant
+    $routes->post('members/(:segment)/impersonate', 'Admin\ImpersonationController::grant/$1');
     $routes->get('members/(:segment)', 'Admin\MemberController::show/$1');
 
     // Phase 9C support tickets (under Members context)
@@ -187,7 +219,7 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->get('genealogy', 'Admin\ReferralController::genealogy');
     $routes->get('referrals/(:segment)', 'Admin\ReferralController::show/$1');
 
-    // Phase 7B mining configuration & simulation (non-payable)
+    // Phase 11A mining panel (dry-run / rates / wallet monitor — posting OFF)
     $routes->get('mining', 'Admin\MiningController::index');
     $routes->get('mining/rates', 'Admin\MiningController::rates');
     $routes->get('mining/rates/create', 'Admin\MiningController::rateCreate');
@@ -196,6 +228,7 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->post('mining/rates/(:segment)/approve', 'Admin\MiningController::rateApprove/$1');
     $routes->post('mining/rates/(:segment)/disable', 'Admin\MiningController::rateDisable/$1');
     $routes->post('mining/simulate', 'Admin\MiningController::simulate');
+    $routes->get('mining/wallets/(:num)', 'Admin\MiningController::walletShow/$1');
 
     // Phase 7C level commission configuration & simulation (non-payable)
     $routes->get('commissions', 'Admin\CommissionController::index');

@@ -350,16 +350,19 @@ class CoinPurchaseService
     }
 
     /**
-     * Approve a pending request: deduct inventory once, credit ownership, activate member.
+     * Approve a pending request: deduct inventory once, credit ownership, mandatory lock, activate member.
+     *
+     * Extra trailing args are accepted for backward-compatible test callers and ignored.
      *
      * @return array{
      *   request: array<string, mixed>,
      *   inventory: array<string, string>,
      *   ownership: array<string, string>,
-     *   activated: bool
+     *   activated: bool,
+     *   lock: ?array<string, mixed>
      * }
      */
-    public function approveRequest(string $purchaseRef, int $adminUserId): array
+    public function approveRequest(string $purchaseRef, int $adminUserId, mixed ...$unused): array
     {
         $db = db_connect();
         $db->transBegin();
@@ -439,6 +442,25 @@ class CoinPurchaseService
             $snapshotPurchase['payment_status'] = $paymentMeta['payment_status'] ?? ($row['payment_status'] ?? 'unpaid');
             service('purchaseSponsorSnapshotService')->captureForApprovedPurchase($snapshotPurchase, $adminUserId);
 
+            // Phase 11A: mandatory 1000-day lock of purchased coins (same atomic transaction).
+            $lockRow = null;
+            if ((bool) ($this->config ?? config('Platform'))->mandatoryPurchaseLockEnabled) {
+                $lockResult = service('coinLockingService')->lockMandatoryForPurchase(
+                    (int) $row['member_user_id'],
+                    (string) $row['member_id'],
+                    $qty,
+                    $purchaseRef,
+                    $adminUserId,
+                    $now,
+                    false
+                );
+                $lockRow = $lockResult['lock'] ?? null;
+                // Ownership balance after lock is the source of truth for response.
+                if (! empty($lockResult['balance'])) {
+                    $ownership['balance'] = $lockResult['balance'];
+                }
+            }
+
             if ($db->transStatus() === false) {
                 $db->transRollback();
                 throw new RuntimeException('Purchase approval failed.');
@@ -459,6 +481,7 @@ class CoinPurchaseService
                     'ownership_transaction_ref' => $ownership['transaction']['transaction_ref'],
                     'activated'                 => $activated,
                     'sponsor_snapshot'          => true,
+                    'mandatory_lock_ref'        => $lockRow['lock_ref'] ?? null,
                 ]
             );
 
@@ -467,6 +490,7 @@ class CoinPurchaseService
                 'inventory' => $allocation['inventory'],
                 'ownership' => $ownership['balance'],
                 'activated' => $activated,
+                'lock'      => $lockRow,
             ];
         } catch (\Throwable $e) {
             if ($db->transDepth > 0) {

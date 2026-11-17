@@ -59,8 +59,15 @@ class Platform extends BaseConfig
 
     /**
      * Minimum member coin purchase amount in USDT.
+     * Runtime enforcement uses coin_settings.min_purchase_usdt (keep both aligned).
      */
     public string $minPurchaseUsdt = '5.00000000';
+
+    /**
+     * Client Coin Plan lock duration (days). Not auto-applied until an authorized activation phase
+     * enables purchase-time locking. Admin plan form defaults to this value.
+     */
+    public int $coinPlanLockDays = 1000;
 
     /**
      * Maximum coin quantity per single purchase request.
@@ -104,6 +111,41 @@ class Platform extends BaseConfig
     public bool $commissionWithdrawalEnabled = false;
 
     public bool $commissionBlockchainPayoutEnabled = false;
+
+    /**
+     * Phase 11A mining kill-switches — fail-closed OFF until separately authorized.
+     */
+    public bool $miningPostingEnabled = false;
+
+    public bool $miningP2pEnabled = false;
+
+    /**
+     * Mining business timezone for daily date boundaries (does not change global appTimezone).
+     */
+    public string $miningBusinessTimezone = 'Asia/Kolkata';
+
+    /**
+     * DRAFT assumption — monthly day divisor for dry-run only.
+     * calendar_days = days in the rate's effective month; fixed_30 = always 30.
+     * Live posting blocked until explicitly approved.
+     */
+    public string $miningMonthDayDivisorMode = 'calendar_days';
+
+    /**
+     * DRAFT assumption — approval-day mining policy for dry-run only.
+     * full_day = eligibility includes approval business date; exclude_approval_day = starts next day.
+     */
+    public string $miningApprovalDayPolicy = 'full_day';
+
+    /**
+     * DRAFT assumption — mining earning asset denomination until business confirms.
+     */
+    public string $miningEarningAsset = 'COIN';
+
+    /**
+     * When true, purchase approval creates a mandatory 1000-day lock (Phase 11A).
+     */
+    public bool $mandatoryPurchaseLockEnabled = true;
 
     /**
      * Explicitly supported USDT withdrawal networks (address validation is network-specific).

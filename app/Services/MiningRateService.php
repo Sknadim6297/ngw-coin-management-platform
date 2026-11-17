@@ -51,7 +51,7 @@ class MiningRateService
             'rate_percent'        => $percent,
             'rate_basis'          => $basis,
             'precision_scale'     => 8,
-            'eligibility_policy'  => MiningEligibilityService::POLICY_AVAILABLE_ACTIVE,
+            'eligibility_policy'  => MiningEligibilityService::POLICY_TOTAL_OWNED_ACTIVE,
             'status'              => self::STATUS_DRAFT,
             'created_by'          => $actorUserId,
             'notes'               => trim((string) ($data['notes'] ?? '')) ?: null,
@@ -236,9 +236,11 @@ class MiningRateService
      *
      * Conventions:
      * - daily: percent/100 per calendar day
-     * - monthly: (percent/100) / days_in_effective_month
+     * - monthly: (percent/100) / approved monthly day divisor (DRAFT config)
      * - annual: (percent/100) / 365 (fixed; non-leap convention for determinism)
      * Rounding: BCMath scale truncation toward zero at coinQuantityScale.
+     *
+     * Coin Plan uses MONTHLY rates. Do not treat monthly % as a daily %.
      */
     public function dailyFactor(array $rate, string $calculationDate): string
     {
@@ -251,7 +253,7 @@ class MiningRateService
             return MoneyMath::normalize($ratio, $scale + 4);
         }
         if ($basis === 'monthly') {
-            $days = (string) $this->daysInMonth(substr($calculationDate, 0, 7));
+            $days = (string) $this->monthDayDivisor($calculationDate, (string) ($rate['effective_month'] ?? substr($calculationDate, 0, 7)));
 
             return MoneyMath::div($ratio, $days, $scale + 4);
         }
@@ -260,6 +262,23 @@ class MiningRateService
         }
 
         throw new InvalidArgumentException('Unsupported rate basis.');
+    }
+
+    /**
+     * DRAFT-approved monthly divisor selection for dry-run / future posting.
+     */
+    public function monthDayDivisor(string $calculationDate, ?string $effectiveMonth = null): int
+    {
+        $mode = strtolower((string) (config('Platform')->miningMonthDayDivisorMode ?? 'calendar_days'));
+        if ($mode === 'fixed_30') {
+            return 30;
+        }
+
+        $ym = $effectiveMonth !== null && preg_match('/^\d{4}-\d{2}$/', $effectiveMonth)
+            ? $effectiveMonth
+            : substr($calculationDate, 0, 7);
+
+        return $this->daysInMonth($ym);
     }
 
     public function previewAmount(string $eligibleCoins, array $rate, string $calculationDate): string

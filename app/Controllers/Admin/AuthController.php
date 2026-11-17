@@ -64,6 +64,10 @@ class AuthController extends BaseController
 
     public function logout()
     {
+        $adminId = (int) (auth()->id() ?? 0);
+        if ($adminId > 0) {
+            service('impersonationService')->revokeAllForAdmin($adminId, 'admin_logout');
+        }
         auth()->logout();
 
         return redirect()->to(site_url('admin/login'))->with('success', 'You have been signed out.');

@@ -29,6 +29,10 @@ use App\Services\GenealogyIntegrityService;
 use App\Services\MiningEligibilityService;
 use App\Services\MiningRateService;
 use App\Services\MiningSimulationService;
+use App\Services\MiningWalletService;
+use App\Services\MiningDailyEngineService;
+use App\Services\CoinPlanAuditService;
+use App\Services\ImpersonationService;
 use App\Services\CommissionPlanService;
 use App\Services\CommissionGenealogyService;
 use App\Services\CommissionEligibilityService;
@@ -392,6 +396,42 @@ class Services extends BaseService
         }
 
         return new MiningSimulationService();
+    }
+
+    public static function coinPlanAuditService(bool $getShared = true): CoinPlanAuditService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('coinPlanAuditService');
+        }
+
+        return new CoinPlanAuditService();
+    }
+
+    public static function miningWalletService(bool $getShared = true): MiningWalletService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningWalletService');
+        }
+
+        return new MiningWalletService();
+    }
+
+    public static function miningDailyEngineService(bool $getShared = true): MiningDailyEngineService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningDailyEngineService');
+        }
+
+        return new MiningDailyEngineService();
+    }
+
+    public static function impersonationService(bool $getShared = true): ImpersonationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('impersonationService');
+        }
+
+        return new ImpersonationService();
     }
 
     public static function commissionPlanService(bool $getShared = true): CommissionPlanService
