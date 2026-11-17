@@ -59,6 +59,29 @@ class Validation extends BaseConfig
         ],
     ];
 
+    public array $memberProfileUpdate = [
+        'member_name' => [
+            'label' => 'Full Name',
+            'rules' => 'required|min_length[2]|max_length[120]',
+        ],
+        'mobile' => [
+            'label' => 'Mobile Number',
+            'rules' => 'required|min_length[8]|max_length[20]|regex_match[/^[0-9+\-\s]+$/]',
+        ],
+        'email' => [
+            'label' => 'Email Address',
+            'rules' => 'required|valid_email|max_length[255]',
+        ],
+        'usdt_wallet' => [
+            'label' => 'USDT Wallet Address',
+            'rules' => 'required|max_length[255]|regex_match[/^0x[a-fA-F0-9]{40}$/]',
+        ],
+        'current_password' => [
+            'label' => 'Current Password',
+            'rules' => 'required',
+        ],
+    ];
+
     public array $memberLogin = [
         'member_id' => [
             'label' => 'Member ID',

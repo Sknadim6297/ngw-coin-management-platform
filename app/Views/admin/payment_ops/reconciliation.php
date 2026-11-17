@@ -1,5 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<?= view('components/payment_monitoring_tabs', ['active' => 'reconciliation']) ?>
 <p class="page-subtitle">Read-only accounting reconciliation. Findings are never auto-repaired.</p>
 
 <div class="row g-3 mb-4">

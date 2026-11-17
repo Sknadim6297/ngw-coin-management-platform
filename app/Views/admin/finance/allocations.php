@@ -1,5 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<?= view('components/payment_monitoring_tabs', ['active' => 'allocations']) ?>
 <p class="page-subtitle">Payment allocation lifecycle (reserved/linked → consumed | released).</p>
 
 <div class="card-premium mb-3">

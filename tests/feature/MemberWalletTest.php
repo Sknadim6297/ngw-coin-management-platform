@@ -209,12 +209,17 @@ final class MemberWalletTest extends CIUnitTestCase
             'password' => 'AdminPass123!',
         ])->assertRedirect();
 
-        $page = $this->withSession()->get('admin/wallets?member_id=' . $member['member_id']);
+        $page = $this->withSession()->get('admin/wallets?q=' . $member['member_id']);
         $page->assertOK();
         $page->assertSee($member['member_id']);
         $page->assertSee('15.00000000');
         $page->assertDontSee('Edit Balance');
         $page->assertDontSee('Adjust Balance');
+
+        $ledger = $this->withSession()->get('admin/wallets/' . $member['member_id'] . '/transactions');
+        $ledger->assertOK();
+        $ledger->assertSee('Ownership Ledger');
+        $ledger->assertSee('PURCHASE_CREDIT');
 
         $recon = $this->withSession()->get('admin/wallets/reconcile?member_id=' . $member['member_id']);
         $recon->assertOK();
@@ -334,5 +339,107 @@ final class MemberWalletTest extends CIUnitTestCase
             'password'  => 'Password123!',
         ])->assertRedirect();
         $this->withSession()->get('member/purchases/holdings')->assertRedirectTo(site_url('member/wallet'));
+    }
+
+    public function testWalletOverviewIncludesLockAndPendingCounts(): void
+    {
+        $member = $this->registerMember('ovcounts');
+        $this->creditCoins($member, '40');
+        $plan = $this->enabledPlan();
+        service('coinLockingService')->lockCoins($member['user_id'], (int) $plan['id'], '10');
+        service('coinPurchaseService')->createRequest(
+            $member['user_id'],
+            '20',
+            null,
+            'wallet-pending-' . bin2hex(random_bytes(3))
+        );
+
+        $wallet = service('memberWalletService')->overview($member['user_id']);
+        $this->assertTrue($wallet['invariant_ok']);
+        $this->assertSame(1, $wallet['active_lock_count']);
+        $this->assertSame(0, $wallet['matured_lock_count']);
+        $this->assertSame(1, $wallet['pending_purchase_count']);
+        $this->assertNotEmpty($wallet['pending_purchases']);
+        $this->assertNotEmpty($wallet['kpis']);
+    }
+
+    public function testReferenceSearchAndPagination(): void
+    {
+        $member = $this->registerMember('refsearch');
+        $purchaseRef = $this->creditCoins($member, '12');
+
+        $history = service('memberWalletService')->history($member['user_id'], [
+            'ref'      => $purchaseRef,
+            'per_page' => 5,
+        ]);
+        $this->assertNotEmpty($history['rows']);
+        foreach ($history['rows'] as $row) {
+            $hay = ($row['transaction_ref'] ?? '') . ($row['purchase_ref'] ?? '') . ($row['lock_ref'] ?? '');
+            $this->assertStringContainsString($purchaseRef, $hay);
+            $this->assertArrayHasKey('available_impact', $row);
+            $this->assertArrayHasKey('status', $row);
+            $this->assertSame('settled', $row['status']);
+        }
+        $this->assertSame(5, $history['filters']['per_page']);
+    }
+
+    public function testReconciliationDetectsLockedBalanceMismatch(): void
+    {
+        $member = $this->registerMember('lockdrift');
+        $this->creditCoins($member, '40');
+        $plan = $this->enabledPlan();
+        service('coinLockingService')->lockCoins($member['user_id'], (int) $plan['id'], '10');
+
+        db_connect()->table('member_coin_balances')
+            ->where('member_user_id', $member['user_id'])
+            ->update([
+                'locked_balance'    => '1.00000000',
+                'available_balance' => '39.00000000',
+                'balance'           => '40.00000000',
+            ]);
+
+        $report = service('walletReconciliationService')->reconcile($member['user_id'], $member['member_id']);
+        $codes  = array_column($report['findings'], 'code');
+        $this->assertContains('locked_balance_vs_active_locks', $codes);
+        $this->assertFalse($report['auto_repair']);
+
+        $before = db_connect()->table('member_coin_ownership_transactions')
+            ->where('member_user_id', $member['user_id'])
+            ->countAllResults();
+        service('walletReconciliationService')->reconcile($member['user_id'], $member['member_id']);
+        $after = db_connect()->table('member_coin_ownership_transactions')
+            ->where('member_user_id', $member['user_id'])
+            ->countAllResults();
+        $this->assertSame($before, $after);
+    }
+
+    public function testAdminExportIsMemberScoped(): void
+    {
+        $a = $this->registerMember('adminexa');
+        $b = $this->registerMember('adminexb');
+        $this->creditCoins($a, '11');
+        $this->creditCoins($b, '22');
+
+        $this->post('admin/login', [
+            'email'    => 'admin@test.local',
+            'password' => 'AdminPass123!',
+        ])->assertRedirect();
+
+        $export = $this->withSession()->get('admin/wallets/' . $a['member_id'] . '/transactions/export');
+        $export->assertOK();
+        $body = $export->response()->getBody();
+        $this->assertStringContainsString($a['member_id'], $body);
+        $this->assertStringNotContainsString($b['member_id'], $body);
+        $this->assertStringContainsString('PURCHASE_CREDIT', $body);
+    }
+
+    public function testAdminSearchByName(): void
+    {
+        $member = $this->registerMember('namesrch');
+        $this->creditCoins($member, '10');
+
+        $hits = service('memberWalletService')->search('Wallet namesrch', 10);
+        $this->assertNotEmpty($hits);
+        $this->assertSame($member['member_id'], $hits[0]['profile']->member_id);
     }
 }

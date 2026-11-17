@@ -3,10 +3,10 @@
 <?= view('components/kpi_grid', ['kpis' => $kpis]) ?>
 
 <div class="d-flex flex-wrap gap-2 my-4">
-    <a class="btn btn-gold" href="<?= site_url('admin/members/create') ?>"><i class="bi bi-person-plus me-1"></i> Quick Registration</a>
-    <a class="btn btn-outline-gold" href="<?= site_url('admin/members') ?>">View All Members</a>
-    <a class="btn btn-outline-gold" href="<?= site_url('admin/purchases?status=pending') ?>">Pending Purchases</a>
-    <a class="btn btn-outline-gold" href="<?= site_url('admin/coins') ?>">Coin Overview</a>
+    <a class="btn btn-gold" href="<?= site_url('admin/members/create') ?>"><i class="bi bi-person-plus me-1"></i> Register Member</a>
+    <a class="btn btn-outline-gold" href="<?= site_url('admin/members') ?>">All Members</a>
+    <a class="btn btn-outline-gold" href="<?= site_url('admin/payment-approvals?tab=pending') ?>">Pending Payments</a>
+    <a class="btn btn-outline-gold" href="<?= site_url('admin/coins/inventory') ?>">Coin Inventory</a>
 </div>
 
 <div class="row g-3 mb-4">
@@ -91,6 +91,41 @@
                         </td>
                         <td><?= esc($member->created_at) ?></td>
                         <td><a href="<?= site_url('admin/members/' . $member->member_id) ?>">View</a></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="panel-card mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0">Recent Transactions</h2>
+        <a class="btn btn-sm btn-outline-gold" href="<?= site_url('admin/payment-approvals?tab=completed') ?>">View All</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0">
+            <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Member</th>
+                <th>Coins</th>
+                <th>Approved</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php if (($recentTransactions ?? []) === []): ?>
+                <tr><td colspan="5" class="text-secondary">No approved purchases yet.</td></tr>
+            <?php else: ?>
+                <?php foreach ($recentTransactions as $tx): ?>
+                    <tr>
+                        <td><?= esc($tx['purchase_ref'] ?? '') ?></td>
+                        <td><?= esc($tx['member_id'] ?? '') ?></td>
+                        <td><?= number_format((float) ($tx['coin_quantity'] ?? 0), 8) ?></td>
+                        <td><?= esc($tx['reviewed_at'] ?? $tx['updated_at'] ?? '—') ?></td>
+                        <td><a href="<?= site_url('admin/payment-approvals/' . rawurlencode((string) ($tx['purchase_ref'] ?? ''))) ?>">View</a></td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>

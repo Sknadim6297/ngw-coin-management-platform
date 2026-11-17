@@ -29,9 +29,19 @@ class UsdtPaymentNetworkModel extends Model
         'min_deposit_usdt',
         'max_deposit_usdt',
         'instructions',
+        'recipient_name',
+        'logo_stored_name',
+        'logo_mime',
+        'qr_stored_name',
+        'qr_mime',
+        'qr_source',
+        'qr_decoded_payload',
+        'qr_verified_at',
         'explorer_tx_url_template',
         'rpc_url_env_key',
         'is_enabled',
+        'is_demo',
+        'display_status',
         'sort_order',
     ];
 
@@ -52,7 +62,18 @@ class UsdtPaymentNetworkModel extends Model
 
         return array_values(array_filter(
             $rows,
-            static fn (array $row): bool => trim((string) ($row['destination_wallet'] ?? '')) !== ''
+            static function (array $row): bool {
+                if (trim((string) ($row['destination_wallet'] ?? '')) === '') {
+                    return false;
+                }
+                if (! empty($row['is_demo'])) {
+                    return false;
+                }
+                $display = strtolower((string) ($row['display_status'] ?? 'live'));
+
+                // Legacy rows without display_status column value treat enabled+wallet as visible.
+                return $display === '' || $display === 'live';
+            }
         ));
     }
 

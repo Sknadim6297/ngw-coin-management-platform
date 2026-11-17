@@ -83,7 +83,13 @@ class UsdtPaymentAllocationService
                 throw new InvalidArgumentException('Only pending purchases can accept a deposit link.');
             }
 
-            if (! empty($purchase['payment_deposit_ref'])) {
+            // Soft Buy Coins association may already store the same deposit_ref while unpaid.
+            if (! empty($purchase['payment_deposit_ref'])
+                && (string) $purchase['payment_deposit_ref'] !== $depositRef) {
+                throw new InvalidArgumentException('Purchase already has a linked deposit.');
+            }
+            if (($purchase['payment_status'] ?? '') === 'deposit_linked'
+                || ($purchase['payment_status'] ?? '') === 'verified') {
                 throw new InvalidArgumentException('Purchase already has a linked deposit.');
             }
 

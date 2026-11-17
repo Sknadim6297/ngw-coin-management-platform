@@ -1,12 +1,19 @@
 <?= $this->extend('layouts/auth') ?>
 <?= $this->section('content') ?>
-<?php $sponsorPrefill = old('sponsor_id', service('request')->getGet('sponsor')); ?>
+<?php
+$sponsorPrefill = old('sponsor_id', service('request')->getGet('sponsor'));
+$sponsorRequired = $sponsorRequired ?? true;
+$regInstructions = $regInstructions ?? '';
+?>
 <div class="auth-shell">
     <?= view('components/auth_visual', ['appName' => $appName, 'mode' => 'register']) ?>
     <div class="auth-panel">
         <div class="auth-card">
             <h2>Member Registration</h2>
             <p class="subtitle">Joining is free. New accounts remain inactive until the first approved coin purchase.</p>
+            <?php if ($regInstructions !== ''): ?>
+                <div class="alert alert-secondary py-2"><?= esc($regInstructions) ?></div>
+            <?php endif; ?>
             <?= view('components/alerts') ?>
             <form method="post" action="<?= site_url('register') ?>" data-loading data-live-validate>
                 <?= csrf_field() ?>
@@ -22,12 +29,12 @@
                     <div class="field-hint" data-validate-hint></div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" for="sponsor_id">Sponsor ID</label>
+                    <label class="form-label" for="sponsor_id">Sponsor ID<?= $sponsorRequired ? '' : ' (optional)' ?></label>
                     <input class="form-control" type="text" id="sponsor_id" name="sponsor_id"
-                           value="<?= esc($sponsorPrefill) ?>" required
+                           value="<?= esc($sponsorPrefill) ?>" <?= $sponsorRequired ? 'required' : '' ?>
                            data-sponsor-id
                            data-lookup-url="<?= site_url('api/sponsor-lookup') ?>"
-                           data-validate="required|max:32" data-label="Sponsor ID">
+                           data-validate="<?= $sponsorRequired ? 'required|' : '' ?>max:32" data-label="Sponsor ID">
                     <div class="field-hint" data-sponsor-hint>Enter a Sponsor ID to validate.</div>
                 </div>
                 <div class="mb-3">

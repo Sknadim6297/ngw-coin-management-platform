@@ -8,7 +8,13 @@ use CodeIgniter\Entity\Entity;
 
 class MemberProfile extends Entity
 {
-    protected $dates = ['created_at', 'updated_at'];
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'activated_at',
+        'usdt_wallet_changed_at',
+        'usdt_wallet_cooldown_until',
+    ];
 
     protected $casts = [
         'id'              => 'integer',

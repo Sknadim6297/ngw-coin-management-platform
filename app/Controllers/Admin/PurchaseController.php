@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
+use App\Controllers\Admin\Concerns\AdminAuthorization;
 use App\Controllers\BaseController;
 use App\Models\CoinPurchaseRequestModel;
 use App\Models\MemberProfileModel;
@@ -12,8 +13,14 @@ use InvalidArgumentException;
 
 class PurchaseController extends BaseController
 {
+    use AdminAuthorization;
+
     public function index()
     {
+        if (! $this->userCan('finance.payment.review')) {
+            return $this->denyPermission();
+        }
+
         $status  = trim((string) $this->request->getGet('status'));
         $search  = trim((string) $this->request->getGet('q'));
         $allowed = ['pending', 'approved', 'rejected', 'cancelled', ''];
@@ -43,6 +50,10 @@ class PurchaseController extends BaseController
 
     public function show(string $purchaseRef)
     {
+        if (! $this->userCan('finance.payment.review')) {
+            return $this->denyPermission();
+        }
+
         $row = service('coinPurchaseService')->findByRef($purchaseRef);
         if ($row === null) {
             return redirect()->to(site_url('admin/purchases'))
@@ -73,6 +84,11 @@ class PurchaseController extends BaseController
             $linkedDeposit = service('usdtDepositService')->findByRef((string) $allocation['deposit_ref']);
         }
 
+        $pendingPayment = null;
+        if ($requiresDeposit && ! $hasVerifiedCover && $row['status'] === 'pending') {
+            $pendingPayment = service('usdtDepositService')->findMatchingPendingPaymentForPurchase($row);
+        }
+
         return view('admin/purchases/show', [
             'title'             => 'Purchase Request',
             'request'           => $row,
@@ -83,11 +99,16 @@ class PurchaseController extends BaseController
             'hasVerifiedCover'  => $hasVerifiedCover,
             'allocation'        => $allocation,
             'linkedDeposit'     => $linkedDeposit,
+            'pendingPayment'    => $pendingPayment,
         ]);
     }
 
     public function approve(string $purchaseRef)
     {
+        if (! $this->userCan('finance.payment.approve')) {
+            return $this->denyPermission();
+        }
+
         $rules = config('Validation')->coinPurchaseApprove;
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
@@ -111,12 +132,16 @@ class PurchaseController extends BaseController
             $msg .= ' Member account activated.';
         }
 
-        return redirect()->to(site_url('admin/purchases/' . $purchaseRef))
+        return redirect()->to(site_url('admin/payment-approvals/' . rawurlencode($purchaseRef)))
             ->with('success', $msg);
     }
 
     public function reject(string $purchaseRef)
     {
+        if (! $this->userCan('finance.payment.approve')) {
+            return $this->denyPermission();
+        }
+
         $rules = config('Validation')->coinPurchaseReject;
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
@@ -136,7 +161,7 @@ class PurchaseController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Unable to reject purchase request.');
         }
 
-        return redirect()->to(site_url('admin/purchases/' . $purchaseRef))
+        return redirect()->to(site_url('admin/payment-approvals/' . rawurlencode($purchaseRef)))
             ->with('success', 'Purchase request rejected. Inventory was not deducted.');
     }
 }

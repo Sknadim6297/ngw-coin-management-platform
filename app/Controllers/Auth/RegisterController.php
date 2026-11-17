@@ -11,18 +11,35 @@ class RegisterController extends BaseController
 {
     public function index()
     {
+        $settings = service('platformSettingsService');
+        if (! $settings->bool('registration_enabled')) {
+            return redirect()->to(site_url('login'))
+                ->with('error', 'Public registration is currently disabled.');
+        }
+
         $generator = service('memberIdGenerator');
+        $all       = $settings->all();
 
         return view('auth/register', [
             'title'           => 'Create Account',
             'previewMemberId' => $generator->previewNext(),
-            'appName'         => config('Platform')->appName,
+            'appName'         => $all['platform_name'] !== '' ? $all['platform_name'] : config('Platform')->appName,
+            'sponsorRequired' => $settings->bool('sponsor_required'),
+            'regInstructions' => $all['registration_instructions'] ?? '',
         ]);
     }
 
     public function store()
     {
+        if (! service('platformSettingsService')->bool('registration_enabled')) {
+            return redirect()->to(site_url('login'))
+                ->with('error', 'Public registration is currently disabled.');
+        }
+
         $rules = config('Validation')->memberRegistration;
+        if (! service('platformSettingsService')->bool('sponsor_required')) {
+            $rules['sponsor_id']['rules'] = 'permit_empty|max_length[32]';
+        }
 
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());

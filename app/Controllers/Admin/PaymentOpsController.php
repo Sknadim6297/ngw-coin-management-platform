@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
+use App\Controllers\Admin\Concerns\AdminAuthorization;
 use App\Controllers\BaseController;
 use InvalidArgumentException;
 
@@ -12,8 +13,14 @@ use InvalidArgumentException;
  */
 class PaymentOpsController extends BaseController
 {
+    use AdminAuthorization;
+
     public function health()
     {
+        if (! $this->userCan('finance.monitor.view')) {
+            return $this->denyPermission();
+        }
+
         $probe = $this->request->getGet('probe') === '1';
         $data  = service('paymentHealthService')->dashboard(
             (int) auth()->id(),
@@ -28,6 +35,10 @@ class PaymentOpsController extends BaseController
 
     public function healthProbe()
     {
+        if (! $this->userCan('finance.remediation.propose', 'finance.payment.approve')) {
+            return $this->denyPermission();
+        }
+
         service('paymentHealthService')->probeAndStore((int) auth()->id());
 
         return redirect()->to(site_url('admin/payment-health'))
@@ -36,6 +47,10 @@ class PaymentOpsController extends BaseController
 
     public function reconciliation()
     {
+        if (! $this->userCan('finance.monitor.view')) {
+            return $this->denyPermission();
+        }
+
         $report = service('paymentReconciliationService')->run();
 
         return view('admin/payment_ops/reconciliation', [
@@ -46,6 +61,10 @@ class PaymentOpsController extends BaseController
 
     public function audit()
     {
+        if (! $this->userCan('finance.monitor.view', 'finance.payment.review')) {
+            return $this->denyPermission();
+        }
+
         $status   = trim((string) $this->request->getGet('status'));
         $vStatus  = trim((string) $this->request->getGet('verification_status'));
         $consumption = trim((string) $this->request->getGet('consumption'));
@@ -69,11 +88,16 @@ class PaymentOpsController extends BaseController
             'consumption'  => $consumption,
             'integrity'    => $integrity,
             'search'       => $q,
+            'canRetry'     => $this->userCan('finance.payment.approve'),
         ]);
     }
 
     public function auditShow(string $depositRef)
     {
+        if (! $this->userCan('finance.monitor.view', 'finance.payment.review')) {
+            return $this->denyPermission();
+        }
+
         $detail = service('paymentAuditService')->detail($depositRef);
         if ($detail === null) {
             return redirect()->to(site_url('admin/payment-audit'))->with('error', 'Deposit not found.');
@@ -87,15 +111,20 @@ class PaymentOpsController extends BaseController
         $retry = service('verificationRetryService')->canRetry($depositRef);
 
         return view('admin/payment_ops/audit_show', [
-            'title'   => 'Payment Audit Detail',
-            'detail'  => $detail,
-            'network' => $network,
-            'retry'   => $retry,
+            'title'    => 'Payment Audit Detail',
+            'detail'   => $detail,
+            'network'  => $network,
+            'retry'    => $retry,
+            'canRetry' => $this->userCan('finance.payment.approve'),
         ]);
     }
 
     public function retryVerification(string $depositRef)
     {
+        if (! $this->userCan('finance.payment.approve')) {
+            return $this->denyPermission();
+        }
+
         try {
             $result = service('verificationRetryService')->retry($depositRef, (int) auth()->id());
             $msg = $result['result']->isVerified()
@@ -111,6 +140,10 @@ class PaymentOpsController extends BaseController
 
     public function integrityRecheck(string $depositRef)
     {
+        if (! $this->userCan('finance.payment.approve', 'finance.remediation.propose')) {
+            return $this->denyPermission();
+        }
+
         try {
             $result = service('usdtDepositService')->recheckVerifiedDepositIntegrity(
                 $depositRef,
@@ -129,6 +162,10 @@ class PaymentOpsController extends BaseController
 
     public function preflight()
     {
+        if (! $this->userCan('finance.monitor.view', 'admin.settings')) {
+            return $this->denyPermission();
+        }
+
         $report = service('deploymentPreflightService')->run();
 
         return view('admin/payment_ops/preflight', [

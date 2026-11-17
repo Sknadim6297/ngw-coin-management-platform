@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
+use App\Controllers\Admin\Concerns\AdminAuthorization;
 use App\Controllers\BaseController;
 use App\Models\CoinInventoryTransactionModel;
 use App\Models\CoinPriceHistoryModel;
@@ -12,49 +13,57 @@ use InvalidArgumentException;
 
 class CoinController extends BaseController
 {
+    use AdminAuthorization;
+
     public function index()
     {
-        $inventory = service('coinInventoryService')->summary();
-        $price     = service('coinPriceService')->settingsSummary();
-
-        $recentInventory = model(CoinInventoryTransactionModel::class)->recent(8);
-        $recentPrices    = model(CoinPriceHistoryModel::class)->recent(8);
-
-        return view('admin/coins/overview', [
-            'title'           => 'Coin Management',
-            'inventory'       => $inventory,
-            'price'           => $price,
-            'recentInventory' => $recentInventory,
-            'recentPrices'    => $recentPrices,
-            'actorNames'      => $this->actorNameMap(array_merge($recentInventory, $recentPrices)),
-        ]);
+        return redirect()->to(site_url('admin/coins/inventory'));
     }
 
     public function inventory()
     {
-        $inventory = service('coinInventoryService')->summary();
+        if (! $this->userCan('admin.coins.manage', 'admin.members.manage')) {
+            return $this->denyPermission();
+        }
 
-        return view('admin/coins/inventory', [
+        $tab = trim((string) $this->request->getGet('tab'));
+        if (! in_array($tab, ['overview', 'add', 'history'], true)) {
+            $tab = 'overview';
+        }
+
+        $inventory = service('coinInventoryService')->summary();
+        $payload = [
             'title'     => 'Coin Inventory',
             'inventory' => $inventory,
-        ]);
+            'tab'       => $tab,
+        ];
+
+        if ($tab === 'add') {
+            $token = bin2hex(random_bytes(16));
+            session()->setFlashdata('coin_inventory_idempotency', $token);
+            $payload['idempotencyKey'] = $token;
+        } elseif ($tab === 'history') {
+            $model = model(CoinInventoryTransactionModel::class);
+            $rows  = $model->orderBy('id', 'DESC')->paginate(20);
+            $payload['rows'] = $rows;
+            $payload['pager'] = $model->pager;
+            $payload['actorNames'] = $this->actorNameMap($rows);
+        }
+
+        return view('admin/coins/inventory', $payload);
     }
 
     public function addForm()
     {
-        $inventory = service('coinInventoryService')->summary();
-        $token     = bin2hex(random_bytes(16));
-        session()->setFlashdata('coin_inventory_idempotency', $token);
-
-        return view('admin/coins/add', [
-            'title'           => 'Add Coins',
-            'inventory'       => $inventory,
-            'idempotencyKey'  => $token,
-        ]);
+        return redirect()->to(site_url('admin/coins/inventory?tab=add'));
     }
 
     public function addStore()
     {
+        if (! $this->userCan('admin.coins.manage', 'admin.members.manage')) {
+            return $this->denyPermission();
+        }
+
         $rules = config('Validation')->coinInventoryAdd;
 
         if (! $this->validate($rules)) {
@@ -94,28 +103,43 @@ class CoinController extends BaseController
 
     public function inventoryHistory()
     {
-        $model = model(CoinInventoryTransactionModel::class);
-        $rows  = $model->orderBy('id', 'DESC')->paginate(20);
-
-        return view('admin/coins/inventory_history', [
-            'title'      => 'Inventory History',
-            'rows'       => $rows,
-            'pager'      => $model->pager,
-            'actorNames' => $this->actorNameMap($rows),
-            'inventory'  => service('coinInventoryService')->summary(),
-        ]);
+        return redirect()->to(site_url('admin/coins/inventory?tab=history'));
     }
 
     public function price()
     {
-        return view('admin/coins/price', [
-            'title'    => 'Coin Price Settings',
+        if (! $this->userCan('admin.coins.manage', 'admin.members.manage')) {
+            return $this->denyPermission();
+        }
+
+        $tab = trim((string) $this->request->getGet('tab'));
+        if (! in_array($tab, ['settings', 'history'], true)) {
+            $tab = 'settings';
+        }
+
+        $payload = [
+            'title'    => 'Coin Pricing',
             'settings' => service('coinPriceService')->settingsSummary(),
-        ]);
+            'tab'      => $tab,
+        ];
+
+        if ($tab === 'history') {
+            $model = model(CoinPriceHistoryModel::class);
+            $rows  = $model->orderBy('id', 'DESC')->paginate(20);
+            $payload['rows'] = $rows;
+            $payload['pager'] = $model->pager;
+            $payload['actorNames'] = $this->actorNameMap($rows);
+        }
+
+        return view('admin/coins/price', $payload);
     }
 
     public function priceUpdate()
     {
+        if (! $this->userCan('admin.coins.manage', 'admin.members.manage')) {
+            return $this->denyPermission();
+        }
+
         $rules = config('Validation')->coinPriceUpdate;
 
         if (! $this->validate($rules)) {
@@ -144,16 +168,7 @@ class CoinController extends BaseController
 
     public function priceHistory()
     {
-        $model = model(CoinPriceHistoryModel::class);
-        $rows  = $model->orderBy('id', 'DESC')->paginate(20);
-
-        return view('admin/coins/price_history', [
-            'title'      => 'Price Change History',
-            'rows'       => $rows,
-            'pager'      => $model->pager,
-            'actorNames' => $this->actorNameMap($rows),
-            'settings'   => service('coinPriceService')->settingsSummary(),
-        ]);
+        return redirect()->to(site_url('admin/coins/price?tab=history'));
     }
 
     private function nullablePost(string $key): ?string

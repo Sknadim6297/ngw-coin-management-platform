@@ -12,6 +12,7 @@ class SponsorValidator
 {
     public const REASON_NOT_FOUND = 'not_found';
     public const REASON_INACTIVE  = 'inactive';
+    public const REASON_SELF      = 'self';
     public const REASON_OK        = 'ok';
 
     public function __construct(
@@ -23,9 +24,10 @@ class SponsorValidator
     /**
      * @return array{valid: bool, reason: string, profile: ?MemberProfile, message: string}
      */
-    public function validate(string $sponsorId): array
+    public function validate(string $sponsorId, ?string $excludeMemberId = null): array
     {
         $sponsorId = trim($sponsorId);
+        $excludeMemberId = $excludeMemberId !== null ? strtoupper(trim($excludeMemberId)) : null;
 
         if ($sponsorId === '') {
             return [
@@ -33,6 +35,15 @@ class SponsorValidator
                 'reason'  => self::REASON_NOT_FOUND,
                 'profile' => null,
                 'message' => 'Sponsor ID is required.',
+            ];
+        }
+
+        if ($excludeMemberId !== null && strtoupper($sponsorId) === $excludeMemberId) {
+            return [
+                'valid'   => false,
+                'reason'  => self::REASON_SELF,
+                'profile' => null,
+                'message' => 'A member cannot sponsor themselves.',
             ];
         }
 

@@ -90,15 +90,24 @@ Run:
 
 Phase 5 reported baseline: **142 tests, 409 assertions, 0 failures**.
 
-These figures describe the reported local test run, not a verified production deployment.
+Phase 6 wallet suite (focused): **MemberWalletTest 15/15 (81 assertions)**; wallet + dashboard analytics **25/25 (162 assertions)**. Full-suite count grows with later modules — re-run `php vendor/bin/phpunit --no-coverage` locally for the current total.
+
+These figures describe reported local test runs, not a verified production deployment.
+
+Member wallet: `/member/wallet`, `/member/wallet/transactions` (CSV export).  
+Admin wallets: `/admin/wallets`, `/admin/wallets/{memberId}`, `/admin/wallets/{memberId}/transactions`, `/admin/wallets/reconcile`.
+
+Phase 7A referrals: `/member/referrals`, `/member/genealogy`, `/admin/referrals`, `/admin/genealogy` (read-only integrity).
+
+Phase 7B mining simulation (non-payable): `/admin/mining`, `/admin/mining/rates`, `/member/mining`, CLI `php spark mining:simulate --date=YYYY-MM-DD`. Actual mining posting is not activated.
 
 ## Project Status
 
 **Active Development — Not Production Ready**
 
-The blockchain verification architecture is implemented, but live USDT payments are disabled pending trusted RPC configuration, wallet validation, operational checks, and applicable compliance review.
+Implemented through Phase 6: internal member coin wallet overview, ledger history/detail, CSV export, admin wallet search/audit, and read-only wallet reconciliation. No ROI, mining rewards, commissions, withdrawals, or external transfers.
 
-Mining ROI, automatic earnings, withdrawals, and external wallet transfers are not implemented.
+The blockchain verification architecture is implemented, but live USDT payments are disabled pending trusted RPC configuration, wallet validation, operational checks, and applicable compliance review.
 
 ## Important Notice
 

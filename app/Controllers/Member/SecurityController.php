@@ -20,7 +20,7 @@ class SecurityController extends BaseController
     {
         $rules = [
             'current_password' => 'required',
-            'password'         => 'required|min_length[8]|max_length[72]',
+            'password'         => 'required|min_length[8]|max_length[72]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/]',
             'password_confirm' => 'required|matches[password]',
         ];
 

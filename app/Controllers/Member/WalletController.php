@@ -9,45 +9,64 @@ use App\Models\MemberProfileModel;
 use InvalidArgumentException;
 
 /**
- * Phase 6: member internal coin wallet (read-only reporting).
+ * Phase 6/9A: member internal coin wallet with consolidated tabs.
  */
 class WalletController extends BaseController
 {
     public function index()
     {
         $userId = (int) auth()->id();
+        $tab    = trim((string) $this->request->getGet('tab'));
+        if (! in_array($tab, ['overview', 'transactions', 'locking'], true)) {
+            $tab = 'overview';
+        }
 
-        return view('member/wallet/index', [
-            'title'   => 'Coin Wallet',
+        $payload = [
+            'title'   => 'My Wallet',
+            'tab'     => $tab,
             'wallet'  => service('memberWalletService')->overview($userId),
             'profile' => model(MemberProfileModel::class)->findByUserId($userId),
-        ]);
+        ];
+
+        if ($tab === 'transactions') {
+            try {
+                $history = service('memberWalletService')->history($userId, $this->filterInput());
+            } catch (InvalidArgumentException $e) {
+                return redirect()->to(site_url('member/wallet?tab=transactions'))
+                    ->with('error', $e->getMessage());
+            }
+            $payload['rows']    = $history['rows'];
+            $payload['pager']   = $history['pager'];
+            $payload['filters'] = $history['filters'];
+            $payload['summary'] = service('memberCoinOwnershipService')->summaryForUser($userId);
+        } elseif ($tab === 'locking') {
+            $status = trim((string) $this->request->getGet('status'));
+            $result = service('coinLockingService')->searchLocks(
+                $status !== '' ? $status : null,
+                $userId
+            );
+            $payload['lockRows']  = $result['rows'];
+            $payload['pager']     = $result['pager'];
+            $payload['lockStatus']= $status;
+        }
+
+        return view('member/wallet/index', $payload);
     }
 
     public function transactions()
     {
-        $userId = (int) auth()->id();
+        $q = http_build_query(array_filter([
+            'tab'       => 'transactions',
+            'type'      => $this->request->getGet('type'),
+            'date_from' => $this->request->getGet('date_from'),
+            'date_to'   => $this->request->getGet('date_to'),
+            'ref'       => $this->request->getGet('ref'),
+            'sort'      => $this->request->getGet('sort'),
+            'dir'       => $this->request->getGet('dir'),
+            'per_page'  => $this->request->getGet('per_page'),
+        ], static fn ($v) => $v !== null && $v !== ''));
 
-        try {
-            $history = service('memberWalletService')->history($userId, [
-                'type'      => $this->request->getGet('type'),
-                'date_from' => $this->request->getGet('date_from'),
-                'date_to'   => $this->request->getGet('date_to'),
-                'per_page'  => $this->request->getGet('per_page'),
-            ]);
-        } catch (InvalidArgumentException $e) {
-            return redirect()->to(site_url('member/wallet/transactions'))
-                ->with('error', $e->getMessage());
-        }
-
-        return view('member/wallet/transactions', [
-            'title'   => 'Wallet Transactions',
-            'rows'    => $history['rows'],
-            'pager'   => $history['pager'],
-            'filters' => $history['filters'],
-            'summary' => service('memberCoinOwnershipService')->summaryForUser($userId),
-            'profile' => model(MemberProfileModel::class)->findByUserId($userId),
-        ]);
+        return redirect()->to(site_url('member/wallet' . ($q !== '' ? '?' . $q : '?tab=transactions')));
     }
 
     public function show(string $transactionRef)
@@ -57,7 +76,7 @@ class WalletController extends BaseController
         try {
             $txn = service('memberWalletService')->findOwnedTransaction($userId, $transactionRef);
         } catch (InvalidArgumentException $e) {
-            return redirect()->to(site_url('member/wallet/transactions'))
+            return redirect()->to(site_url('member/wallet?tab=transactions'))
                 ->with('error', $e->getMessage());
         }
 
@@ -73,15 +92,11 @@ class WalletController extends BaseController
         $userId = (int) auth()->id();
 
         try {
-            $filters = [
-                'type'      => $this->request->getGet('type'),
-                'date_from' => $this->request->getGet('date_from'),
-                'date_to'   => $this->request->getGet('date_to'),
-            ];
-            $rows = service('memberWalletService')->exportRows($userId, $filters);
-            $csv  = service('memberWalletService')->buildCsv($rows);
+            $filters = $this->filterInput();
+            $rows    = service('memberWalletService')->exportRows($userId, $filters);
+            $csv     = service('memberWalletService')->buildCsv($rows);
         } catch (InvalidArgumentException $e) {
-            return redirect()->to(site_url('member/wallet/transactions'))
+            return redirect()->to(site_url('member/wallet?tab=transactions'))
                 ->with('error', $e->getMessage());
         }
 
@@ -92,5 +107,21 @@ class WalletController extends BaseController
             ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->setHeader('X-Content-Type-Options', 'nosniff')
             ->setBody($csv);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function filterInput(): array
+    {
+        return [
+            'type'      => $this->request->getGet('type'),
+            'date_from' => $this->request->getGet('date_from'),
+            'date_to'   => $this->request->getGet('date_to'),
+            'ref'       => $this->request->getGet('ref'),
+            'sort'      => $this->request->getGet('sort'),
+            'dir'       => $this->request->getGet('dir'),
+            'per_page'  => $this->request->getGet('per_page'),
+        ];
     }
 }

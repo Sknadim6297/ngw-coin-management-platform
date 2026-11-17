@@ -24,6 +24,10 @@ class PlaceholderController extends BaseController
 
     public function show(string $module)
     {
+        if ($module === 'support') {
+            return redirect()->to(site_url('member/support'));
+        }
+
         $labels = [
             'buy-coins'         => 'Buy Coins',
             'my-coins'          => 'My Coins',
@@ -35,7 +39,6 @@ class PlaceholderController extends BaseController
             'commission-wallet' => 'Commission Wallet',
             'withdrawal'        => 'Withdrawal',
             'transactions'      => 'Transaction History',
-            'support'           => 'Support',
         ];
 
         if (! isset($labels[$module])) {

@@ -1,5 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<?= view('components/payment_monitoring_tabs', ['active' => 'alerts']) ?>
 <p class="page-subtitle">Internal financial alerts. External notifications are not sent unless a provider is configured later.</p>
 
 <div class="d-flex flex-wrap gap-2 mb-3">

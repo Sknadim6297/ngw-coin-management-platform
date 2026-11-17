@@ -411,6 +411,56 @@ img {
   color: var(--gold-bright);
 }
 
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.admin-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.admin-tab:hover {
+  color: var(--gold-bright);
+  border-color: rgba(212, 175, 55, 0.55);
+}
+
+.admin-tab.active {
+  color: #111;
+  background: linear-gradient(135deg, #f0d78c, #d4af37);
+  border-color: transparent;
+}
+
+.admin-tab-count {
+  min-width: 1.35rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 0.78rem;
+}
+
+.admin-tab.active .admin-tab-count {
+  background: rgba(0, 0, 0, 0.22);
+  color: #111;
+}
+
+.section-hub-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
 .main-area {
   min-width: 0;
 }
@@ -915,4 +965,281 @@ img {
 :focus-visible {
   outline: 2px solid var(--gold-bright);
   outline-offset: 2px;
+}
+
+/* Member Buy Coins — payment status */
+.buy-status-page {
+  max-width: 920px;
+  animation: buyStatusIn 0.45s ease both;
+}
+
+@keyframes buyStatusIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.buy-status-hero {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem 1.35rem;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(212, 175, 55, 0.16), transparent 55%),
+    linear-gradient(160deg, #141414, #0c0c0c);
+  margin-bottom: 1rem;
+}
+
+.buy-status-hero.is-waiting {
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.buy-status-hero.is-success {
+  border-color: rgba(70, 180, 110, 0.45);
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(70, 180, 110, 0.14), transparent 55%),
+    linear-gradient(160deg, #111814, #0c0c0c);
+}
+
+.buy-status-hero.is-danger {
+  border-color: rgba(200, 80, 80, 0.45);
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(200, 80, 80, 0.14), transparent 55%),
+    linear-gradient(160deg, #1a1010, #0c0c0c);
+}
+
+.buy-status-hero-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--gold-bright);
+  font-size: 1.35rem;
+}
+
+.buy-status-hero.is-waiting .buy-status-hero-icon {
+  animation: buyStatusPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes buyStatusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.35); }
+  50% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+}
+
+.buy-status-kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-muted);
+}
+
+.buy-status-title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-weight: 700;
+  color: var(--gold-bright);
+  line-height: 1.25;
+}
+
+.buy-status-text {
+  margin: 0;
+  color: rgba(245, 245, 245, 0.78);
+  font-size: 0.95rem;
+}
+
+.buy-status-account {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 1.1rem;
+}
+
+.buy-status-account strong {
+  display: block;
+  color: var(--gold-bright);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+
+.buy-status-account span {
+  color: rgba(245, 245, 245, 0.72);
+  font-size: 0.9rem;
+}
+
+.buy-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+  background: var(--gold);
+}
+
+.buy-status-account.is-active .buy-status-dot {
+  background: #46b46e;
+}
+
+.buy-status-account.is-inactive .buy-status-dot {
+  background: #d4af37;
+}
+
+.buy-status-steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0 0 1.15rem;
+}
+
+.buy-status-steps li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  text-align: center;
+  opacity: 0.45;
+}
+
+.buy-status-steps li.is-done,
+.buy-status-steps li.is-current {
+  opacity: 1;
+}
+
+.buy-status-steps .step-num {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: var(--gold-bright);
+  background: #121212;
+}
+
+.buy-status-steps li.is-done .step-num {
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  color: #111;
+  border-color: transparent;
+}
+
+.buy-status-steps li.is-current .step-num {
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+}
+
+.buy-status-steps .step-label {
+  font-size: 0.78rem;
+  color: rgba(245, 245, 245, 0.8);
+}
+
+.buy-status-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.buy-status-card-head span {
+  color: var(--gold-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.buy-status-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.buy-status-metrics .label,
+.buy-status-detail .label {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(245, 245, 245, 0.55);
+  margin-bottom: 0.2rem;
+}
+
+.buy-status-metrics strong {
+  font-size: 1.15rem;
+  color: var(--gold-bright);
+}
+
+.buy-status-metrics small {
+  font-size: 0.75rem;
+  color: rgba(245, 245, 245, 0.65);
+}
+
+.buy-status-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.buy-status-pills .pill {
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: var(--gold-bright);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+}
+
+.buy-status-pills .pill-muted {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(245, 245, 245, 0.75);
+}
+
+.buy-status-detail {
+  margin-bottom: 0.85rem;
+}
+
+.buy-status-detail:last-child {
+  margin-bottom: 0;
+}
+
+.buy-status-txn {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.buy-status-txn code {
+  flex: 1;
+  min-width: 0;
+}
+
+.buy-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1.15rem;
+}
+
+@media (max-width: 767.98px) {
+  .buy-status-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .buy-status-hero {
+    flex-direction: column;
+  }
+
+  .buy-status-txn {
+    flex-direction: column;
+  }
 }

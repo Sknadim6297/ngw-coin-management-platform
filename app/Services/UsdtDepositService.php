@@ -435,7 +435,8 @@ class UsdtDepositService
     }
 
     /**
-     * Explicitly blocked: screenshots / manual claims cannot verify payment.
+     * Explicitly blocked: screenshots / hash alone cannot verify payment.
+     * Use manuallyApprovePayment() after independent explorer/wallet confirmation.
      */
     public function rejectManualVerificationClaim(string $depositRef, int $adminUserId): never
     {
@@ -447,8 +448,263 @@ class UsdtDepositService
         );
 
         throw new InvalidArgumentException(
-            'A screenshot or user-submitted transaction hash alone cannot mark a deposit as blockchain-verified. Use a trusted verification provider (Phase 4B) or keep the deposit under review.'
+            'A screenshot or submitted TXN ID alone cannot approve payment. Use Approve Payment after independent confirmation.'
         );
+    }
+
+    /**
+     * Admin manual payment approval after independent explorer/wallet checks.
+     * Does not credit coins — only marks deposit verified (then purchase approve credits).
+     *
+     * @param array{
+     *   confirm_independent?: bool|string,
+     *   confirm_network?: bool|string,
+     *   confirm_success?: bool|string,
+     *   verified_amount_usdt?: string,
+     *   confirmed_wallet?: string,
+     *   confirmed_token_contract?: string,
+     *   confirmed_confirmations?: int|string,
+     *   verification_evidence?: string,
+     *   link_purchase_ref?: ?string
+     * } $data
+     * @return array{deposit: array<string, mixed>, linked_purchase_ref: ?string}
+     */
+    public function manuallyApprovePayment(string $depositRef, int $adminUserId, array $data): array
+    {
+        if (empty($data['confirm_independent'])) {
+            throw new InvalidArgumentException(
+                'Confirm that you independently checked this transaction on a trusted explorer or wallet.'
+            );
+        }
+        if (empty($data['confirm_network'])) {
+            throw new InvalidArgumentException('Confirm the payment was on BEP20 / BSC.');
+        }
+        if (empty($data['confirm_success'])) {
+            throw new InvalidArgumentException('Confirm the transaction succeeded with enough confirmations.');
+        }
+
+        $evidence = trim((string) ($data['verification_evidence'] ?? ''));
+        if ($evidence === '' || strlen($evidence) < 8) {
+            throw new InvalidArgumentException('Verification evidence is required (explorer link or review notes).');
+        }
+
+        $db = db_connect();
+        $db->transBegin();
+
+        try {
+            $row = $this->lockDeposit($depositRef);
+            if (! in_array($row['status'], [self::STATUS_SUBMITTED, self::STATUS_UNDER_REVIEW], true)) {
+                throw new InvalidArgumentException('Only pending payments can be approved.');
+            }
+
+            $txHash = trim((string) ($row['tx_hash'] ?? ''));
+            if ($txHash === '') {
+                throw new InvalidArgumentException('Deposit has no transaction hash to approve.');
+            }
+
+            $normalized = strtolower((string) ($row['tx_hash_normalized'] ?? $txHash));
+            $dup = $this->deposits
+                ->where('tx_hash_normalized', $normalized)
+                ->where('id !=', (int) $row['id'])
+                ->whereIn('status', [self::STATUS_VERIFIED, self::STATUS_SUBMITTED, self::STATUS_UNDER_REVIEW])
+                ->first();
+            if ($dup !== null) {
+                throw new InvalidArgumentException('This transaction hash is already used by another payment.');
+            }
+
+            $network = $this->networks->find((int) $row['network_id']);
+            if ($network === null) {
+                throw new InvalidArgumentException('Payment network not found.');
+            }
+
+            $scale = ($this->config ?? config('Platform'))->usdtScale;
+            $expected = MoneyMath::normalize((string) $row['expected_amount_usdt'], $scale);
+            $verifiedAmount = MoneyMath::normalize(
+                (string) ($data['verified_amount_usdt'] ?? $expected),
+                $scale
+            );
+            if (! MoneyMath::isPositive($verifiedAmount, $scale)) {
+                throw new InvalidArgumentException('Verified amount must be greater than zero.');
+            }
+            if (MoneyMath::compare($verifiedAmount, $expected, $scale) !== 0) {
+                throw new InvalidArgumentException(
+                    'Verified amount (' . $verifiedAmount . ') must exactly match expected amount (' . $expected . ').'
+                );
+            }
+
+            $snapshotWallet = trim((string) ($row['destination_wallet_snapshot'] ?? ''));
+            $confirmedWallet = trim((string) ($data['confirmed_wallet'] ?? ''));
+            if ($confirmedWallet === '') {
+                throw new InvalidArgumentException('Confirmed receiving wallet is required.');
+            }
+            if ($snapshotWallet !== '' && strcasecmp($confirmedWallet, $snapshotWallet) !== 0) {
+                throw new InvalidArgumentException(
+                    'Confirmed wallet does not match the deposit receiving wallet snapshot.'
+                );
+            }
+            if (service('paymentQrService')->isBurnOrNullWallet($confirmedWallet)) {
+                throw new InvalidArgumentException('Burn or null wallets cannot be approved as payment destinations.');
+            }
+
+            $networkContract = trim((string) ($network['token_contract_address'] ?? ''));
+            $confirmedContract = trim((string) ($data['confirmed_token_contract'] ?? $networkContract));
+            if ($networkContract !== '' && strcasecmp($networkContract, 'pending') !== 0) {
+                if ($confirmedContract === '' || strcasecmp($confirmedContract, $networkContract) !== 0) {
+                    throw new InvalidArgumentException(
+                        'Confirmed USDT token contract does not match the configured BEP20 contract.'
+                    );
+                }
+            }
+
+            $requiredConf = max(1, (int) ($network['required_confirmations'] ?? 1));
+            $confirmations = (int) ($data['confirmed_confirmations'] ?? 0);
+            if ($confirmations < $requiredConf) {
+                throw new InvalidArgumentException(
+                    'Confirmations must be at least ' . $requiredConf . ' for this network.'
+                );
+            }
+
+            $now = date('Y-m-d H:i:s');
+            $db->table('usdt_deposit_requests')->where('id', (int) $row['id'])->update([
+                'status'                     => self::STATUS_VERIFIED,
+                'verification_method'        => 'MANUAL',
+                'verification_reference'     => mb_substr($evidence, 0, 255),
+                'verified_amount_usdt'       => $verifiedAmount,
+                'verified_chain_id'          => (int) ($network['chain_id'] ?? 56),
+                'verified_token_contract'    => $confirmedContract !== '' ? $confirmedContract : null,
+                'verified_destination'       => $confirmedWallet,
+                'verified_confirmations'     => $confirmations,
+                'last_verification_status'   => DepositVerificationResult::STATUS_VERIFIED,
+                'last_verification_message'  => mb_substr('MANUAL: ' . $evidence, 0, 2000),
+                'last_verification_at'       => $now,
+                'next_verification_after'    => null,
+                'integrity_flag'             => 'ok',
+                'integrity_checked_at'       => $now,
+                'verified_at'                => $now,
+                'reviewed_by'                => $adminUserId,
+                'review_notes'               => trim((string) (($row['review_notes'] ?? '') . "\nMANUAL APPROVAL: " . $evidence)),
+                'payment_consumption_status' => 'available',
+                'updated_at'                 => $now,
+            ]);
+
+            $this->recordEvent(
+                (int) $row['id'],
+                $row['deposit_ref'],
+                $adminUserId,
+                'deposit.verified_manual',
+                $row['status'],
+                self::STATUS_VERIFIED,
+                [
+                    'method'        => 'MANUAL',
+                    'amount'        => $verifiedAmount,
+                    'confirmations' => $confirmations,
+                    'wallet'        => $confirmedWallet,
+                ]
+            );
+
+            if ($db->transStatus() === false) {
+                $db->transRollback();
+                throw new RuntimeException('Unable to approve payment.');
+            }
+
+            $db->transCommit();
+
+            $updated = $this->deposits->find((int) $row['id']);
+            $this->audit->log('usdt.deposit_verified_manual', $adminUserId, 'usdt_deposit_request', $row['deposit_ref'], [
+                'method' => 'MANUAL',
+                'amount' => $verifiedAmount,
+            ]);
+
+            $linkedPurchase = null;
+            $linkRef = trim((string) ($data['link_purchase_ref'] ?? ''));
+            // Prefer explicit form link, then soft Buy Coins association on the deposit.
+            if ($linkRef === '') {
+                $linkRef = trim((string) ($row['linked_purchase_ref'] ?? ''));
+            }
+            if ($linkRef === '') {
+                $match = model(CoinPurchaseRequestModel::class)
+                    ->where('member_user_id', (int) $row['member_user_id'])
+                    ->where('status', 'pending')
+                    ->where('total_usdt', $verifiedAmount)
+                    ->groupStart()
+                        ->where('payment_deposit_ref', null)
+                        ->orWhere('payment_deposit_ref', '')
+                        ->orWhere('payment_deposit_ref', $row['deposit_ref'])
+                    ->groupEnd()
+                    ->orderBy('id', 'DESC')
+                    ->first();
+                $linkRef = $match['purchase_ref'] ?? '';
+            }
+
+            if ($linkRef !== '') {
+                try {
+                    service('usdtPaymentAllocationService')->linkDepositToPurchase(
+                        (int) $row['member_user_id'],
+                        $row['deposit_ref'],
+                        $linkRef
+                    );
+                    $linkedPurchase = $linkRef;
+                    $updated = $this->deposits->findByRef($row['deposit_ref']) ?? $updated;
+                } catch (\Throwable $e) {
+                    log_message('warning', 'Manual verify auto-link skipped: {msg}', ['msg' => $e->getMessage()]);
+                }
+            }
+
+            return [
+                'deposit'             => $updated,
+                'linked_purchase_ref' => $linkedPurchase,
+            ];
+        } catch (\Throwable $e) {
+            if ($db->transDepth > 0) {
+                $db->transRollback();
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Related pending purchase for admin review UI (exact amount match).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findMatchingPendingPurchase(array $deposit): ?array
+    {
+        $scale  = ($this->config ?? config('Platform'))->usdtScale;
+        $amount = MoneyMath::normalize((string) ($deposit['expected_amount_usdt'] ?? '0'), $scale);
+
+        return model(CoinPurchaseRequestModel::class)
+            ->where('member_user_id', (int) $deposit['member_user_id'])
+            ->where('status', 'pending')
+            ->where('total_usdt', $amount)
+            ->orderBy('id', 'DESC')
+            ->first();
+    }
+
+    /**
+     * Pending payment (submitted/under_review) matching a purchase for admin CTA.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findMatchingPendingPaymentForPurchase(array $purchase): ?array
+    {
+        $scale  = ($this->config ?? config('Platform'))->usdtScale;
+        $amount = MoneyMath::normalize((string) ($purchase['total_usdt'] ?? '0'), $scale);
+
+        $rows = $this->deposits
+            ->where('member_user_id', (int) ($purchase['member_user_id'] ?? 0))
+            ->whereIn('status', [self::STATUS_SUBMITTED, self::STATUS_UNDER_REVIEW])
+            ->orderBy('id', 'DESC')
+            ->findAll(20);
+
+        foreach ($rows as $row) {
+            $expected = MoneyMath::normalize((string) ($row['expected_amount_usdt'] ?? '0'), $scale);
+            if (MoneyMath::compare($expected, $amount, $scale) === 0) {
+                return $row;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -679,6 +935,29 @@ class UsdtDepositService
 
             if ($rejectionReason !== null) {
                 $update['rejection_reason'] = $rejectionReason;
+            }
+
+            // Clear soft Buy Coins association when deposit is rejected/cancelled (not hard allocation).
+            if (in_array($toStatus, [self::STATUS_REJECTED, self::STATUS_CANCELLED], true)) {
+                $softPurchase = trim((string) ($row['linked_purchase_ref'] ?? ''));
+                if ($softPurchase !== '') {
+                    $purchase = $db->table('coin_purchase_requests')
+                        ->where('purchase_ref', $softPurchase)
+                        ->get()
+                        ->getRowArray();
+                    $paymentStatus = (string) ($purchase['payment_status'] ?? 'unpaid');
+                    if (
+                        $purchase !== null
+                        && in_array($paymentStatus, ['unpaid', ''], true)
+                        && (string) ($purchase['payment_deposit_ref'] ?? '') === (string) $row['deposit_ref']
+                    ) {
+                        $db->table('coin_purchase_requests')->where('purchase_ref', $softPurchase)->update([
+                            'payment_deposit_ref' => null,
+                            'updated_at'          => $now,
+                        ]);
+                    }
+                }
+                $update['linked_purchase_ref'] = null;
             }
 
             $db->table('usdt_deposit_requests')->where('id', (int) $row['id'])->update($update);

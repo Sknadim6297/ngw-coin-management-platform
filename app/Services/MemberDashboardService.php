@@ -16,7 +16,7 @@ use Throwable;
 class MemberDashboardService
 {
     private const MINING_REASON     = 'Mining module is not implemented.';
-    private const COMMISSION_REASON = 'Level commission module is not implemented.';
+    private const COMMISSION_REASON = 'Actual Commission: Not Activated';
 
     /**
      * @return array{
@@ -31,6 +31,7 @@ class MemberDashboardService
      *   active_locks: list<array<string, mixed>>,
      *   matured_locks: list<array<string, mixed>>,
      *   recent_locks: list<array<string, mixed>>,
+     *   recent_wallet: list<array<string, mixed>>,
      *   timezone: string,
      *   today_start: string,
      *   today_end: string,
@@ -47,23 +48,34 @@ class MemberDashboardService
         [$todayStart, $todayEnd] = $this->todayBounds();
         $relationship            = model(SponsorRelationshipModel::class)->findByMemberUserId($memberUserId);
         $locking                 = service('coinLockingService')->memberDashboardSnapshot($memberUserId);
+        $walletOverview          = service('memberWalletService')->overview($memberUserId);
+        $activation              = service('memberActivationService')->statusForMember($memberUserId);
+        $pendingPayments         = $this->pendingPaymentsForMember($memberUserId);
+        $recentPurchases         = $this->recentPurchasesForMember($memberUserId, 5);
+        $team                    = service('referralTeamService')->countsForSponsor($memberUserId);
 
         return [
-            'kpis'           => $this->kpis($memberUserId, $locking),
-            'charts'         => $this->charts($memberUserId, $locking['summary']),
-            'profile'        => $profile,
-            'relationship'   => $relationship,
-            'referral_link'  => site_url('register?sponsor=' . urlencode($profile->member_id)),
-            'completion'     => $profile->profileCompletionPercent(),
-            'price_summary'  => service('coinPriceService')->settingsSummary(),
-            'inventory'      => service('coinInventoryService')->summary(),
-            'active_locks'   => $locking['active'],
-            'matured_locks'  => $locking['matured'],
-            'recent_locks'   => $locking['recent'],
-            'timezone'       => (string) config('App')->appTimezone,
-            'today_start'    => $todayStart,
-            'today_end'      => $todayEnd,
-            'generated_at'   => date('Y-m-d H:i:s'),
+            'kpis'              => $this->kpis($memberUserId, $locking),
+            'charts'            => $this->charts($memberUserId, $locking['summary']),
+            'profile'           => $profile,
+            'relationship'      => $relationship,
+            'activation'        => $activation,
+            'wallet_summary'    => $locking['summary'],
+            'pending_payments'  => $pendingPayments,
+            'recent_purchases'  => $recentPurchases,
+            'referral_summary'  => $team,
+            'referral_link'     => site_url('register?sponsor=' . urlencode($profile->member_id)),
+            'completion'        => $profile->profileCompletionPercent(),
+            'price_summary'     => service('coinPriceService')->settingsSummary(),
+            'inventory'         => service('coinInventoryService')->summary(),
+            'active_locks'      => $locking['active'],
+            'matured_locks'     => $locking['matured'],
+            'recent_locks'      => $locking['recent'],
+            'recent_wallet'     => array_slice($walletOverview['recent'], 0, 5),
+            'timezone'          => (string) config('App')->appTimezone,
+            'today_start'       => $todayStart,
+            'today_end'         => $todayEnd,
+            'generated_at'      => date('Y-m-d H:i:s'),
         ];
     }
 
@@ -98,24 +110,42 @@ class MemberDashboardService
                 ->countAllResults();
 
             $team = service('referralTeamService')->countsForSponsor($memberUserId);
+            $miningPreview = service('miningSimulationService')->memberPreview($memberUserId, date('Y-m-d'));
+            $commissionSnap = service('commissionSimulationService')->memberSnapshot($memberUserId);
+            $profileRow = model(\App\Models\MemberProfileModel::class)->findByUserId($memberUserId);
+            if ($profileRow !== null) {
+                service('commissionWalletService')->ensureAccount($memberUserId, (string) $profileRow->member_id);
+            }
+            $commWallet = service('commissionWalletService')->getAccount($memberUserId);
+            $wdStatus   = service('commissionWithdrawalService')->activationStatus();
+
+            $pendingPayments = (int) $db->table('usdt_deposit_requests')
+                ->where('member_user_id', $memberUserId)
+                ->whereIn('status', ['submitted', 'under_review'])
+                ->countAllResults();
 
             return [
-                KpiCardFactory::ok('my_total_coins', 'My Total Coins', $summary['balance'], 'purple', 'bi-coin', 'coins', site_url('member/wallet')),
-                KpiCardFactory::ok('my_available_coins', 'My Available Coins', $summary['available'], 'green', 'bi-wallet2', 'coins', site_url('member/wallet')),
-                KpiCardFactory::ok('my_locked_coins', 'My Locked Coins', $summary['locked'], 'amber', 'bi-lock-fill', 'coins', site_url('member/locking')),
-                KpiCardFactory::ok('my_purchased_coins', 'My Purchased Coins', $summary['total_acquired'], 'teal', 'bi-cart-check-fill', 'coins', site_url('member/purchases')),
-                KpiCardFactory::unavailable('my_today_mining', "My Today's Mining", 'cyan', 'bi-lightning-charge-fill', self::MINING_REASON, site_url('member/coming-soon/mining')),
-                KpiCardFactory::unavailable('my_total_mining', 'My Total Mining', 'amber', 'bi-lightning-fill', self::MINING_REASON, site_url('member/coming-soon/mining')),
-                KpiCardFactory::unavailable('my_today_level_commission', "My Today's Level Commission", 'indigo', 'bi-diagram-3-fill', self::COMMISSION_REASON, site_url('member/coming-soon/level-income')),
-                KpiCardFactory::unavailable('my_total_level_commission', 'My Total Level Commission', 'indigo', 'bi-cash-stack', self::COMMISSION_REASON, site_url('member/coming-soon/commission-wallet')),
-                KpiCardFactory::ok('my_total_team', 'My Total Team Members', $team['total'], 'blue', 'bi-people-fill', 'members', site_url('member/coming-soon/referrals')),
-                KpiCardFactory::ok('my_active_team', 'My Active Team Members', $team['active'], 'green', 'bi-person-check-fill', 'members', site_url('member/coming-soon/referrals')),
-                KpiCardFactory::ok('my_inactive_team', 'My Inactive Team Members', $team['inactive'], 'orange', 'bi-person-x-fill', 'members', site_url('member/coming-soon/referrals')),
-                KpiCardFactory::ok('my_direct_referrals', 'My Direct Referrals', $team['direct'], 'blue', 'bi-person-plus-fill', 'members', site_url('member/coming-soon/referrals')),
-                KpiCardFactory::ok('my_pending_purchases', 'My Pending Purchases', $pendingPurchases, 'red', 'bi-hourglass-split', 'requests', site_url('member/purchases?status=pending')),
-                KpiCardFactory::ok('my_approved_purchases', 'My Approved Purchases', $approvedPurchases, 'green', 'bi-check2-circle', 'requests', site_url('member/purchases?status=approved')),
-                KpiCardFactory::ok('my_active_locks', 'My Active Coin Locks', $activeLockCount, 'amber', 'bi-lock', 'locks', site_url('member/locking')),
-                KpiCardFactory::ok('my_matured_locks', 'My Matured Coin Locks', $maturedLockCount, 'teal', 'bi-unlock-fill', 'locks', site_url('member/locking')),
+                KpiCardFactory::ok('my_total_coins', 'Total Owned Coins', $summary['balance'], 'purple', 'bi-coin', 'coins', site_url('member/wallet')),
+                KpiCardFactory::ok('my_available_coins', 'Available Coins', $summary['available'], 'green', 'bi-wallet2', 'coins', site_url('member/wallet')),
+                KpiCardFactory::ok('my_locked_coins', 'Locked Coins', $summary['locked'], 'amber', 'bi-lock-fill', 'coins', site_url('member/wallet?tab=locking')),
+                KpiCardFactory::ok('my_purchased_coins', 'Purchased Coins', $summary['total_acquired'], 'teal', 'bi-cart-check-fill', 'coins', site_url('member/buy-coins')),
+                KpiCardFactory::ok('my_pending_payments', 'Pending Payments', $pendingPayments, 'red', 'bi-shield-exclamation', 'payments', site_url('member/buy-coins')),
+                KpiCardFactory::ok('my_pending_purchases', 'Pending Purchases', $pendingPurchases, 'red', 'bi-hourglass-split', 'requests', site_url('member/buy-coins')),
+                KpiCardFactory::ok('my_approved_purchases', 'Approved Purchases', $approvedPurchases, 'green', 'bi-check2-circle', 'requests', site_url('member/buy-coins')),
+                KpiCardFactory::unavailable('my_today_mining', "Today's Mining (Actual)", 'cyan', 'bi-lightning-charge-fill', 'Actual Mining: Not Activated', site_url('member/mining')),
+                KpiCardFactory::unavailable('my_total_mining', 'Total Mining (Actual)', 'amber', 'bi-lightning-fill', 'Actual Mining: Not Activated', site_url('member/mining')),
+                KpiCardFactory::ok('my_today_mining_preview', "Today's Mining Simulation", $miningPreview['preview_amount'], 'cyan', 'bi-lightning-charge', 'sim', site_url('member/mining')),
+                KpiCardFactory::ok('my_total_mining_preview', 'Total Mining Simulation', service('miningSimulationService')->memberPreviewTotal($memberUserId), 'teal', 'bi-graph-up', 'sim', site_url('member/mining')),
+                KpiCardFactory::unavailable('my_today_level_commission', "Today's Commission (Actual)", 'indigo', 'bi-diagram-3-fill', self::COMMISSION_REASON, site_url('member/commissions')),
+                KpiCardFactory::unavailable('my_total_level_commission', 'Total Commission (Actual)', 'indigo', 'bi-cash-stack', self::COMMISSION_REASON, site_url('member/commissions')),
+                KpiCardFactory::ok('my_today_commission_preview', "Today's Commission Simulation", $commissionSnap['today_preview'], 'cyan', 'bi-calendar-day', 'sim', site_url('member/commissions')),
+                KpiCardFactory::ok('my_total_commission_preview', 'Total Commission Simulation', $commissionSnap['total_preview'], 'teal', 'bi-graph-up-arrow', 'sim', site_url('member/commissions')),
+                KpiCardFactory::ok('my_commission_available', 'Commission Wallet (USDT)', $commWallet['available_balance'], 'green', 'bi-cash', 'usdt', site_url('member/commission-wallet')),
+                KpiCardFactory::ok('my_withdrawal_status', 'Withdrawal Status', $wdStatus, 'indigo', 'bi-slash-circle', null, site_url('member/withdrawals')),
+                KpiCardFactory::ok('my_direct_referrals', 'Direct Referrals', $team['direct'], 'purple', 'bi-person-plus-fill', 'members', site_url('member/referrals')),
+                KpiCardFactory::ok('my_total_team', 'Total Team', $team['total'], 'blue', 'bi-people-fill', 'members', site_url('member/genealogy')),
+                KpiCardFactory::ok('my_active_locks', 'Active Locks', $activeLockCount, 'amber', 'bi-lock', 'locks', site_url('member/wallet?tab=locking')),
+                KpiCardFactory::ok('my_matured_locks', 'Matured Locks', $maturedLockCount, 'teal', 'bi-unlock-fill', 'locks', site_url('member/wallet?tab=locking')),
             ];
         } catch (Throwable $e) {
             log_message('error', 'MemberDashboardService::kpis failed: {msg}', ['msg' => $e->getMessage()]);
@@ -155,12 +185,7 @@ class MemberDashboardService
                     'labels'    => [],
                     'values'    => [],
                 ],
-                'commission_history' => [
-                    'available' => false,
-                    'reason'    => self::COMMISSION_REASON,
-                    'labels'    => [],
-                    'values'    => [],
-                ],
+                'commission_history' => service('commissionSimulationService')->previewTrend(14, $memberUserId),
             ];
         } catch (Throwable $e) {
             log_message('error', 'MemberDashboardService::charts failed: {msg}', ['msg' => $e->getMessage()]);
@@ -279,25 +304,57 @@ class MemberDashboardService
     /**
      * @return list<array<string, mixed>>
      */
+    private function pendingPaymentsForMember(int $memberUserId): array
+    {
+        return db_connect()->table('usdt_deposit_requests')
+            ->where('member_user_id', $memberUserId)
+            ->whereIn('status', ['submitted', 'under_review'])
+            ->orderBy('created_at', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function recentPurchasesForMember(int $memberUserId, int $limit = 5): array
+    {
+        return db_connect()->table('coin_purchase_requests')
+            ->where('member_user_id', $memberUserId)
+            ->orderBy('requested_at', 'DESC')
+            ->limit($limit)
+            ->get()
+            ->getResultArray();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
     private function errorKpiSet(): array
     {
         $defs = [
-            ['my_total_coins', 'My Total Coins', 'purple', 'bi-coin'],
-            ['my_available_coins', 'My Available Coins', 'green', 'bi-wallet2'],
-            ['my_locked_coins', 'My Locked Coins', 'amber', 'bi-lock-fill'],
-            ['my_purchased_coins', 'My Purchased Coins', 'teal', 'bi-cart-check-fill'],
-            ['my_today_mining', "My Today's Mining", 'cyan', 'bi-lightning-charge-fill'],
-            ['my_total_mining', 'My Total Mining', 'amber', 'bi-lightning-fill'],
-            ['my_today_level_commission', "My Today's Level Commission", 'indigo', 'bi-diagram-3-fill'],
-            ['my_total_level_commission', 'My Total Level Commission', 'indigo', 'bi-cash-stack'],
-            ['my_total_team', 'My Total Team Members', 'blue', 'bi-people-fill'],
-            ['my_active_team', 'My Active Team Members', 'green', 'bi-person-check-fill'],
-            ['my_inactive_team', 'My Inactive Team Members', 'orange', 'bi-person-x-fill'],
-            ['my_direct_referrals', 'My Direct Referrals', 'blue', 'bi-person-plus-fill'],
-            ['my_pending_purchases', 'My Pending Purchases', 'red', 'bi-hourglass-split'],
-            ['my_approved_purchases', 'My Approved Purchases', 'green', 'bi-check2-circle'],
-            ['my_active_locks', 'My Active Coin Locks', 'amber', 'bi-lock'],
-            ['my_matured_locks', 'My Matured Coin Locks', 'teal', 'bi-unlock-fill'],
+            ['my_total_coins', 'Total Owned Coins', 'purple', 'bi-coin'],
+            ['my_available_coins', 'Available Coins', 'green', 'bi-wallet2'],
+            ['my_locked_coins', 'Locked Coins', 'amber', 'bi-lock-fill'],
+            ['my_purchased_coins', 'Purchased Coins', 'teal', 'bi-cart-check-fill'],
+            ['my_pending_payments', 'Pending Payments', 'red', 'bi-shield-exclamation'],
+            ['my_pending_purchases', 'Pending Purchases', 'red', 'bi-hourglass-split'],
+            ['my_approved_purchases', 'Approved Purchases', 'green', 'bi-check2-circle'],
+            ['my_today_mining', "Today's Mining (Actual)", 'cyan', 'bi-lightning-charge-fill'],
+            ['my_total_mining', 'Total Mining (Actual)', 'amber', 'bi-lightning-fill'],
+            ['my_today_mining_preview', "Today's Mining Simulation", 'cyan', 'bi-lightning-charge'],
+            ['my_total_mining_preview', 'Total Mining Simulation', 'teal', 'bi-graph-up'],
+            ['my_today_level_commission', "Today's Commission (Actual)", 'indigo', 'bi-diagram-3-fill'],
+            ['my_total_level_commission', 'Total Commission (Actual)', 'indigo', 'bi-cash-stack'],
+            ['my_today_commission_preview', "Today's Commission Simulation", 'cyan', 'bi-calendar-day'],
+            ['my_total_commission_preview', 'Total Commission Simulation', 'teal', 'bi-graph-up-arrow'],
+            ['my_commission_available', 'Commission Wallet (USDT)', 'green', 'bi-cash'],
+            ['my_withdrawal_status', 'Withdrawal Status', 'indigo', 'bi-slash-circle'],
+            ['my_direct_referrals', 'Direct Referrals', 'purple', 'bi-person-plus-fill'],
+            ['my_total_team', 'Total Team', 'blue', 'bi-people-fill'],
+            ['my_active_locks', 'Active Locks', 'amber', 'bi-lock'],
+            ['my_matured_locks', 'Matured Locks', 'teal', 'bi-unlock-fill'],
         ];
 
         $out = [];

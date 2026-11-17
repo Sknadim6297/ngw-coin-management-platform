@@ -25,10 +25,32 @@ use App\Services\WalletReconciliationService;
 use App\Services\AdminDashboardService;
 use App\Services\MemberDashboardService;
 use App\Services\ReferralTeamService;
+use App\Services\GenealogyIntegrityService;
+use App\Services\MiningEligibilityService;
+use App\Services\MiningRateService;
+use App\Services\MiningSimulationService;
+use App\Services\CommissionPlanService;
+use App\Services\CommissionGenealogyService;
+use App\Services\CommissionEligibilityService;
+use App\Services\CommissionSimulationService;
+use App\Services\PurchaseSponsorSnapshotService;
+use App\Services\CommissionWalletService;
+use App\Services\CommissionPostingProposalService;
+use App\Services\CommissionWithdrawalService;
+use App\Services\CommissionWalletReconciliationService;
+use App\Services\MemberActivationService;
+use App\Services\MemberProfileService;
+use App\Services\AdminReportsService;
+use App\Services\PlatformSettingsService;
+use App\Services\SupportTicketService;
+use App\Services\PaymentDetailsService;
+use App\Services\PaymentDestinationChangeService;
+use App\Services\PaymentQrService;
 use App\Services\FinanceDashboardService;
 use App\Services\FinancialAlertService;
 use App\Services\FinancialNotificationService;
 use App\Services\FinancialRemediationService;
+use App\Services\PaymentApprovalsService;
 use App\Services\PaymentAuditService;
 use App\Services\PaymentHealthService;
 use App\Services\PaymentIntegrityMonitorService;
@@ -201,6 +223,15 @@ class Services extends BaseService
         return new UsdtPaymentAllocationService();
     }
 
+    public static function paymentApprovalsService(bool $getShared = true): PaymentApprovalsService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('paymentApprovalsService');
+        }
+
+        return new PaymentApprovalsService();
+    }
+
     public static function paymentHealthService(bool $getShared = true): PaymentHealthService
     {
         if ($getShared) {
@@ -327,6 +358,159 @@ class Services extends BaseService
         return new ReferralTeamService();
     }
 
+    public static function genealogyIntegrityService(bool $getShared = true): GenealogyIntegrityService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('genealogyIntegrityService');
+        }
+
+        return new GenealogyIntegrityService();
+    }
+
+    public static function miningRateService(bool $getShared = true): MiningRateService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningRateService');
+        }
+
+        return new MiningRateService();
+    }
+
+    public static function miningEligibilityService(bool $getShared = true): MiningEligibilityService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningEligibilityService');
+        }
+
+        return new MiningEligibilityService();
+    }
+
+    public static function miningSimulationService(bool $getShared = true): MiningSimulationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningSimulationService');
+        }
+
+        return new MiningSimulationService();
+    }
+
+    public static function commissionPlanService(bool $getShared = true): CommissionPlanService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionPlanService');
+        }
+
+        return new CommissionPlanService();
+    }
+
+    public static function commissionGenealogyService(bool $getShared = true): CommissionGenealogyService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionGenealogyService');
+        }
+
+        return new CommissionGenealogyService();
+    }
+
+    public static function commissionEligibilityService(bool $getShared = true): CommissionEligibilityService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionEligibilityService');
+        }
+
+        return new CommissionEligibilityService();
+    }
+
+    public static function commissionSimulationService(bool $getShared = true): CommissionSimulationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionSimulationService');
+        }
+
+        return new CommissionSimulationService();
+    }
+
+    public static function purchaseSponsorSnapshotService(bool $getShared = true): PurchaseSponsorSnapshotService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('purchaseSponsorSnapshotService');
+        }
+
+        return new PurchaseSponsorSnapshotService();
+    }
+
+    public static function commissionWalletService(bool $getShared = true): CommissionWalletService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionWalletService');
+        }
+
+        return new CommissionWalletService();
+    }
+
+    public static function commissionPostingProposalService(bool $getShared = true): CommissionPostingProposalService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionPostingProposalService');
+        }
+
+        return new CommissionPostingProposalService();
+    }
+
+    public static function commissionWithdrawalService(bool $getShared = true): CommissionWithdrawalService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionWithdrawalService');
+        }
+
+        return new CommissionWithdrawalService();
+    }
+
+    public static function commissionWalletReconciliationService(bool $getShared = true): CommissionWalletReconciliationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionWalletReconciliationService');
+        }
+
+        return new CommissionWalletReconciliationService();
+    }
+
+    public static function memberActivationService(bool $getShared = true): MemberActivationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('memberActivationService');
+        }
+
+        return new MemberActivationService();
+    }
+
+    public static function paymentDestinationChangeService(bool $getShared = true): PaymentDestinationChangeService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('paymentDestinationChangeService');
+        }
+
+        return new PaymentDestinationChangeService();
+    }
+
+    public static function paymentQrService(bool $getShared = true): PaymentQrService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('paymentQrService');
+        }
+
+        return new PaymentQrService();
+    }
+
+    public static function paymentDetailsService(bool $getShared = true): PaymentDetailsService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('paymentDetailsService');
+        }
+
+        return new PaymentDetailsService();
+    }
+
     public static function adminDashboardService(bool $getShared = true): AdminDashboardService
     {
         if ($getShared) {
@@ -336,6 +520,15 @@ class Services extends BaseService
         return new AdminDashboardService();
     }
 
+    public static function memberProfileService(bool $getShared = true): MemberProfileService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('memberProfileService');
+        }
+
+        return new MemberProfileService();
+    }
+
     public static function memberDashboardService(bool $getShared = true): MemberDashboardService
     {
         if ($getShared) {
@@ -343,5 +536,32 @@ class Services extends BaseService
         }
 
         return new MemberDashboardService();
+    }
+
+    public static function adminReportsService(bool $getShared = true): AdminReportsService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('adminReportsService');
+        }
+
+        return new AdminReportsService();
+    }
+
+    public static function platformSettingsService(bool $getShared = true): PlatformSettingsService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('platformSettingsService');
+        }
+
+        return new PlatformSettingsService();
+    }
+
+    public static function supportTicketService(bool $getShared = true): SupportTicketService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('supportTicketService');
+        }
+
+        return new SupportTicketService();
     }
 }

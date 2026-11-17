@@ -57,15 +57,15 @@
                     <strong><?= esc($request['payment_status'] ?? 'unpaid') ?></strong>
                 </div>
                 <div class="col-md-6">
-                    <div class="text-secondary mb-1">Linked Deposit</div>
+                    <div class="text-secondary mb-1">Linked Payment</div>
                     <strong>
-                        <?php $depRef = $request['payment_deposit_ref'] ?? ($allocation['deposit_ref'] ?? null); ?>
+                        <?php $depRef = $request['payment_deposit_ref'] ?? ($allocation['deposit_ref'] ?? ($pendingPayment['deposit_ref'] ?? null)); ?>
                         <?php if (! empty($depRef)): ?>
-                            <a href="<?= site_url('admin/payment-audit/' . $depRef) ?>"><?= esc($depRef) ?></a>
-                            <?php if (($linkedDeposit['status'] ?? '') === 'verified'): ?>
-                                <span class="badge-status verified">verified</span>
+                            <a href="<?= site_url('admin/deposits/' . rawurlencode((string) $depRef)) ?>"><?= esc($depRef) ?></a>
+                            <?php if (($linkedDeposit['status'] ?? $pendingPayment['status'] ?? '') === 'verified'): ?>
+                                <span class="badge-status verified">Payment Approved</span>
                             <?php else: ?>
-                                <span class="text-secondary small">not verified — not paid</span>
+                                <span class="text-secondary small">Awaiting payment approval</span>
                             <?php endif; ?>
                         <?php else: ?>—<?php endif; ?>
                     </strong>
@@ -113,17 +113,31 @@
             <div class="card-premium mb-3">
                 <h2 class="h5 mb-3">Approve Request</h2>
                 <?php if (! empty($requiresDeposit) && empty($hasVerifiedCover)): ?>
-                    <div class="alert alert-warning">
-                        <strong>Payment safety gate active.</strong>
-                        Approval is blocked until a verified USDT deposit covers this purchase total.
-                        Screenshots and submitted hashes are not verification. Configure Phase 4B provider or keep pending.
+                    <div class="alert alert-warning mb-3">
+                        <strong>Approve Payment first.</strong>
+                        Purchase approval stays locked until you manually approve the member’s USDT payment
+                        (check the TXN on BscScan / your wallet). Screenshots alone are not enough.
                     </div>
-                    <div class="text-secondary mb-2">Payment status: <?= esc($request['payment_status'] ?? 'unpaid') ?></div>
+                    <div class="text-secondary mb-3">
+                        Payment status: <?= esc($request['payment_status'] ?? 'unpaid') ?>
+                    </div>
+                    <?php if (! empty($pendingPayment['deposit_ref'])): ?>
+                        <a class="btn btn-gold" href="<?= site_url('admin/deposits/' . rawurlencode((string) $pendingPayment['deposit_ref'])) ?>">
+                            Open Payment → Approve Payment
+                        </a>
+                    <?php else: ?>
+                        <a class="btn btn-gold" href="<?= site_url('admin/deposits?status=submitted') ?>">
+                            Open Pending Payments
+                        </a>
+                    <?php endif; ?>
+                    <p class="field-hint mt-3 mb-0">
+                        Flow: Approve Payment → return here → Approve Purchase → coins credited.
+                    </p>
                 <?php else: ?>
                     <?php if (! empty($requiresDeposit)): ?>
-                        <div class="notice-box mb-3">A verified deposit covering this total was found. Approval will still deduct inventory and credit ownership.</div>
+                        <div class="notice-box mb-3">Payment approved. You can now approve this purchase to credit coins.</div>
                     <?php else: ?>
-                        <div class="alert alert-warning mb-3">Verified-deposit requirement is currently disabled for this environment. Do not disable this in production.</div>
+                        <div class="alert alert-warning mb-3">Verified-payment requirement is currently disabled for this environment. Do not disable this in production.</div>
                     <?php endif; ?>
                 <form method="post" action="<?= site_url('admin/purchases/' . $request['purchase_ref'] . '/approve') ?>" data-loading
                       onsubmit="return confirm('Approve this purchase? Inventory will be deducted and ownership credited.');">

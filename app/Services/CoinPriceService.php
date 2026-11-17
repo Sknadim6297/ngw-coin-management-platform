@@ -247,6 +247,64 @@ class CoinPriceService
     }
 
     /**
+     * Quote coins from a USDT purchase amount.
+     * Quantity = amount / price (BCMath truncate to coin quantity scale).
+     *
+     * @return array{
+     *   usdt_amount: string,
+     *   coin_price_usdt: string,
+     *   coin_quantity: string,
+     *   min_purchase_usdt: string,
+     *   max_purchase_quantity: string,
+     *   quoted_at: string
+     * }
+     */
+    public function quoteByUsdtAmount(string $usdtAmount): array
+    {
+        $config   = $this->config ?? config('Platform');
+        $scale    = $this->usdtScale();
+        $qtyScale = $config->coinQuantityScale;
+        $amount   = MoneyMath::normalize($usdtAmount, $scale);
+
+        if (! MoneyMath::isPositive($amount, $scale)) {
+            throw new InvalidArgumentException('Purchase amount must be greater than zero.');
+        }
+
+        $min = $this->getMinPurchaseUsdt();
+        if (MoneyMath::compare($amount, $min, $scale) < 0) {
+            throw new InvalidArgumentException('Purchase amount is below the minimum of ' . $min . ' USDT.');
+        }
+
+        $price = $this->getCurrentPrice();
+        if ($price === null) {
+            throw new InvalidArgumentException('Coin price is not configured yet.');
+        }
+        if (! MoneyMath::isPositive($price, $scale)) {
+            throw new InvalidArgumentException('Coin price must be greater than zero.');
+        }
+
+        $quantity = MoneyMath::div($amount, $price, $qtyScale);
+        if (! MoneyMath::isPositive($quantity, $qtyScale)) {
+            throw new InvalidArgumentException('Estimated coin quantity must be greater than zero.');
+        }
+
+        $maxQty = MoneyMath::normalize((string) $config->maxPurchaseQuantity, $qtyScale);
+        if (MoneyMath::compare($quantity, $maxQty, $qtyScale) > 0) {
+            throw new InvalidArgumentException('Estimated coin quantity exceeds the maximum of ' . $maxQty . '.');
+        }
+
+        // Snapshot uses the entered USDT amount (not recomputed float).
+        return [
+            'usdt_amount'           => $amount,
+            'coin_price_usdt'       => $price,
+            'coin_quantity'         => $quantity,
+            'min_purchase_usdt'     => $min,
+            'max_purchase_quantity' => $maxQty,
+            'quoted_at'             => date('Y-m-d H:i:s'),
+        ];
+    }
+
+    /**
      * Recalculate quantity from a frozen purchase-time price snapshot.
      * Used to prove historical prices are not revalued.
      */

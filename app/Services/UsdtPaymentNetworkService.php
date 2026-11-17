@@ -15,6 +15,7 @@ class UsdtPaymentNetworkService
     public function __construct(
         private readonly UsdtPaymentNetworkModel $networks = new UsdtPaymentNetworkModel(),
         private readonly AuditLogger $audit = new AuditLogger(),
+        private readonly PaymentQrService $qr = new PaymentQrService(),
         private readonly ?Platform $config = null
     ) {
     }
@@ -28,11 +29,50 @@ class UsdtPaymentNetworkService
     }
 
     /**
+     * Member-visible live payment destinations only.
+     * Demo/burn wallets and networks without a configured+matching on-chain verifier are excluded.
+     *
      * @return list<array<string, mixed>>
      */
     public function listEnabledForMembers(): array
     {
-        return $this->networks->enabledWithWallet();
+        $rows = $this->networks->enabledWithWallet();
+        $globalVerifier = strtolower((string) (config('Blockchain')->depositVerifier ?? 'not_configured'));
+
+        $out = [];
+        foreach ($rows as $row) {
+            if ($this->qr->isDemoNetwork($row) || $this->qr->isBurnOrNullWallet((string) ($row['destination_wallet'] ?? ''))) {
+                continue;
+            }
+            if (! $this->isLiveVerifierEligible($row, $globalVerifier)) {
+                continue;
+            }
+            $out[] = $row;
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param array<string, mixed> $network
+     */
+    public function isLiveVerifierEligible(array $network, ?string $globalVerifier = null): bool
+    {
+        $globalVerifier ??= strtolower((string) (config('Blockchain')->depositVerifier ?? 'not_configured'));
+        if ($globalVerifier === '' || $globalVerifier === 'not_configured') {
+            return false;
+        }
+
+        $vt = strtolower((string) ($network['verifier_type'] ?? 'none'));
+        if ($vt === 'none' || $vt === '') {
+            return false;
+        }
+
+        if ($globalVerifier === 'evm_erc20') {
+            return $vt === 'evm_erc20';
+        }
+
+        return $vt === $globalVerifier;
     }
 
     public function find(int $id): ?array
@@ -105,9 +145,17 @@ class UsdtPaymentNetworkService
             throw new InvalidArgumentException('Selected payment network is disabled.');
         }
 
+        if ($this->qr->isDemoNetwork($network)) {
+            throw new InvalidArgumentException('Demo payment networks cannot accept live deposits.');
+        }
+
         $wallet = trim((string) ($network['destination_wallet'] ?? ''));
         if ($wallet === '') {
             throw new InvalidArgumentException('Selected network has no destination wallet configured.');
+        }
+
+        if ($this->qr->isBurnOrNullWallet($wallet)) {
+            throw new InvalidArgumentException('Burn or demo wallets cannot be used as payment destinations.');
         }
 
         $this->assertValidWallet($wallet, $network);
@@ -182,11 +230,23 @@ class UsdtPaymentNetworkService
 
         $wallet = trim((string) ($data['destination_wallet'] ?? ''));
         $wallet = $wallet === '' ? null : $wallet;
+        if ($wallet !== null && $this->qr->isBurnOrNullWallet($wallet)) {
+            throw new InvalidArgumentException('Burn or null wallets cannot be configured as payment destinations.');
+        }
 
         $contract = trim((string) ($data['token_contract_address'] ?? ''));
         $contract = $contract === '' ? null : $contract;
 
         $enabled = ! empty($data['is_enabled']) ? 1 : 0;
+        $isDemo  = ! empty($data['is_demo']) ? 1 : (int) ($existing['is_demo'] ?? 0);
+        $displayStatus = strtolower(trim((string) ($data['display_status'] ?? ($existing['display_status'] ?? 'hidden'))));
+        if (! in_array($displayStatus, ['live', 'hidden', 'pending'], true)) {
+            $displayStatus = 'hidden';
+        }
+        if ($isDemo === 1) {
+            $displayStatus = 'hidden';
+            $enabled = 0;
+        }
 
         $addressPattern = trim((string) ($data['address_pattern'] ?? ''));
         $addressPattern = $addressPattern === ''
@@ -250,11 +310,21 @@ class UsdtPaymentNetworkService
             'explorer_tx_url_template' => $explorer,
             'rpc_url_env_key'          => $rpcEnv,
             'is_enabled'               => $enabled,
+            'is_demo'                  => $isDemo,
+            'display_status'           => $displayStatus,
             'sort_order'               => max(0, (int) ($data['sort_order'] ?? 100)),
         ];
 
+        // QR fields are only written when explicitly provided (dual-control approval path).
+        foreach (['qr_stored_name', 'qr_mime', 'qr_source', 'qr_decoded_payload', 'qr_verified_at'] as $qrField) {
+            if (array_key_exists($qrField, $data)) {
+                $payload[$qrField] = $data[$qrField];
+            }
+        }
+
         if ($creating) {
             $payload['network_key'] = $key;
+            $payload['qr_source'] = $payload['qr_source'] ?? PaymentQrService::SOURCE_NONE;
         }
 
         if ($enabled === 1) {

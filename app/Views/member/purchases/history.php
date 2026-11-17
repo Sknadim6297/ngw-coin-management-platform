@@ -15,7 +15,7 @@
         </div>
         <div class="col-md-4">
             <button class="btn btn-outline-gold" type="submit">Filter</button>
-            <a class="btn btn-gold" href="<?= site_url('member/purchases/buy') ?>">Buy Coins</a>
+            <a class="btn btn-gold" href="<?= site_url('member/buy-coins') ?>">Buy Coins</a>
         </div>
     </form>
 </div>

@@ -17,6 +17,7 @@ class DashboardController extends BaseController
             'kpis'                => $dashboard['kpis'],
             'charts'              => $dashboard['charts'],
             'recentRegistrations' => $dashboard['recent_registrations'],
+            'recentTransactions'  => $dashboard['recent_transactions'] ?? [],
             'timezone'            => $dashboard['timezone'],
             'todayStart'          => $dashboard['today_start'],
             'todayEnd'            => $dashboard['today_end'],

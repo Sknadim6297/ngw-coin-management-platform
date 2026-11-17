@@ -30,5 +30,6 @@
     </div>
 </div>
 
-<a class="btn btn-outline-gold" href="<?= site_url('admin/wallets/' . rawurlencode($profile->member_id)) ?>">Back to wallet</a>
+<a class="btn btn-outline-gold" href="<?= site_url('admin/wallets/' . rawurlencode($profile->member_id) . '/transactions') ?>">Back to ledger</a>
+<a class="btn btn-outline-gold" href="<?= site_url('admin/wallets/' . rawurlencode($profile->member_id)) ?>">Wallet overview</a>
 <?= $this->endSection() ?>

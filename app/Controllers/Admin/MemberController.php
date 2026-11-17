@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
+use App\Controllers\Admin\Concerns\AdminAuthorization;
 use App\Controllers\BaseController;
 use App\Models\MemberProfileModel;
 use App\Models\SponsorRelationshipModel;
@@ -11,15 +12,30 @@ use InvalidArgumentException;
 
 class MemberController extends BaseController
 {
+    use AdminAuthorization;
+
     public function index(?string $status = null)
     {
+        if (! $this->userCan('admin.members.manage')) {
+            return $this->denyPermission();
+        }
+
+        // Prefer query ?status= for consolidated tabs; keep /active|/inactive path compat.
+        $queryStatus = trim((string) $this->request->getGet('status'));
+        if ($queryStatus !== '') {
+            $status = $queryStatus;
+        }
+        if ($status === 'all' || $status === '') {
+            $status = null;
+        }
+
+        $search = trim((string) $this->request->getGet('q'));
+
         $profiles = model(MemberProfileModel::class);
-        // Root admin/sponsor must never appear in member management lists.
         $profiles->excludeRootSponsors();
         $builder = $profiles->orderBy('created_at', 'DESC');
 
         $title = 'All Members';
-
         if ($status === 'active') {
             $builder->where('account_status', 'active');
             $title = 'Active Members';
@@ -28,16 +44,55 @@ class MemberController extends BaseController
             $title = 'Inactive Members';
         }
 
+        if ($search !== '') {
+            $builder->groupStart()
+                ->like('member_id', $search)
+                ->orLike('member_name', $search)
+                ->orLike('mobile', $search)
+            ->groupEnd();
+        }
+
+        $members = $builder->paginate(20);
+        $sponsors = [];
+        $purchasedCoins = [];
+
+        $userIds = [];
+        foreach ($members as $member) {
+            $userIds[] = (int) $member->user_id;
+        }
+        $userIds = array_values(array_unique(array_filter($userIds)));
+
+        if ($userIds !== []) {
+            $rels = model(SponsorRelationshipModel::class)
+                ->whereIn('member_user_id', $userIds)
+                ->findAll();
+            foreach ($rels as $rel) {
+                $sponsors[(int) $rel['member_user_id']] = (string) ($rel['sponsor_member_id'] ?? '—');
+            }
+
+            foreach ($userIds as $uid) {
+                $summary = service('memberCoinOwnershipService')->summaryForUser($uid);
+                $purchasedCoins[$uid] = $summary['total_acquired'] ?? '0';
+            }
+        }
+
         return view('admin/members/index', [
-            'title'   => $title,
-            'status'  => $status,
-            'members' => $builder->paginate(20),
-            'pager'   => $profiles->pager,
+            'title'          => $title,
+            'status'         => $status ?? 'all',
+            'search'         => $search,
+            'members'        => $members,
+            'pager'          => $profiles->pager,
+            'sponsors'       => $sponsors,
+            'purchasedCoins' => $purchasedCoins,
         ]);
     }
 
     public function create()
     {
+        if (! $this->userCan('admin.members.manage')) {
+            return $this->denyPermission();
+        }
+
         $generator = service('memberIdGenerator');
 
         return view('admin/members/create', [
@@ -48,6 +103,10 @@ class MemberController extends BaseController
 
     public function store()
     {
+        if (! $this->userCan('admin.members.manage')) {
+            return $this->denyPermission();
+        }
+
         $rules = config('Validation')->memberRegistration;
 
         if (! $this->validate($rules)) {
@@ -83,6 +142,10 @@ class MemberController extends BaseController
 
     public function show(string $memberId)
     {
+        if (! $this->userCan('admin.members.manage')) {
+            return $this->denyPermission();
+        }
+
         $profile = model(MemberProfileModel::class)->findByMemberId($memberId);
 
         if ($profile === null) {
@@ -103,11 +166,16 @@ class MemberController extends BaseController
             $email = $user->getEmail();
         }
 
+        $activation = service('memberActivationService')->statusForMember((int) $profile->user_id);
+        $owned = service('memberCoinOwnershipService')->summaryForUser((int) $profile->user_id);
+
         return view('admin/members/show', [
-            'title'        => 'Member Profile',
-            'profile'      => $profile,
-            'relationship' => $relationship,
-            'email'        => $email,
+            'title'          => 'Member Profile',
+            'profile'        => $profile,
+            'relationship'   => $relationship,
+            'email'          => $email,
+            'activation'     => $activation,
+            'purchasedCoins' => $owned['total_acquired'] ?? '0',
         ]);
     }
 }

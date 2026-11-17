@@ -39,6 +39,20 @@ class RegistrationService
     {
         $config = $this->config ?? config('Platform');
 
+        if ($source === 'public') {
+            $settings = service('platformSettingsService');
+            if (! $settings->bool('registration_enabled')) {
+                throw new InvalidArgumentException('Public registration is currently disabled.');
+            }
+
+            $sponsorId = trim((string) ($data['sponsor_id'] ?? ''));
+            if ($sponsorId === '' && ! $settings->bool('sponsor_required')) {
+                $data['sponsor_id'] = (string) $config->rootSponsorId;
+            } elseif ($sponsorId === '' && $settings->bool('sponsor_required')) {
+                throw new InvalidArgumentException('Sponsor ID is required.');
+            }
+        }
+
         $sponsorResult = $this->sponsors->validate($data['sponsor_id']);
         if (! $sponsorResult['valid']) {
             throw new InvalidArgumentException($sponsorResult['message']);
@@ -64,12 +78,28 @@ class RegistrationService
                 $memberId = $this->memberIds->generate();
             }
 
+            // Explicit self-sponsorship guard (IDs should never collide, but keep invariant).
+            if (strcasecmp($memberId, (string) $sponsor->member_id) === 0) {
+                throw new InvalidArgumentException('A member cannot sponsor themselves.');
+            }
+
+            if ((int) $sponsor->user_id <= 0) {
+                throw new InvalidArgumentException('Sponsor ID was not found.');
+            }
+
             $user = new User([
                 'username' => $memberId,
                 'active'   => 1,
             ]);
             $users->save($user);
             $user = $users->findById($users->getInsertID());
+
+            // Circular / self edge cannot exist for a brand-new user; still assert before insert.
+            if ((int) $user->id === (int) $sponsor->user_id
+                || service('referralTeamService')->wouldCreateCycle((int) $user->id, (int) $sponsor->user_id)
+            ) {
+                throw new InvalidArgumentException('Invalid sponsor relationship: self or circular sponsorship is not allowed.');
+            }
 
             $user->createEmailIdentity([
                 'email'    => $data['email'],

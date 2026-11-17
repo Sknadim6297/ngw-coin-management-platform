@@ -13,16 +13,8 @@ class PurchaseController extends BaseController
 {
     public function buyForm()
     {
-        $context = service('coinPurchaseService')->purchasePageContext();
-        $token   = bin2hex(random_bytes(16));
-        session()->setFlashdata('coin_purchase_idempotency', $token);
-
-        return view('member/purchases/buy', [
-            'title'          => 'Buy Coins',
-            'context'        => $context,
-            'idempotencyKey' => $token,
-            'profile'        => model(MemberProfileModel::class)->findByUserId((int) auth()->id()),
-        ]);
+        // Legacy route — Phase 8 Buy Coins wizard is the single purchase entry point.
+        return redirect()->to(site_url('member/buy-coins'));
     }
 
     public function buyStore()

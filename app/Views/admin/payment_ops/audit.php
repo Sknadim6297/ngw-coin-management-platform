@@ -1,5 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<?= view('components/payment_monitoring_tabs', ['active' => 'audit']) ?>
 <p class="page-subtitle">Payment audit trail across deposits, verification, and consumption.</p>
 
 <div class="card-premium mb-3">

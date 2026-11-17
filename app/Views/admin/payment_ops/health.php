@@ -1,5 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<?= view('components/payment_monitoring_tabs', ['active' => 'health']) ?>
 <p class="page-subtitle">RPC and verification health. RPC credentials are never displayed.</p>
 
 <div class="d-flex flex-wrap gap-2 mb-3">

@@ -26,7 +26,13 @@
         </div>
         <div class="col-md-6">
             <div class="text-secondary mb-1">Destination Wallet (snapshot)</div>
-            <code class="text-break"><?= esc($deposit['destination_wallet_snapshot']) ?></code>
+            <code class="text-break" id="deposit-wallet"><?= esc($deposit['destination_wallet_snapshot']) ?></code>
+            <div class="mt-2">
+                <img alt="Payment QR" width="140" height="140"
+                     src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&amp;data=<?= rawurlencode((string) $deposit['destination_wallet_snapshot']) ?>">
+                <div class="small text-secondary">QR encodes this deposit's immutable destination snapshot</div>
+            </div>
+            <button class="btn btn-outline-gold btn-sm mt-2" type="button" onclick="navigator.clipboard?.writeText(document.getElementById('deposit-wallet').textContent)">Copy Address</button>
         </div>
         <div class="col-md-6">
             <div class="text-secondary mb-1">Transaction Hash</div>

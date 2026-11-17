@@ -42,16 +42,18 @@
 
         <div class="card-premium mb-3">
             <h2 class="h5 mb-3">Actions</h2>
-            <?php if (! empty($retry['allowed'])): ?>
+            <?php if (! empty($canRetry) && ! empty($retry['allowed'])): ?>
                 <form method="post" action="<?= site_url('admin/payment-audit/' . $d['deposit_ref'] . '/retry-verify') ?>" class="mb-2" data-loading>
                     <?= csrf_field() ?>
                     <button class="btn btn-gold" type="submit">Safe Retry Verification</button>
                 </form>
+            <?php elseif (empty($canRetry)): ?>
+                <div class="field-hint mb-2">Provider auto-verify retry requires payment approve permission.</div>
             <?php else: ?>
                 <div class="field-hint mb-2">Retry unavailable: <?= esc((string) ($retry['reason'] ?? 'n/a')) ?></div>
             <?php endif; ?>
 
-            <?php if ($d['status'] === 'verified'): ?>
+            <?php if (! empty($canRetry) && $d['status'] === 'verified'): ?>
                 <form method="post" action="<?= site_url('admin/payment-audit/' . $d['deposit_ref'] . '/integrity-recheck') ?>" data-loading>
                     <?= csrf_field() ?>
                     <button class="btn btn-outline-gold" type="submit">Re-check Chain Integrity</button>

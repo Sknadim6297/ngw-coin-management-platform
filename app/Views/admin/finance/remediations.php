@@ -1,5 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<?= view('components/payment_monitoring_tabs', ['active' => 'remediation']) ?>
 <p class="page-subtitle">Dual-control remediation investigations. Ledger execution is unavailable in Phase 4D.</p>
 
 <?php if ($canPropose): ?>

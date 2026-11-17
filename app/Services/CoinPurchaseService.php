@@ -47,9 +47,13 @@ class CoinPurchaseService
      * @return array{
      *   quote: ?array<string, string>,
      *   inventory: array<string, mixed>,
+     *   price: array<string, mixed>,
      *   price_configured: bool,
      *   can_purchase: bool,
-     *   block_reason: ?string
+     *   block_code: ?string,
+     *   block_reason: ?string,
+     *   status_label: string,
+     *   max_quantity: string
      * }
      */
     public function purchasePageContext(?string $quantityPreview = null): array
@@ -58,33 +62,62 @@ class CoinPurchaseService
         $priceOk   = $this->prices->isPriceConfigured();
         $quote     = null;
         $block     = null;
+        $blockCode = null;
 
         if (! $priceOk) {
-            $block = 'Coin price is not configured yet.';
+            $blockCode = 'price_unavailable';
+            $block     = 'Coin Price Not Configured. Ask Admin to set the coin price before purchasing.';
         } elseif (! $inventory['is_available']) {
-            $block = 'Coin inventory is currently unavailable.';
+            $blockCode = 'inventory_unavailable';
+            $block     = 'Coins are currently out of stock. Please contact Admin.';
         }
 
         if ($quantityPreview !== null && trim($quantityPreview) !== '' && $block === null) {
             try {
                 $quote = $this->prices->quoteByQuantity($quantityPreview);
             } catch (InvalidArgumentException $e) {
-                $block = $e->getMessage();
+                $blockCode = 'quote_invalid';
+                $block     = $e->getMessage();
             }
         }
+
+        $canPurchase = $block === null && $priceOk && $inventory['is_available'];
 
         return [
             'quote'            => $quote,
             'inventory'        => $inventory,
             'price'            => $this->prices->settingsSummary(),
             'price_configured' => $priceOk,
-            'can_purchase'     => $block === null && $priceOk && $inventory['is_available'],
+            'can_purchase'     => $canPurchase,
+            'block_code'       => $blockCode,
             'block_reason'     => $block,
+            'status_label'     => $canPurchase ? 'Purchase Available' : (
+                $blockCode === 'inventory_unavailable' ? 'Coins Out of Stock' : (
+                    $blockCode === 'price_unavailable' ? 'Coin Price Not Configured' : 'Purchases Unavailable'
+                )
+            ),
             'max_quantity'     => MoneyMath::normalize(
                 (string) ($this->config ?? config('Platform'))->maxPurchaseQuantity,
                 ($this->config ?? config('Platform'))->coinQuantityScale
             ),
         ];
+    }
+
+    /**
+     * Create a pending purchase from a USDT amount (Phase 8 buy-coins wizard).
+     * Quantity = amount / approved price (BCMath). Snapshots the entered USDT amount.
+     *
+     * @return array{request: array<string, mixed>, duplicate: bool}
+     */
+    public function createRequestFromUsdtAmount(
+        int $memberUserId,
+        string $usdtAmount,
+        ?string $memberNote,
+        string $idempotencyKey
+    ): array {
+        $quote = $this->prices->quoteByUsdtAmount($usdtAmount);
+
+        return $this->createRequestWithQuote($memberUserId, $quote, $memberNote, $idempotencyKey);
     }
 
     /**
@@ -95,6 +128,21 @@ class CoinPurchaseService
     public function createRequest(
         int $memberUserId,
         string $quantity,
+        ?string $memberNote,
+        string $idempotencyKey
+    ): array {
+        $quote = $this->prices->quoteByQuantity($quantity);
+
+        return $this->createRequestWithQuote($memberUserId, $quote, $memberNote, $idempotencyKey);
+    }
+
+    /**
+     * @param array<string, mixed> $quote
+     * @return array{request: array<string, mixed>, duplicate: bool}
+     */
+    private function createRequestWithQuote(
+        int $memberUserId,
+        array $quote,
         ?string $memberNote,
         string $idempotencyKey
     ): array {
@@ -123,8 +171,6 @@ class CoinPurchaseService
                 'You already have the maximum number of pending purchase requests (' . $maxPending . ').'
             );
         }
-
-        $quote = $this->prices->quoteByQuantity($quantity);
 
         if (! $this->inventory->hasSufficientInventory($quote['coin_quantity'])) {
             throw new InvalidArgumentException('Insufficient coin inventory for this request.');
@@ -252,9 +298,28 @@ class CoinPurchaseService
                 );
 
             $now = date('Y-m-d H:i:s');
+            $softDeposit = trim((string) ($row['payment_deposit_ref'] ?? ''));
+            if ($softDeposit !== '') {
+                $deposit = $db->table('usdt_deposit_requests')
+                    ->where('deposit_ref', $softDeposit)
+                    ->get()
+                    ->getRowArray();
+                if (
+                    $deposit !== null
+                    && (string) ($deposit['linked_purchase_ref'] ?? '') === $purchaseRef
+                    && in_array((string) ($deposit['status'] ?? ''), ['draft', 'submitted', 'under_review', 'rejected', 'cancelled'], true)
+                ) {
+                    $db->table('usdt_deposit_requests')->where('deposit_ref', $softDeposit)->update([
+                        'linked_purchase_ref' => null,
+                        'updated_at'          => $now,
+                    ]);
+                }
+            }
+
             $db->table('coin_purchase_requests')->where('id', (int) $row['id'])->update([
-                'status'     => self::STATUS_CANCELLED,
-                'updated_at' => $now,
+                'status'              => self::STATUS_CANCELLED,
+                'payment_deposit_ref' => null,
+                'updated_at'          => $now,
             ]);
 
             if ($db->transStatus() === false) {
@@ -355,13 +420,24 @@ class CoinPurchaseService
                 [(int) $row['member_user_id']]
             )->getRowArray();
 
-            if ($profile !== null && $profile['account_status'] === 'inactive') {
+            // First qualifying approved purchase activates the member (idempotent).
+            if ($profile !== null && ($profile['account_status'] ?? '') === 'inactive') {
                 $db->table('member_profiles')->where('id', (int) $profile['id'])->update([
-                    'account_status' => 'active',
-                    'updated_at'     => $now,
+                    'account_status'          => 'active',
+                    'activated_at'            => $now,
+                    'activation_purchase_ref' => $purchaseRef,
+                    'updated_at'              => $now,
                 ]);
                 $activated = true;
             }
+
+            // Phase 7D: immutable purchase-time sponsor snapshots (inside approval transaction).
+            $snapshotPurchase = $row;
+            $snapshotPurchase['id']             = (int) $row['id'];
+            $snapshotPurchase['status']         = self::STATUS_APPROVED;
+            $snapshotPurchase['reviewed_at']    = $now;
+            $snapshotPurchase['payment_status'] = $paymentMeta['payment_status'] ?? ($row['payment_status'] ?? 'unpaid');
+            service('purchaseSponsorSnapshotService')->captureForApprovedPurchase($snapshotPurchase, $adminUserId);
 
             if ($db->transStatus() === false) {
                 $db->transRollback();
@@ -382,6 +458,7 @@ class CoinPurchaseService
                     'inventory_transaction_ref' => $allocation['transaction']['transaction_ref'],
                     'ownership_transaction_ref' => $ownership['transaction']['transaction_ref'],
                     'activated'                 => $activated,
+                    'sponsor_snapshot'          => true,
                 ]
             );
 

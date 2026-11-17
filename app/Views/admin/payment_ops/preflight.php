@@ -1,5 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<?= view('components/payment_monitoring_tabs', ['active' => 'preflight']) ?>
 <p class="page-subtitle">Read-only deployment preflight. Secrets are never printed. This does not deploy or enable live payments.</p>
 
 <div class="row g-3 mb-4">

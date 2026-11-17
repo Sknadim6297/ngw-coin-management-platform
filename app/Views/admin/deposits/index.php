@@ -1,11 +1,11 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
-<p class="page-subtitle">Review USDT deposit evidence. Do not treat screenshots as blockchain verification.</p>
+<p class="page-subtitle">Pending Payments → Review → Approve / Reject. Screenshots alone are not proof.</p>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="card-premium"><div class="text-secondary mb-1">Submitted</div><div class="h3" style="color:var(--gold-bright)"><?= esc((string) $submittedCount) ?></div></div></div>
+    <div class="col-md-3"><div class="card-premium"><div class="text-secondary mb-1">Pending Payments</div><div class="h3" style="color:var(--gold-bright)"><?= esc((string) $submittedCount) ?></div></div></div>
     <div class="col-md-3"><div class="card-premium"><div class="text-secondary mb-1">Under Review</div><div class="h3" style="color:var(--gold-bright)"><?= esc((string) $underReviewCount) ?></div></div></div>
-    <div class="col-md-3"><div class="card-premium"><div class="text-secondary mb-1">Verified</div><div class="h3" style="color:var(--gold-bright)"><?= esc((string) $verifiedCount) ?></div></div></div>
+    <div class="col-md-3"><div class="card-premium"><div class="text-secondary mb-1">Payment Approved</div><div class="h3" style="color:var(--gold-bright)"><?= esc((string) $verifiedCount) ?></div></div></div>
     <div class="col-md-3"><div class="card-premium"><div class="text-secondary mb-1">Rejected</div><div class="h3" style="color:var(--gold-bright)"><?= esc((string) $rejectedCount) ?></div></div></div>
 </div>
 

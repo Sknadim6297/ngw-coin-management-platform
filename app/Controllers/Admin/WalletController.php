@@ -14,26 +14,22 @@ class WalletController extends BaseController
 {
     public function index()
     {
-        $memberId = strtoupper(trim((string) $this->request->getGet('member_id')));
-        $result   = null;
+        $query   = trim((string) ($this->request->getGet('q') ?: $this->request->getGet('member_id')));
+        $results = [];
+        $error   = null;
 
-        if ($memberId !== '') {
-            $result = service('memberWalletService')->lookupByMemberId($memberId);
-            if ($result === null) {
-                return view('admin/wallet/index', [
-                    'title'    => 'Wallet Management',
-                    'memberId' => $memberId,
-                    'result'   => null,
-                    'error'    => 'No member found for that Member ID.',
-                ]);
+        if ($query !== '') {
+            $results = service('memberWalletService')->search($query, 25);
+            if ($results === []) {
+                $error = 'No members matched that search.';
             }
         }
 
         return view('admin/wallet/index', [
-            'title'    => 'Wallet Management',
-            'memberId' => $memberId,
-            'result'   => $result,
-            'error'    => null,
+            'title'   => 'Wallet Management',
+            'query'   => $query,
+            'results' => $results,
+            'error'   => $error,
         ]);
     }
 
@@ -45,15 +41,37 @@ class WalletController extends BaseController
                 ->with('error', 'Member wallet not found.');
         }
 
-        $history = service('memberWalletService')->history((int) $result['profile']->user_id, [
-            'type'      => $this->request->getGet('type'),
-            'date_from' => $this->request->getGet('date_from'),
-            'date_to'   => $this->request->getGet('date_to'),
-            'per_page'  => 25,
-        ]);
-
         return view('admin/wallet/show', [
-            'title'   => 'Member Wallet',
+            'title'  => 'Member Wallet',
+            'result' => $result,
+        ]);
+    }
+
+    public function transactions(string $memberId)
+    {
+        $result = service('memberWalletService')->lookupByMemberId($memberId);
+        if ($result === null) {
+            return redirect()->to(site_url('admin/wallets'))
+                ->with('error', 'Member wallet not found.');
+        }
+
+        try {
+            $history = service('memberWalletService')->history((int) $result['profile']->user_id, [
+                'type'      => $this->request->getGet('type'),
+                'date_from' => $this->request->getGet('date_from'),
+                'date_to'   => $this->request->getGet('date_to'),
+                'ref'       => $this->request->getGet('ref'),
+                'sort'      => $this->request->getGet('sort'),
+                'dir'       => $this->request->getGet('dir'),
+                'per_page'  => $this->request->getGet('per_page') ?: 25,
+            ]);
+        } catch (InvalidArgumentException $e) {
+            return redirect()->to(site_url('admin/wallets/' . rawurlencode($memberId) . '/transactions'))
+                ->with('error', $e->getMessage());
+        }
+
+        return view('admin/wallet/transactions', [
+            'title'   => 'Member Wallet Transactions',
             'result'  => $result,
             'rows'    => $history['rows'],
             'pager'   => $history['pager'],
@@ -75,7 +93,7 @@ class WalletController extends BaseController
                 $transactionRef
             );
         } catch (InvalidArgumentException $e) {
-            return redirect()->to(site_url('admin/wallets/' . rawurlencode($memberId)))
+            return redirect()->to(site_url('admin/wallets/' . rawurlencode($memberId) . '/transactions'))
                 ->with('error', $e->getMessage());
         }
 
@@ -84,6 +102,37 @@ class WalletController extends BaseController
             'result' => $result,
             'txn'    => $txn,
         ]);
+    }
+
+    public function export(string $memberId)
+    {
+        $result = service('memberWalletService')->lookupByMemberId($memberId);
+        if ($result === null) {
+            return redirect()->to(site_url('admin/wallets'))
+                ->with('error', 'Member wallet not found.');
+        }
+
+        try {
+            $filters = [
+                'type'      => $this->request->getGet('type'),
+                'date_from' => $this->request->getGet('date_from'),
+                'date_to'   => $this->request->getGet('date_to'),
+                'ref'       => $this->request->getGet('ref'),
+            ];
+            $rows = service('memberWalletService')->exportRows((int) $result['profile']->user_id, $filters);
+            $csv  = service('memberWalletService')->buildCsv($rows);
+        } catch (InvalidArgumentException $e) {
+            return redirect()->to(site_url('admin/wallets/' . rawurlencode($memberId) . '/transactions'))
+                ->with('error', $e->getMessage());
+        }
+
+        $filename = 'wallet-' . preg_replace('/[^A-Za-z0-9_-]/', '', $memberId) . '-' . date('Ymd-His') . '.csv';
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->setHeader('X-Content-Type-Options', 'nosniff')
+            ->setBody($csv);
     }
 
     public function reconcile()

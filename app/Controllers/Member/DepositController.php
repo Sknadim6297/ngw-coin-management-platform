@@ -13,15 +13,9 @@ class DepositController extends BaseController
 {
     public function create()
     {
-        $networks = service('usdtPaymentNetworkService')->listEnabledForMembers();
-        $token    = bin2hex(random_bytes(16));
-        session()->setFlashdata('usdt_deposit_idempotency', $token);
-
-        return view('member/deposits/create', [
-            'title'          => 'USDT Deposit',
-            'networks'       => $networks,
-            'idempotencyKey' => $token,
-        ]);
+        // Prefer the Buy Coins payment wizard as the single member payment entry point.
+        return redirect()->to(site_url('member/buy-coins'))
+            ->with('success', 'Use Buy Coins to pay and submit your transaction. Payment History lists all submitted payments.');
     }
 
     public function store()

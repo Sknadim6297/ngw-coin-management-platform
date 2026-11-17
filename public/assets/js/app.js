@@ -300,4 +300,24 @@
       }
     });
   });
+
+  document.querySelectorAll('[data-copy-target]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const target = document.getElementById(button.getAttribute('data-copy-target') || '');
+      const text = target?.textContent?.trim() || '';
+      if (!text) {
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = button.textContent;
+        button.textContent = 'Copied';
+        setTimeout(() => {
+          button.textContent = original || 'Copy Link';
+        }, 1500);
+      } catch (_err) {
+        button.textContent = 'Copy failed';
+      }
+    });
+  });
 })();

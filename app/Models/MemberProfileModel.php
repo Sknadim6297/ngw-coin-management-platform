@@ -19,8 +19,13 @@ class MemberProfileModel extends Model
         'member_id',
         'member_name',
         'mobile',
+        'pending_email',
         'usdt_wallet',
+        'usdt_wallet_changed_at',
+        'usdt_wallet_cooldown_until',
         'account_status',
+        'activated_at',
+        'activation_purchase_ref',
         'is_root_sponsor',
     ];
 

@@ -1,5 +1,6 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
+<?= view('components/payment_monitoring_tabs', ['active' => 'overview']) ?>
 <p class="page-subtitle">Unified finance overview from live database counts. No fabricated totals.</p>
 
 <div class="row g-3 mb-4">

@@ -16,7 +16,12 @@
     <link href="<?= base_url('assets/css/app.css') ?>" rel="stylesheet">
 </head>
 <body>
-<?php $uri = uri_string(); ?>
+<?php
+$uri = uri_string();
+$is = static function (string $prefix) use ($uri): bool {
+    return $uri === $prefix || str_starts_with($uri, $prefix . '/');
+};
+?>
 <div class="app-shell" data-app-shell>
     <aside class="sidebar">
         <div class="sidebar-brand">
@@ -24,45 +29,63 @@
             <span>NGW</span>
         </div>
 
+        <div class="nav-section-title">Account</div>
         <a class="side-link <?= $uri === 'member/dashboard' ? 'active' : '' ?>" href="<?= site_url('member/dashboard') ?>">
             <i class="bi bi-grid-1x2"></i><span class="nav-label">Dashboard</span>
         </a>
-        <a class="side-link <?= $uri === 'member/purchases/buy' ? 'active' : '' ?>" href="<?= site_url('member/purchases/buy') ?>">
-            <i class="bi bi-cart3"></i><span class="nav-label">Buy Coins</span>
-        </a>
-        <a class="side-link <?= $uri === 'member/purchases' || (str_starts_with($uri, 'member/purchases/') && $uri !== 'member/purchases/buy' && $uri !== 'member/purchases/holdings') ? 'active' : '' ?>" href="<?= site_url('member/purchases') ?>">
-            <i class="bi bi-receipt"></i><span class="nav-label">Purchase History</span>
-        </a>
-        <a class="side-link <?= $uri === 'member/wallet' || $uri === 'member/purchases/holdings' ? 'active' : '' ?>" href="<?= site_url('member/wallet') ?>">
-            <i class="bi bi-coin"></i><span class="nav-label">Coin Wallet</span>
-        </a>
-        <a class="side-link <?= str_starts_with($uri, 'member/wallet/transactions') ? 'active' : '' ?>" href="<?= site_url('member/wallet/transactions') ?>">
-            <i class="bi bi-clock-history"></i><span class="nav-label">Wallet History</span>
-        </a>
-        <a class="side-link <?= str_starts_with($uri, 'member/locking') ? 'active' : '' ?>" href="<?= site_url('member/locking') ?>">
-            <i class="bi bi-lock"></i><span class="nav-label">Coin Locking</span>
-        </a>
-        <a class="side-link <?= $uri === 'member/deposits/create' ? 'active' : '' ?>" href="<?= site_url('member/deposits/create') ?>">
-            <i class="bi bi-wallet2"></i><span class="nav-label">USDT Deposit</span>
-        </a>
-        <a class="side-link <?= $uri === 'member/deposits' || (str_starts_with($uri, 'member/deposits/') && $uri !== 'member/deposits/create') ? 'active' : '' ?>" href="<?= site_url('member/deposits') ?>">
-            <i class="bi bi-clock-history"></i><span class="nav-label">Deposit History</span>
-        </a>
-        <a class="side-link" href="<?= site_url('member/coming-soon/mining') ?>"><i class="bi bi-cpu"></i><span class="nav-label">Daily Mining</span></a>
-        <a class="side-link" href="<?= site_url('member/coming-soon/mining-wallet') ?>"><i class="bi bi-safe2"></i><span class="nav-label">Mining Wallet</span></a>
-        <a class="side-link" href="<?= site_url('member/coming-soon/p2p') ?>"><i class="bi bi-arrow-left-right"></i><span class="nav-label">P2P Transfer</span></a>
-        <a class="side-link" href="<?= site_url('member/coming-soon/referrals') ?>"><i class="bi bi-people"></i><span class="nav-label">My Referrals</span></a>
-        <a class="side-link" href="<?= site_url('member/coming-soon/level-income') ?>"><i class="bi bi-layers"></i><span class="nav-label">Level Income</span></a>
-        <a class="side-link" href="<?= site_url('member/coming-soon/commission-wallet') ?>"><i class="bi bi-wallet2"></i><span class="nav-label">Commission Wallet</span></a>
-        <a class="side-link" href="<?= site_url('member/coming-soon/withdrawal') ?>"><i class="bi bi-cash-coin"></i><span class="nav-label">Withdrawal</span></a>
         <a class="side-link <?= $uri === 'member/profile' ? 'active' : '' ?>" href="<?= site_url('member/profile') ?>">
             <i class="bi bi-person-circle"></i><span class="nav-label">My Profile</span>
         </a>
         <a class="side-link <?= $uri === 'member/security' ? 'active' : '' ?>" href="<?= site_url('member/security') ?>">
             <i class="bi bi-shield-lock"></i><span class="nav-label">Security</span>
         </a>
-        <a class="side-link" href="<?= site_url('member/coming-soon/support') ?>"><i class="bi bi-life-preserver"></i><span class="nav-label">Support</span></a>
-        <a class="side-link" href="<?= site_url('logout') ?>"><i class="bi bi-box-arrow-left"></i><span class="nav-label">Logout</span></a>
+
+        <div class="nav-section-title">Coins &amp; Payments</div>
+        <a class="side-link <?= $is('member/buy-coins') || $uri === 'member/purchases/buy' ? 'active' : '' ?>" href="<?= site_url('member/buy-coins') ?>">
+            <i class="bi bi-cart-plus"></i><span class="nav-label">Buy Coins</span>
+        </a>
+        <a class="side-link <?= $uri === 'member/purchases' || ($is('member/purchases') && $uri !== 'member/purchases/buy' && $uri !== 'member/purchases/holdings') ? 'active' : '' ?>" href="<?= site_url('member/purchases') ?>">
+            <i class="bi bi-receipt"></i><span class="nav-label">My Purchases</span>
+        </a>
+        <a class="side-link <?= $is('member/deposits') ? 'active' : '' ?>" href="<?= site_url('member/deposits') ?>">
+            <i class="bi bi-clock-history"></i><span class="nav-label">Payment History</span>
+        </a>
+        <a class="side-link <?= $uri === 'member/wallet' || $uri === 'member/purchases/holdings' || $is('member/wallet/transactions') ? 'active' : '' ?>" href="<?= site_url('member/wallet') ?>">
+            <i class="bi bi-coin"></i><span class="nav-label">My Wallet</span>
+        </a>
+        <a class="side-link <?= $is('member/locking') ? 'active' : '' ?>" href="<?= site_url('member/locking') ?>">
+            <i class="bi bi-lock"></i><span class="nav-label">Coin Locking</span>
+        </a>
+
+        <div class="nav-section-title">Team</div>
+        <a class="side-link <?= $uri === 'member/referrals' ? 'active' : '' ?>" href="<?= site_url('member/referrals') ?>">
+            <i class="bi bi-people"></i><span class="nav-label">My Referrals</span>
+        </a>
+        <a class="side-link <?= $is('member/genealogy') ? 'active' : '' ?>" href="<?= site_url('member/genealogy') ?>">
+            <i class="bi bi-diagram-3"></i><span class="nav-label">Genealogy</span>
+        </a>
+
+        <div class="nav-section-title">Earnings (Preview)</div>
+        <a class="side-link <?= $is('member/mining') ? 'active' : '' ?>" href="<?= site_url('member/mining') ?>">
+            <i class="bi bi-cpu"></i><span class="nav-label">Mining Simulation</span>
+        </a>
+        <a class="side-link <?= $is('member/commissions') ? 'active' : '' ?>" href="<?= site_url('member/commissions') ?>">
+            <i class="bi bi-layers"></i><span class="nav-label">Commission Simulation</span>
+        </a>
+        <a class="side-link <?= $is('member/commission-wallet') ? 'active' : '' ?>" href="<?= site_url('member/commission-wallet') ?>">
+            <i class="bi bi-wallet"></i><span class="nav-label">Commission Wallet</span>
+        </a>
+        <a class="side-link <?= $is('member/withdrawals') ? 'active' : '' ?>" href="<?= site_url('member/withdrawals') ?>">
+            <i class="bi bi-cash-coin"></i><span class="nav-label">Withdrawals</span>
+        </a>
+
+        <div class="nav-section-title">Help</div>
+        <a class="side-link <?= str_starts_with($uri, 'member/support') || str_contains($uri, 'coming-soon/support') ? 'active' : '' ?>" href="<?= site_url('member/support') ?>">
+            <i class="bi bi-life-preserver"></i><span class="nav-label">Support</span>
+        </a>
+        <a class="side-link" href="<?= site_url('logout') ?>">
+            <i class="bi bi-box-arrow-left"></i><span class="nav-label">Logout</span>
+        </a>
     </aside>
 
     <div class="main-area">
