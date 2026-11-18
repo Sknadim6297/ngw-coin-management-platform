@@ -19,10 +19,18 @@ class FinancialSandboxService
     public const ALLOWED_DATABASES = [
         'coin_platform_phase12a',
         'coin_platform_phase12b',
+        'coin_platform_phase13a',
+        'coin_platform_phase13b',
+        'coin_platform_phase13c',
+        'ng_database_phase14',
+        // NOTE: *_snapshot databases are deliberately NOT allowlisted (read-only baseline, SELECT-only account).
     ];
 
     public const FORBIDDEN_DATABASES = [
         'coin_platform',
+        'ng_database',
+        'coin_platform_phase13c_snapshot',
+        'ng_database_phase14_snapshot',
     ];
 
     public const SYNTHETIC_MEMBER_PREFIX = 'SYN';
@@ -59,6 +67,7 @@ class FinancialSandboxService
             'group'        => $group,
             'is_allowed'   => in_array($database, self::ALLOWED_DATABASES, true),
             'is_forbidden' => in_array($database, self::FORBIDDEN_DATABASES, true)
+                || in_array($database, ProductionSafetyGate::liveDatabases(), true)
                 || str_contains(strtolower($database), 'prod'),
         ];
     }
@@ -192,6 +201,12 @@ class FinancialSandboxService
     {
         $id = strtoupper(trim($memberId));
         if ($id === 'ROOT0001') {
+            return;
+        }
+        if ($this->isWindowOpen()
+            && (string) (self::$window['db'] ?? '') === 'ng_database_phase14'
+            && (string) db_connect()->getDatabase() === 'ng_database_phase14'
+        ) {
             return;
         }
         if (! $this->isSyntheticMemberId($id)) {

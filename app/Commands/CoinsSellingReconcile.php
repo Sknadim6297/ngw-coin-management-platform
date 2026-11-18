@@ -12,13 +12,17 @@ class CoinsSellingReconcile extends BaseCommand
     protected $group       = 'Coins';
     protected $name        = 'coins:selling-reconcile';
     protected $description = 'Read-only reconcile coin selling requests vs ownership ledger.';
-    protected $usage       = 'coins:selling-reconcile [--limit=200]';
+    protected $usage       = 'coins:selling-reconcile [--limit 200]';
     protected $options     = [
         '--limit' => 'Max sell rows to inspect',
     ];
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('coins:selling-reconcile', ['values' => ['limit' => 'int-positive']]) === null) {
+            return 2;
+        }
+
         $limit  = (int) (CLI::getOption('limit') ?: 200);
         $report = service('coinSellingReconciliationService')->run($limit);
         CLI::write('rows=' . ($report['summary']['rows'] ?? 0));

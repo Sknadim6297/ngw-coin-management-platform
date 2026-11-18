@@ -1,0 +1,40 @@
+{
+    "started_at": "2026-11-17T13:47:51+01:00",
+    "source_database": "coin_platform",
+    "target_database": "coin_platform_phase12f",
+    "backup_method": "mysqldump_full_single_transaction",
+    "errors": [],
+    "schema_dump": {
+        "file": "coin_platform-schema-20261117-134751.sql",
+        "bytes": 92842,
+        "exit": 0
+    },
+    "full_dump": {
+        "file": "coin_platform-full-20261117-134752.sql",
+        "bytes": 138653,
+        "exit": 0,
+        "note": "Stored under writable/phase12f-private (not for public web). Contains operational DB content; do not publish."
+    },
+    "backup_timestamp": "2026-11-17T13:47:53+01:00",
+    "create_db_exit": 0,
+    "restore_source": "coin_platform-full-20261117-134752.sql",
+    "restore_exit": 0,
+    "restore_duration_sec": 4.723,
+    "integrity": {
+        "table_count": 73,
+        "has_member_id_sequences": true,
+        "has_member_coin_locks": true,
+        "has_coin_purchase_requests": true,
+        "has_member_coin_balances": true,
+        "row_counts": {
+            "member_profiles": 2,
+            "member_id_sequences": 1,
+            "coin_purchase_requests": 2,
+            "member_coin_balances": 1,
+            "member_coin_locks": 0
+        }
+    },
+    "total_duration_sec": 6.396,
+    "complete_restore_rehearsal": true,
+    "finished_at": "2026-11-17T13:47:58+01:00"
+}

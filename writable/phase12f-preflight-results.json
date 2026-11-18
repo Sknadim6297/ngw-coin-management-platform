@@ -1,0 +1,102 @@
+{
+  "phase": "12F",
+  "generated_at": "2026-11-17T19:00:00+05:30",
+  "scope": "preparation_and_verification_only",
+  "production_mutations_executed": false,
+  "production_database": "coin_platform",
+  "isolated_database": "coin_platform_phase12f",
+  "production_identity": {
+    "verified": true,
+    "member_count": 2,
+    "member_ids": ["ROOT0001", "NGW000001"],
+    "sequence_last": 981233,
+    "target_purchase": "PUR-10D7174B7FF83054",
+    "target_balance": {
+      "available": "5.00000000",
+      "locked": "0.00000000",
+      "reserved": "0.00000000",
+      "total": "5.00000000"
+    },
+    "matches_expected_baseline": true
+  },
+  "kill_switches": {
+    "miningPostingEnabled": false,
+    "miningP2pEnabled": false,
+    "commissionPostingEnabled": false,
+    "commissionWithdrawalEnabled": false,
+    "commissionBlockchainPayoutEnabled": false,
+    "coinSellingEnabled": false,
+    "all_off": true
+  },
+  "backup_restore": {
+    "method": "mysqldump_full_single_transaction",
+    "timestamp": "2026-11-17T13:47:53+01:00",
+    "schema_bytes": 92842,
+    "full_dump_bytes": 138653,
+    "restore_database": "coin_platform_phase12f",
+    "table_count": 73,
+    "restore_duration_sec": 4.723,
+    "complete_restore_rehearsal": true,
+    "evidence": "writable/phase12f-restore-evidence.json",
+    "private_dump_dir": "writable/phase12f-private/",
+    "classification": "PASS"
+  },
+  "member_id": {
+    "prod_dry_run_ready": true,
+    "projected_next": "NGW1234",
+    "projected_last_number": 1233,
+    "existing_ids_preserved": true,
+    "isolated_apply_exit": 0,
+    "isolated_after_last": 1233,
+    "isolated_next_ids": ["NGW1234", "NGW1235"],
+    "production_apply_executed": false,
+    "unauthorized_refuse_verified": true
+  },
+  "lock1000": {
+    "prod_dry_run_ready": true,
+    "before": {"available": "5.00000000", "locked": "0.00000000", "total": "5.00000000"},
+    "after_projected": {"available": "0.00000000", "locked": "5.00000000", "total": "5.00000000"},
+    "dry_run_wrote_audit": false,
+    "isolated_apply_1_exit": 0,
+    "isolated_apply_2_already_remediated": true,
+    "isolated_lock_count_after": 1,
+    "production_apply_executed": false,
+    "unauthorized_refuse_verified": true
+  },
+  "safety_gate": {
+    "requires_allow_production": true,
+    "requires_confirm_phrase": "I_AUTHORIZE_PRODUCTION_CHANGE",
+    "wrong_confirm_refused": true,
+    "missing_allow_refused": true
+  },
+  "before_after": {
+    "identical_core_state": true,
+    "audit_logs_before": 28,
+    "audit_logs_after": 28,
+    "compare_file": "writable/phase12f-before-after-compare.json"
+  },
+  "phpunit": {
+    "Phase12FControlledRemediationTest": {
+      "tests": 10,
+      "assertions": 52,
+      "failures": 0,
+      "errors": 0,
+      "result": "PASS",
+      "log": "writable/phpunit-phase12f.txt"
+    },
+    "Phase12EFinancialPolicyTest_regression": {
+      "tests": 10,
+      "assertions": 45,
+      "failures": 0,
+      "errors": 0,
+      "result": "PASS",
+      "log": "writable/phpunit-phase12e-regression-12f.txt"
+    },
+    "full_suite_run": false
+  },
+  "code_fixes_in_phase": [
+    "MandatoryLockRemediationService dry-run no longer writes audit rows",
+    "MandatoryLockRemediationService second run returns ALREADY REMEDIATED / SAFE NO-OP",
+    "Database group phase12f added; staging commands accept phase12f"
+  ]
+}

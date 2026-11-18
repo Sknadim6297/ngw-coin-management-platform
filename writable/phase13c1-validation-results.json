@@ -1,0 +1,3057 @@
+{
+    "phase": "13C.1",
+    "started_at": "2026-11-18T08:48:13+00:00",
+    "notes": "Approval-package verification. Nothing approved, activated, migrated in production or deployed.",
+    "preflight": {
+        "configured_default": {
+            "hostname": "localhost",
+            "port": 3306,
+            "database": "coin_platform"
+        },
+        "server": {
+            "hostname": "DESKTOP-BHPK7S1",
+            "version": "10.4.32-MariaDB",
+            "port": "3306"
+        },
+        "classification": "LOCAL XAMPP OPERATIONAL COPY of the application database (coin_platform). It is NOT proven to be the deployed production host: \"localhost\" is not treated as safe, so the live database is only ever read through a verified SELECT-only account.",
+        "default_group_is_live": true,
+        "sandbox_view": {
+            "is_allowed_isolated": false,
+            "is_forbidden": true
+        },
+        "environment": "development",
+        "mysql_client": "C:\\xampp\\mysql\\bin\\mysql.exe",
+        "kill_switches": {
+            "miningPostingEnabled": false,
+            "miningAutoPostEnabled": false,
+            "miningP2pEnabled": false,
+            "commissionPostingEnabled": false,
+            "commissionWithdrawalEnabled": false,
+            "commissionBlockchainPayoutEnabled": false,
+            "coinSellingEnabled": false
+        }
+    },
+    "live_access": {
+        "account": "p13c_live_ro",
+        "privileges": "SELECT on coin_platform.* only",
+        "password": "random, never logged, account dropped afterwards"
+    },
+    "live_fingerprint_before": {
+        "database": "coin_platform",
+        "table_count": 73,
+        "members": 2,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ],
+        "member_id_sequences": [
+            {
+                "prefix": "NGW",
+                "last_number": "981233"
+            }
+        ],
+        "approved_purchases": 1,
+        "owned_total": "5.00000000",
+        "available_total": "5.00000000",
+        "locked_total": "0.00000000",
+        "reserved_total": "0.00000000",
+        "ownership_ledger_rows": 1,
+        "locks_total": 0,
+        "mandatory_locks": 0,
+        "mining_wallet_total": "0.00000000",
+        "mining_ledger_rows": 0,
+        "commission_ledger_rows": 0,
+        "latest_migration": "2026-11-17-992001",
+        "switches": {
+            "miningPostingEnabled": false,
+            "miningP2pEnabled": false,
+            "commissionPostingEnabled": false,
+            "commissionWithdrawalEnabled": false,
+            "commissionBlockchainPayoutEnabled": false,
+            "coinSellingEnabled": false,
+            "sandbox_window_open": false
+        },
+        "row_counts": {
+            "admin_impersonation_grants": 4,
+            "admin_impersonation_sessions": 4,
+            "audit_logs": 35,
+            "auth_groups_users": 5,
+            "auth_identities": 2,
+            "auth_logins": 6,
+            "auth_permissions_users": 0,
+            "auth_remember_tokens": 0,
+            "auth_token_logins": 0,
+            "blockchain_health_snapshots": 1,
+            "coin_inventory": 1,
+            "coin_inventory_transactions": 2,
+            "coin_locking_plans": 0,
+            "coin_price_history": 0,
+            "coin_purchase_requests": 2,
+            "coin_sell_events": 0,
+            "coin_sell_requests": 0,
+            "coin_settings": 1,
+            "commission_eligibility_audit_events": 0,
+            "commission_plans": 0,
+            "commission_plan_approval_events": 0,
+            "commission_plan_levels": 0,
+            "commission_posting_proposals": 0,
+            "commission_posting_proposal_events": 0,
+            "commission_purchase_calculations": 0,
+            "commission_simulation_items": 0,
+            "commission_simulation_runs": 0,
+            "commission_wallet_accounts": 1,
+            "commission_wallet_ledger_entries": 0,
+            "commission_withdrawal_events": 0,
+            "commission_withdrawal_payout_evidence": 0,
+            "commission_withdrawal_requests": 0,
+            "financial_alerts": 0,
+            "financial_remediation_events": 0,
+            "financial_remediation_proposals": 0,
+            "member_coin_balances": 1,
+            "member_coin_locks": 0,
+            "member_coin_lock_events": 0,
+            "member_coin_ownership_transactions": 1,
+            "member_email_change_tokens": 0,
+            "member_id_sequences": 1,
+            "member_profiles": 2,
+            "member_wallet_change_events": 0,
+            "migrations": 45,
+            "mining_daily_calculations": 0,
+            "mining_daily_runs": 0,
+            "mining_eligibility_audit_events": 1,
+            "mining_p2p_transfers": 0,
+            "mining_rate_approval_events": 2,
+            "mining_rate_configs": 1,
+            "mining_simulation_items": 1,
+            "mining_simulation_runs": 1,
+            "mining_wallets": 0,
+            "mining_wallet_ledger": 0,
+            "notification_delivery_events": 0,
+            "notification_outbox": 0,
+            "ops_job_locks": 1,
+            "password_reset_tokens": 0,
+            "payment_destination_change_events": 1,
+            "payment_destination_change_proposals": 1,
+            "platform_settings": 13,
+            "purchase_sponsor_snapshots": 3,
+            "settings": 0,
+            "settings_audit": 0,
+            "sponsor_relationships": 1,
+            "support_tickets": 0,
+            "support_ticket_messages": 0,
+            "usdt_deposit_events": 2,
+            "usdt_deposit_requests": 1,
+            "usdt_payment_allocations": 1,
+            "usdt_payment_allocation_events": 2,
+            "usdt_payment_networks": 2,
+            "users": 2
+        }
+    },
+    "live_matrix": {
+        "decisions": [
+            {
+                "id": "monthly_percent",
+                "decision": "Monthly mining percentage",
+                "current_status": "pending_business_decision",
+                "platform_default_value": null,
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "day_divisor",
+                "decision": "Daily divisor (fixed 30 vs calendar days)",
+                "current_status": "pending_business_decision",
+                "platform_default_value": "calendar_days",
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "denomination",
+                "decision": "Mining denomination (COIN vs USDT)",
+                "current_status": "pending_business_decision",
+                "platform_default_value": "COIN",
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "approval_day",
+                "decision": "Approval-day eligibility",
+                "current_status": "pending_business_decision",
+                "platform_default_value": "full_day",
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "locked_coins",
+                "decision": "Locked coin eligibility",
+                "current_status": "pending_business_decision",
+                "platform_default_value": null,
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "post_maturity",
+                "decision": "Mining after LOCK1000 maturity / unlock",
+                "current_status": "pending_business_decision",
+                "platform_default_value": "include_all",
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "post_sale",
+                "decision": "Mining after sale / during reservation",
+                "current_status": "pending_business_decision",
+                "platform_default_value": "include",
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "rounding",
+                "decision": "Rounding policy",
+                "current_status": "pending_business_decision",
+                "platform_default_value": "down",
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "residual",
+                "decision": "Residual / final-day adjustment",
+                "current_status": "no_status_flag",
+                "platform_default_value": null,
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "effective_dates",
+                "decision": "Effective dates & policy versions",
+                "current_status": "no_status_flag",
+                "platform_default_value": null,
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "scheduler_time",
+                "decision": "Scheduler run time",
+                "current_status": "no_status_flag",
+                "platform_default_value": null,
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "alert_destination",
+                "decision": "Alert destination",
+                "current_status": "no_status_flag",
+                "platform_default_value": null,
+                "approval_state": "PENDING_BUSINESS_APPROVAL"
+            }
+        ],
+        "rates": [
+            {
+                "rate_ref": "MRC-20261117-AA1FAA19",
+                "month": "2026-11",
+                "percent": "1.00000000",
+                "status": "disabled"
+            }
+        ],
+        "hub_table_present": false
+    },
+    "proposals": [
+        {
+            "decision_id": "monthly_percent",
+            "owner_proposal": "3.00000000 percent per month",
+            "proposed_value": "3.00000000",
+            "existing_enum": "numeric percent (mining_rate_configs.rate_percent / Hub key monthly_percent)",
+            "hub_payload": {
+                "monthly_percent": "3.00000000",
+                "rate_basis": "monthly",
+                "proposed_owner_label": "3.00000000 percent per month"
+            },
+            "engine_note": "Rate rows are month-granular: one approved rate per effective month, created by one admin and approved by another.",
+            "state": "PROPOSED_NOT_APPROVED"
+        },
+        {
+            "decision_id": "day_divisor",
+            "owner_proposal": "ACTUAL_CALENDAR_DAYS",
+            "proposed_value": "calendar_days",
+            "existing_enum": "calendar_days (platform miningMonthDayDivisorMode; Hub key month_day_divisor_mode)",
+            "hub_payload": {
+                "month_day_divisor_mode": "calendar_days",
+                "proposed_owner_label": "ACTUAL_CALENDAR_DAYS"
+            },
+            "engine_note": "ACTUAL_CALENDAR_DAYS is the owner wording for the existing enum calendar_days; no new enum is created.",
+            "state": "PROPOSED_NOT_APPROVED"
+        },
+        {
+            "decision_id": "denomination",
+            "owner_proposal": "COIN",
+            "proposed_value": "COIN",
+            "existing_enum": "COIN (platform miningEarningAsset; Hub key earning_asset)",
+            "hub_payload": {
+                "earning_asset": "COIN",
+                "proposed_owner_label": "COIN"
+            },
+            "engine_note": "mining_wallets.asset_code already defaults to COIN. The supply source of the credited COIN is still unresolved (see tokenomics).",
+            "state": "PROPOSED_NOT_APPROVED"
+        },
+        {
+            "decision_id": "approval_day",
+            "owner_proposal": "FOLLOWING_BUSINESS_DATE",
+            "proposed_value": "exclude_approval_day",
+            "existing_enum": "exclude_approval_day (platform miningApprovalDayPolicy; Hub key approval_day_policy)",
+            "hub_payload": {
+                "approval_day_policy": "exclude_approval_day",
+                "proposed_owner_label": "FOLLOWING_BUSINESS_DATE"
+            },
+            "engine_note": "FOLLOWING_BUSINESS_DATE is the owner wording for the existing enum exclude_approval_day (cutoff = start of the Asia/Kolkata business day).",
+            "state": "PROPOSED_NOT_APPROVED"
+        }
+    ],
+    "calendar_days": [
+        {
+            "month": "2026-01",
+            "label": "January 2026",
+            "expected_days": 31,
+            "calendar_days": 31,
+            "engine_divisor_first_day": 31,
+            "engine_divisor_last_day": 31,
+            "daily_1000_at_3pct_half_up": "0.96774194",
+            "ok": true
+        },
+        {
+            "month": "2027-02",
+            "label": "February 2027 (non-leap year)",
+            "expected_days": 28,
+            "calendar_days": 28,
+            "engine_divisor_first_day": 28,
+            "engine_divisor_last_day": 28,
+            "daily_1000_at_3pct_half_up": "1.07142857",
+            "ok": true
+        },
+        {
+            "month": "2028-02",
+            "label": "February 2028 (leap year)",
+            "expected_days": 29,
+            "calendar_days": 29,
+            "engine_divisor_first_day": 29,
+            "engine_divisor_last_day": 29,
+            "daily_1000_at_3pct_half_up": "1.03448276",
+            "ok": true
+        },
+        {
+            "month": "2026-03",
+            "label": "March 2026",
+            "expected_days": 31,
+            "calendar_days": 31,
+            "engine_divisor_first_day": 31,
+            "engine_divisor_last_day": 31,
+            "daily_1000_at_3pct_half_up": "0.96774194",
+            "ok": true
+        },
+        {
+            "month": "2026-04",
+            "label": "April 2026",
+            "expected_days": 30,
+            "calendar_days": 30,
+            "engine_divisor_first_day": 30,
+            "engine_divisor_last_day": 30,
+            "daily_1000_at_3pct_half_up": "1.00000000",
+            "ok": true
+        },
+        {
+            "month": "2026-05",
+            "label": "May 2026",
+            "expected_days": 31,
+            "calendar_days": 31,
+            "engine_divisor_first_day": 31,
+            "engine_divisor_last_day": 31,
+            "daily_1000_at_3pct_half_up": "0.96774194",
+            "ok": true
+        },
+        {
+            "month": "2026-06",
+            "label": "June 2026",
+            "expected_days": 30,
+            "calendar_days": 30,
+            "engine_divisor_first_day": 30,
+            "engine_divisor_last_day": 30,
+            "daily_1000_at_3pct_half_up": "1.00000000",
+            "ok": true
+        },
+        {
+            "month": "2026-07",
+            "label": "July 2026",
+            "expected_days": 31,
+            "calendar_days": 31,
+            "engine_divisor_first_day": 31,
+            "engine_divisor_last_day": 31,
+            "daily_1000_at_3pct_half_up": "0.96774194",
+            "ok": true
+        },
+        {
+            "month": "2026-08",
+            "label": "August 2026",
+            "expected_days": 31,
+            "calendar_days": 31,
+            "engine_divisor_first_day": 31,
+            "engine_divisor_last_day": 31,
+            "daily_1000_at_3pct_half_up": "0.96774194",
+            "ok": true
+        },
+        {
+            "month": "2026-09",
+            "label": "September 2026",
+            "expected_days": 30,
+            "calendar_days": 30,
+            "engine_divisor_first_day": 30,
+            "engine_divisor_last_day": 30,
+            "daily_1000_at_3pct_half_up": "1.00000000",
+            "ok": true
+        },
+        {
+            "month": "2026-10",
+            "label": "October 2026",
+            "expected_days": 31,
+            "calendar_days": 31,
+            "engine_divisor_first_day": 31,
+            "engine_divisor_last_day": 31,
+            "daily_1000_at_3pct_half_up": "0.96774194",
+            "ok": true
+        },
+        {
+            "month": "2026-11",
+            "label": "November 2026",
+            "expected_days": 30,
+            "calendar_days": 30,
+            "engine_divisor_first_day": 30,
+            "engine_divisor_last_day": 30,
+            "daily_1000_at_3pct_half_up": "1.00000000",
+            "ok": true
+        },
+        {
+            "month": "2026-12",
+            "label": "December 2026",
+            "expected_days": 31,
+            "calendar_days": 31,
+            "engine_divisor_first_day": 31,
+            "engine_divisor_last_day": 31,
+            "daily_1000_at_3pct_half_up": "0.96774194",
+            "ok": true
+        }
+    ],
+    "economic_preview": {
+        "monthly_percent": "3",
+        "holdings": [
+            {
+                "eligible_coins": "100.00000000",
+                "daily_28_days": {
+                    "half_up": "0.10714286",
+                    "down": "0.10714285"
+                },
+                "daily_29_days": {
+                    "half_up": "0.10344828",
+                    "down": "0.10344827"
+                },
+                "daily_30_days": {
+                    "half_up": "0.10000000",
+                    "down": "0.10000000"
+                },
+                "daily_31_days": {
+                    "half_up": "0.09677419",
+                    "down": "0.09677419"
+                },
+                "theoretical_monthly_issuance": "3.00000000",
+                "annualized_simple_issuance": "36.00000000",
+                "annual_simple_percent_of_holding": "36.0000",
+                "compounding_hypothetical": {
+                    "after_12_months_monthly_compounding": "142.57608868",
+                    "extra_over_simple_monthly_compounding": "6.57608868",
+                    "after_12_months_daily_compounding_2027": "143.30749246",
+                    "extra_over_simple_daily_compounding": "7.30749246",
+                    "status": "HYPOTHETICAL_NOT_ENABLED"
+                },
+                "lock_1000_day_simple_issuance": "98.55806451"
+            },
+            {
+                "eligible_coins": "500.00000000",
+                "daily_28_days": {
+                    "half_up": "0.53571429",
+                    "down": "0.53571428"
+                },
+                "daily_29_days": {
+                    "half_up": "0.51724138",
+                    "down": "0.51724137"
+                },
+                "daily_30_days": {
+                    "half_up": "0.50000000",
+                    "down": "0.50000000"
+                },
+                "daily_31_days": {
+                    "half_up": "0.48387097",
+                    "down": "0.48387096"
+                },
+                "theoretical_monthly_issuance": "15.00000000",
+                "annualized_simple_issuance": "180.00000000",
+                "annual_simple_percent_of_holding": "36.0000",
+                "compounding_hypothetical": {
+                    "after_12_months_monthly_compounding": "712.88044342",
+                    "extra_over_simple_monthly_compounding": "32.88044342",
+                    "after_12_months_daily_compounding_2027": "716.53746230",
+                    "extra_over_simple_daily_compounding": "36.53746230",
+                    "status": "HYPOTHETICAL_NOT_ENABLED"
+                },
+                "lock_1000_day_simple_issuance": "492.79032258"
+            },
+            {
+                "eligible_coins": "1000.00000000",
+                "daily_28_days": {
+                    "half_up": "1.07142857",
+                    "down": "1.07142857"
+                },
+                "daily_29_days": {
+                    "half_up": "1.03448276",
+                    "down": "1.03448275"
+                },
+                "daily_30_days": {
+                    "half_up": "1.00000000",
+                    "down": "1.00000000"
+                },
+                "daily_31_days": {
+                    "half_up": "0.96774194",
+                    "down": "0.96774193"
+                },
+                "theoretical_monthly_issuance": "30.00000000",
+                "annualized_simple_issuance": "360.00000000",
+                "annual_simple_percent_of_holding": "36.0000",
+                "compounding_hypothetical": {
+                    "after_12_months_monthly_compounding": "1425.76088684",
+                    "extra_over_simple_monthly_compounding": "65.76088684",
+                    "after_12_months_daily_compounding_2027": "1433.07492460",
+                    "extra_over_simple_daily_compounding": "73.07492460",
+                    "status": "HYPOTHETICAL_NOT_ENABLED"
+                },
+                "lock_1000_day_simple_issuance": "985.58064516"
+            },
+            {
+                "eligible_coins": "5000.00000000",
+                "daily_28_days": {
+                    "half_up": "5.35714286",
+                    "down": "5.35714285"
+                },
+                "daily_29_days": {
+                    "half_up": "5.17241379",
+                    "down": "5.17241379"
+                },
+                "daily_30_days": {
+                    "half_up": "5.00000000",
+                    "down": "5.00000000"
+                },
+                "daily_31_days": {
+                    "half_up": "4.83870968",
+                    "down": "4.83870967"
+                },
+                "theoretical_monthly_issuance": "150.00000000",
+                "annualized_simple_issuance": "1800.00000000",
+                "annual_simple_percent_of_holding": "36.0000",
+                "compounding_hypothetical": {
+                    "after_12_months_monthly_compounding": "7128.80443423",
+                    "extra_over_simple_monthly_compounding": "328.80443423",
+                    "after_12_months_daily_compounding_2027": "7165.37462301",
+                    "extra_over_simple_daily_compounding": "365.37462301",
+                    "status": "HYPOTHETICAL_NOT_ENABLED"
+                },
+                "lock_1000_day_simple_issuance": "4927.90322580"
+            },
+            {
+                "eligible_coins": "10000.00000000",
+                "daily_28_days": {
+                    "half_up": "10.71428571",
+                    "down": "10.71428571"
+                },
+                "daily_29_days": {
+                    "half_up": "10.34482759",
+                    "down": "10.34482758"
+                },
+                "daily_30_days": {
+                    "half_up": "10.00000000",
+                    "down": "10.00000000"
+                },
+                "daily_31_days": {
+                    "half_up": "9.67741935",
+                    "down": "9.67741935"
+                },
+                "theoretical_monthly_issuance": "300.00000000",
+                "annualized_simple_issuance": "3600.00000000",
+                "annual_simple_percent_of_holding": "36.0000",
+                "compounding_hypothetical": {
+                    "after_12_months_monthly_compounding": "14257.60886846",
+                    "extra_over_simple_monthly_compounding": "657.60886846",
+                    "after_12_months_daily_compounding_2027": "14330.74924603",
+                    "extra_over_simple_daily_compounding": "730.74924603",
+                    "status": "HYPOTHETICAL_NOT_ENABLED"
+                },
+                "lock_1000_day_simple_issuance": "9855.80645161"
+            }
+        ],
+        "compounding_note": "Compounding is NOT enabled and not possible today: mining credits go to the Mining Wallet only and never enter the ownership ledger that determines eligibility. These figures show what would happen ONLY IF a future policy made mining credits eligible ownership."
+    },
+    "eligibility_rule": {
+        "approval_2026-11-17_12:15_IST": {
+            "approved_utc": "2026-11-17 06:45:44",
+            "state": "ELIGIBLE_FROM_FIRST_DATE",
+            "approval_business_date": "2026-11-17",
+            "first_eligible_date": "2026-11-18",
+            "note": "Earns from the following Asia/Kolkata business date.",
+            "ok": true
+        },
+        "just_after_midnight_00:01_IST": {
+            "approved_utc": "2026-11-16 18:31:00",
+            "state": "ELIGIBLE_FROM_FIRST_DATE",
+            "approval_business_date": "2026-11-17",
+            "first_eligible_date": "2026-11-18",
+            "note": "Earns from the following Asia/Kolkata business date.",
+            "ok": true
+        },
+        "just_before_midnight_23:59_IST": {
+            "approved_utc": "2026-11-17 18:29:00",
+            "state": "ELIGIBLE_FROM_FIRST_DATE",
+            "approval_business_date": "2026-11-17",
+            "first_eligible_date": "2026-11-18",
+            "note": "Earns from the following Asia/Kolkata business date.",
+            "ok": true
+        },
+        "exact_midnight_IST": {
+            "approved_utc": "2026-11-17 18:30:00",
+            "state": "ELIGIBLE_FROM_FIRST_DATE",
+            "approval_business_date": "2026-11-18",
+            "first_eligible_date": "2026-11-19",
+            "note": "Earns from the following Asia/Kolkata business date.",
+            "ok": true
+        },
+        "utc_17th_19:00_is_ist_18th_00:30": {
+            "approved_utc": "2026-11-17 19:00:00",
+            "state": "ELIGIBLE_FROM_FIRST_DATE",
+            "approval_business_date": "2026-11-18",
+            "first_eligible_date": "2026-11-19",
+            "note": "Earns from the following Asia/Kolkata business date.",
+            "ok": true
+        },
+        "month_end_31st_23:59_IST": {
+            "approved_utc": "2026-10-31 18:29:00",
+            "state": "ELIGIBLE_FROM_FIRST_DATE",
+            "approval_business_date": "2026-10-31",
+            "first_eligible_date": "2026-11-01",
+            "note": "Earns from the following Asia/Kolkata business date.",
+            "ok": true
+        },
+        "year_end": {
+            "approved_utc": "2025-12-31 18:29:00",
+            "state": "ELIGIBLE_FROM_FIRST_DATE",
+            "approval_business_date": "2025-12-31",
+            "first_eligible_date": "2026-01-01",
+            "note": "Earns from the following Asia/Kolkata business date.",
+            "ok": true
+        },
+        "missing_timestamp": {
+            "state": "BLOCKED_MISSING_APPROVAL_TIMESTAMP",
+            "approval_business_date": null,
+            "first_eligible_date": null,
+            "note": "No eligibility is inferred without an approval timestamp.",
+            "ok": true
+        },
+        "future_dated": {
+            "approved_utc": "2027-01-15 04:30:00",
+            "state": "FUTURE_DATED_APPROVAL",
+            "approval_business_date": "2027-01-15",
+            "first_eligible_date": "2027-01-16",
+            "note": "Approval is in the future; nothing accrues and the record needs review.",
+            "ok": true
+        }
+    },
+    "clone_restore": {
+        "database": "coin_platform_phase13c",
+        "purpose": "disposable clone (13C.1)",
+        "action": "reused (marker present; own tables wiped before restore)",
+        "exit": 0,
+        "duration_s": 6.66,
+        "stderr": ""
+    },
+    "clone_migration": {
+        "applied": true
+    },
+    "hub_drafts": {
+        "drafts": [
+            {
+                "decision_id": "monthly_percent",
+                "policy_ref": "FPV-MIN-20261118-BEF740",
+                "status": "draft",
+                "version_no": "1"
+            },
+            {
+                "decision_id": "day_divisor",
+                "policy_ref": "FPV-MIN-20261118-2333AC",
+                "status": "draft",
+                "version_no": "2"
+            },
+            {
+                "decision_id": "denomination",
+                "policy_ref": "FPV-MIN-20261118-FEB642",
+                "status": "draft",
+                "version_no": "3"
+            },
+            {
+                "decision_id": "approval_day",
+                "policy_ref": "FPV-MIN-20261118-A459AC",
+                "status": "draft",
+                "version_no": "4"
+            }
+        ],
+        "rows": [
+            {
+                "policy_ref": "FPV-MIN-20261118-BEF740",
+                "domain": "mining",
+                "status": "draft",
+                "version_no": "1",
+                "created_by": "1",
+                "effective_from": null,
+                "approved_by": null
+            },
+            {
+                "policy_ref": "FPV-MIN-20261118-2333AC",
+                "domain": "mining",
+                "status": "draft",
+                "version_no": "2",
+                "created_by": "1",
+                "effective_from": null,
+                "approved_by": null
+            },
+            {
+                "policy_ref": "FPV-MIN-20261118-FEB642",
+                "domain": "mining",
+                "status": "draft",
+                "version_no": "3",
+                "created_by": "1",
+                "effective_from": null,
+                "approved_by": null
+            },
+            {
+                "policy_ref": "FPV-MIN-20261118-A459AC",
+                "domain": "mining",
+                "status": "draft",
+                "version_no": "4",
+                "created_by": "1",
+                "effective_from": null,
+                "approved_by": null
+            }
+        ],
+        "created_events": 4,
+        "dual_control": "Approval needs a different authorized admin with password re-authentication; self-approval is refused by FinancialPolicyService::approve (covered by Phase12EFinancialPolicyTest).",
+        "not_executed": "submit / approve / activate were deliberately NOT executed."
+    },
+    "cohort": [
+        {
+            "case": "M01_CONSTANT",
+            "uid": 910001,
+            "mid": "SYN13C101",
+            "status": "active"
+        },
+        {
+            "case": "M02_MULTIPLE",
+            "uid": 910002,
+            "mid": "SYN13C102",
+            "status": "active"
+        },
+        {
+            "case": "M03_LOCKED",
+            "uid": 910003,
+            "mid": "SYN13C103",
+            "status": "active"
+        },
+        {
+            "case": "M04_AFTER_MIDNIGHT",
+            "uid": 910004,
+            "mid": "SYN13C104",
+            "status": "active"
+        },
+        {
+            "case": "M05_PARTIAL_SALE",
+            "uid": 910005,
+            "mid": "SYN13C105",
+            "status": "active"
+        },
+        {
+            "case": "M06_FULL_SALE",
+            "uid": 910006,
+            "mid": "SYN13C106",
+            "status": "active"
+        },
+        {
+            "case": "M07_PENDING_SALE",
+            "uid": 910007,
+            "mid": "SYN13C107",
+            "status": "active"
+        },
+        {
+            "case": "M08_INACTIVE",
+            "uid": 910008,
+            "mid": "SYN13C108",
+            "status": "inactive"
+        },
+        {
+            "case": "M09_NO_APPROVAL_TS",
+            "uid": 910009,
+            "mid": "SYN13C109",
+            "status": "active"
+        },
+        {
+            "case": "M10_FUTURE_APPROVAL",
+            "uid": 910010,
+            "mid": "SYN13C110",
+            "status": "active"
+        },
+        {
+            "case": "M11_MATURED_LOCK",
+            "uid": 910011,
+            "mid": "SYN13C111",
+            "status": "active"
+        }
+    ],
+    "as_of": {
+        "rows": [
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "600.00000000",
+                "owned": "600.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "600",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "expected": "0",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "700",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "expected": "0",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ],
+                "expected": "BLOCKED",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "expected": "0",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-30",
+                "case": "M11_MATURED_LOCK",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-30",
+                "case": "M11_MATURED_LOCK",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "800.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-30",
+                "case": "M11_MATURED_LOCK",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-30",
+                "case": "M11_MATURED_LOCK",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "expected": "0",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "700",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "expected": "0",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ],
+                "expected": "BLOCKED",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "expected": "0",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-10-31",
+                "case": "M11_MATURED_LOCK",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ELIGIBLE",
+                "eligible": "500.00000000",
+                "owned": "500.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-10-31",
+                "case": "M11_MATURED_LOCK",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ELIGIBLE",
+                "eligible": "500.00000000",
+                "owned": "500.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "800.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-10-31",
+                "case": "M11_MATURED_LOCK",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ELIGIBLE",
+                "eligible": "500.00000000",
+                "owned": "500.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-10-31",
+                "case": "M11_MATURED_LOCK",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ELIGIBLE",
+                "eligible": "500.00000000",
+                "owned": "500.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "500",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "700",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "expected": "0",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ],
+                "expected": "BLOCKED",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "expected": "0",
+                "ok": true
+            },
+            {
+                "policy": "proposed",
+                "date": "2026-11-01",
+                "case": "M11_MATURED_LOCK",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": [],
+                "expected": "1000",
+                "ok": true
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ELIGIBLE",
+                "eligible": "500.00000000",
+                "owned": "500.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_full_day",
+                "date": "2026-11-01",
+                "case": "M11_MATURED_LOCK",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ELIGIBLE",
+                "eligible": "500.00000000",
+                "owned": "500.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "800.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_reserved_excluded",
+                "date": "2026-11-01",
+                "case": "M11_MATURED_LOCK",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M01_CONSTANT",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M02_MULTIPLE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M03_LOCKED",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M04_AFTER_MIDNIGHT",
+                "status": "ELIGIBLE",
+                "eligible": "500.00000000",
+                "owned": "500.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M05_PARTIAL_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "700.00000000",
+                "owned": "700.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M06_FULL_SALE",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M07_PENDING_SALE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "200.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M08_INACTIVE",
+                "status": "ELIGIBLE",
+                "eligible": "1000.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": []
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M09_NO_APPROVAL_TS",
+                "status": "BLOCKED_HISTORICAL_DATA",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "approved_purchase_missing_approval_time:PUR-C1-M09"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M10_FUTURE_APPROVAL",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            },
+            {
+                "policy": "alt_matured_excluded",
+                "date": "2026-11-01",
+                "case": "M11_MATURED_LOCK",
+                "status": "ZERO",
+                "eligible": "0.00000000",
+                "owned": "1000.00000000",
+                "locked": "1000.00000000",
+                "reserved": "0.00000000",
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ]
+            }
+        ]
+    },
+    "posting": {
+        "rates": {
+            "2026-10": {
+                "rate_ref": "MRC-20261118-5F84C62E",
+                "percent": "3.00000000",
+                "self_approval_blocked": true
+            },
+            "2026-11": {
+                "rate_ref": "MRC-20261118-63127DFB",
+                "percent": "4.00000000",
+                "self_approval_blocked": true
+            }
+        },
+        "policy": {
+            "approval_day": "exclude_approval_day",
+            "divisor_mode": "calendar_days",
+            "rounding": "half_up",
+            "reserved": "include",
+            "maturity": "include_all"
+        },
+        "steps": {
+            "2026-10-31": {
+                "label": "first run (later date first)",
+                "exit": 40,
+                "summary": {
+                    "status": "partial",
+                    "state": "PARTIAL",
+                    "run_ref": "MPR-20261118084826-DDDFCB",
+                    "credited": 6,
+                    "credited_total": 6,
+                    "skipped": 5,
+                    "blocked": 1,
+                    "posted_total": "5.51612905",
+                    "reconcile_status": "OK_PARTIAL",
+                    "reason": "unresolved members: pending=0 failed=0 blocked=1"
+                }
+            },
+            "2026-10-31#2": {
+                "label": "duplicate re-run",
+                "exit": 40,
+                "summary": {
+                    "status": "partial",
+                    "state": "PARTIAL",
+                    "run_ref": "MPR-20261118084828-12924B",
+                    "credited": 0,
+                    "credited_total": 6,
+                    "skipped": 5,
+                    "blocked": 1,
+                    "posted_total": "5.51612905",
+                    "reconcile_status": "OK_PARTIAL",
+                    "reason": "unresolved members: pending=0 failed=0 blocked=1"
+                }
+            },
+            "2026-10-30": {
+                "label": "backdated run",
+                "exit": 40,
+                "summary": {
+                    "status": "partial",
+                    "state": "PARTIAL",
+                    "run_ref": "MPR-20261118084829-12924D",
+                    "credited": 6,
+                    "credited_total": 6,
+                    "skipped": 5,
+                    "blocked": 1,
+                    "posted_total": "5.12903227",
+                    "reconcile_status": "OK_PARTIAL",
+                    "reason": "unresolved members: pending=0 failed=0 blocked=1"
+                }
+            },
+            "2026-11-01": {
+                "label": "new month / new rate",
+                "exit": 40,
+                "summary": {
+                    "status": "partial",
+                    "state": "PARTIAL",
+                    "run_ref": "MPR-20261118084831-CB3D41",
+                    "credited": 7,
+                    "credited_total": 7,
+                    "skipped": 4,
+                    "blocked": 1,
+                    "posted_total": "8.26666665",
+                    "reconcile_status": "OK_PARTIAL",
+                    "reason": "unresolved members: pending=0 failed=0 blocked=1"
+                }
+            }
+        },
+        "comparison": [
+            {
+                "date": "2026-10-30",
+                "case": "M01_CONSTANT",
+                "member_id": "SYN13C101",
+                "eligible": "1000",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.96774194",
+                "actual": "0.96774194",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-30",
+                "case": "M02_MULTIPLE",
+                "member_id": "SYN13C102",
+                "eligible": "600",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.58064516",
+                "actual": "0.58064516",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-30",
+                "case": "M03_LOCKED",
+                "member_id": "SYN13C103",
+                "eligible": "1000",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.96774194",
+                "actual": "0.96774194",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-30",
+                "case": "M05_PARTIAL_SALE",
+                "member_id": "SYN13C105",
+                "eligible": "700",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.67741935",
+                "actual": "0.67741935",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-30",
+                "case": "M07_PENDING_SALE",
+                "member_id": "SYN13C107",
+                "eligible": "1000",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.96774194",
+                "actual": "0.96774194",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-30",
+                "case": "M11_MATURED_LOCK",
+                "member_id": "SYN13C111",
+                "eligible": "1000",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.96774194",
+                "actual": "0.96774194",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-31",
+                "case": "M01_CONSTANT",
+                "member_id": "SYN13C101",
+                "eligible": "1000",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.96774194",
+                "actual": "0.96774194",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-31",
+                "case": "M02_MULTIPLE",
+                "member_id": "SYN13C102",
+                "eligible": "1000",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.96774194",
+                "actual": "0.96774194",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-31",
+                "case": "M03_LOCKED",
+                "member_id": "SYN13C103",
+                "eligible": "1000",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.96774194",
+                "actual": "0.96774194",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-31",
+                "case": "M05_PARTIAL_SALE",
+                "member_id": "SYN13C105",
+                "eligible": "700",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.67741935",
+                "actual": "0.67741935",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-31",
+                "case": "M07_PENDING_SALE",
+                "member_id": "SYN13C107",
+                "eligible": "1000",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.96774194",
+                "actual": "0.96774194",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-10-31",
+                "case": "M11_MATURED_LOCK",
+                "member_id": "SYN13C111",
+                "eligible": "1000",
+                "rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_independent": "0.96774194",
+                "actual": "0.96774194",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-11-01",
+                "case": "M01_CONSTANT",
+                "member_id": "SYN13C101",
+                "eligible": "1000",
+                "rate_percent": "4.00000000",
+                "divisor": 30,
+                "expected_independent": "1.33333333",
+                "actual": "1.33333333",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-11-01",
+                "case": "M02_MULTIPLE",
+                "member_id": "SYN13C102",
+                "eligible": "1000",
+                "rate_percent": "4.00000000",
+                "divisor": 30,
+                "expected_independent": "1.33333333",
+                "actual": "1.33333333",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-11-01",
+                "case": "M03_LOCKED",
+                "member_id": "SYN13C103",
+                "eligible": "1000",
+                "rate_percent": "4.00000000",
+                "divisor": 30,
+                "expected_independent": "1.33333333",
+                "actual": "1.33333333",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-11-01",
+                "case": "M04_AFTER_MIDNIGHT",
+                "member_id": "SYN13C104",
+                "eligible": "500",
+                "rate_percent": "4.00000000",
+                "divisor": 30,
+                "expected_independent": "0.66666667",
+                "actual": "0.66666667",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-11-01",
+                "case": "M05_PARTIAL_SALE",
+                "member_id": "SYN13C105",
+                "eligible": "700",
+                "rate_percent": "4.00000000",
+                "divisor": 30,
+                "expected_independent": "0.93333333",
+                "actual": "0.93333333",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-11-01",
+                "case": "M07_PENDING_SALE",
+                "member_id": "SYN13C107",
+                "eligible": "1000",
+                "rate_percent": "4.00000000",
+                "divisor": 30,
+                "expected_independent": "1.33333333",
+                "actual": "1.33333333",
+                "ledger_rows": 1,
+                "ok": true
+            },
+            {
+                "date": "2026-11-01",
+                "case": "M11_MATURED_LOCK",
+                "member_id": "SYN13C111",
+                "eligible": "1000",
+                "rate_percent": "4.00000000",
+                "divisor": 30,
+                "expected_independent": "1.33333333",
+                "actual": "1.33333333",
+                "ledger_rows": 1,
+                "ok": true
+            }
+        ],
+        "excluded_checks": [
+            {
+                "case": "M04_AFTER_MIDNIGHT",
+                "date": "2026-10-30",
+                "credited": false
+            },
+            {
+                "case": "M04_AFTER_MIDNIGHT",
+                "date": "2026-10-31",
+                "credited": false
+            },
+            {
+                "case": "M06_FULL_SALE",
+                "date": "2026-10-30",
+                "credited": false
+            },
+            {
+                "case": "M06_FULL_SALE",
+                "date": "2026-10-31",
+                "credited": false
+            },
+            {
+                "case": "M06_FULL_SALE",
+                "date": "2026-11-01",
+                "credited": false
+            },
+            {
+                "case": "M08_INACTIVE",
+                "date": "2026-10-30",
+                "credited": false
+            },
+            {
+                "case": "M08_INACTIVE",
+                "date": "2026-10-31",
+                "credited": false
+            },
+            {
+                "case": "M08_INACTIVE",
+                "date": "2026-11-01",
+                "credited": false
+            },
+            {
+                "case": "M09_NO_APPROVAL_TS",
+                "date": "2026-10-30",
+                "credited": false
+            },
+            {
+                "case": "M09_NO_APPROVAL_TS",
+                "date": "2026-10-31",
+                "credited": false
+            },
+            {
+                "case": "M09_NO_APPROVAL_TS",
+                "date": "2026-11-01",
+                "credited": false
+            },
+            {
+                "case": "M10_FUTURE_APPROVAL",
+                "date": "2026-10-30",
+                "credited": false
+            },
+            {
+                "case": "M10_FUTURE_APPROVAL",
+                "date": "2026-10-31",
+                "credited": false
+            },
+            {
+                "case": "M10_FUTURE_APPROVAL",
+                "date": "2026-11-01",
+                "credited": false
+            }
+        ],
+        "wallet_total": "18.91182797",
+        "ledger_net": "18.91182797",
+        "wallet_assets": [
+            "COIN"
+        ],
+        "coin_inventory_after": {
+            "available_balance": "19995.00000000",
+            "total_added": "20000.00000000",
+            "total_allocated": "5.00000000"
+        },
+        "inventory_untouched_by_mining": "coin_inventory unchanged by posting (mining never debits inventory) \u2014 see tokenomics.",
+        "duplicate_credit_groups": 0,
+        "ownership_hash_before": "5be5eaa32b5da3279e6598c56ad2553f",
+        "ownership_hash_after": "5be5eaa32b5da3279e6598c56ad2553f"
+    },
+    "live_fingerprint_after": {
+        "database": "coin_platform",
+        "table_count": 73,
+        "members": 2,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ],
+        "member_id_sequences": [
+            {
+                "prefix": "NGW",
+                "last_number": "981233"
+            }
+        ],
+        "approved_purchases": 1,
+        "owned_total": "5.00000000",
+        "available_total": "5.00000000",
+        "locked_total": "0.00000000",
+        "reserved_total": "0.00000000",
+        "ownership_ledger_rows": 1,
+        "locks_total": 0,
+        "mandatory_locks": 0,
+        "mining_wallet_total": "0.00000000",
+        "mining_ledger_rows": 0,
+        "commission_ledger_rows": 0,
+        "latest_migration": "2026-11-17-992001",
+        "switches": {
+            "miningPostingEnabled": false,
+            "miningP2pEnabled": false,
+            "commissionPostingEnabled": false,
+            "commissionWithdrawalEnabled": false,
+            "commissionBlockchainPayoutEnabled": false,
+            "coinSellingEnabled": false,
+            "sandbox_window_open": false
+        },
+        "row_counts": {
+            "admin_impersonation_grants": 4,
+            "admin_impersonation_sessions": 4,
+            "audit_logs": 35,
+            "auth_groups_users": 5,
+            "auth_identities": 2,
+            "auth_logins": 6,
+            "auth_permissions_users": 0,
+            "auth_remember_tokens": 0,
+            "auth_token_logins": 0,
+            "blockchain_health_snapshots": 1,
+            "coin_inventory": 1,
+            "coin_inventory_transactions": 2,
+            "coin_locking_plans": 0,
+            "coin_price_history": 0,
+            "coin_purchase_requests": 2,
+            "coin_sell_events": 0,
+            "coin_sell_requests": 0,
+            "coin_settings": 1,
+            "commission_eligibility_audit_events": 0,
+            "commission_plans": 0,
+            "commission_plan_approval_events": 0,
+            "commission_plan_levels": 0,
+            "commission_posting_proposals": 0,
+            "commission_posting_proposal_events": 0,
+            "commission_purchase_calculations": 0,
+            "commission_simulation_items": 0,
+            "commission_simulation_runs": 0,
+            "commission_wallet_accounts": 1,
+            "commission_wallet_ledger_entries": 0,
+            "commission_withdrawal_events": 0,
+            "commission_withdrawal_payout_evidence": 0,
+            "commission_withdrawal_requests": 0,
+            "financial_alerts": 0,
+            "financial_remediation_events": 0,
+            "financial_remediation_proposals": 0,
+            "member_coin_balances": 1,
+            "member_coin_locks": 0,
+            "member_coin_lock_events": 0,
+            "member_coin_ownership_transactions": 1,
+            "member_email_change_tokens": 0,
+            "member_id_sequences": 1,
+            "member_profiles": 2,
+            "member_wallet_change_events": 0,
+            "migrations": 45,
+            "mining_daily_calculations": 0,
+            "mining_daily_runs": 0,
+            "mining_eligibility_audit_events": 1,
+            "mining_p2p_transfers": 0,
+            "mining_rate_approval_events": 2,
+            "mining_rate_configs": 1,
+            "mining_simulation_items": 1,
+            "mining_simulation_runs": 1,
+            "mining_wallets": 0,
+            "mining_wallet_ledger": 0,
+            "notification_delivery_events": 0,
+            "notification_outbox": 0,
+            "ops_job_locks": 1,
+            "password_reset_tokens": 0,
+            "payment_destination_change_events": 1,
+            "payment_destination_change_proposals": 1,
+            "platform_settings": 13,
+            "purchase_sponsor_snapshots": 3,
+            "settings": 0,
+            "settings_audit": 0,
+            "sponsor_relationships": 1,
+            "support_tickets": 0,
+            "support_ticket_messages": 0,
+            "usdt_deposit_events": 2,
+            "usdt_deposit_requests": 1,
+            "usdt_payment_allocations": 1,
+            "usdt_payment_allocation_events": 2,
+            "usdt_payment_networks": 2,
+            "users": 2
+        }
+    },
+    "live_unchanged": {
+        "ok": true,
+        "detail": "Live fingerprint identical before and after Phase 13C.1."
+    },
+    "live_ro_account_dropped": true,
+    "checks": [
+        {
+            "id": "mysql_cli_present",
+            "ok": true,
+            "detail": "mysql client: found"
+        },
+        {
+            "id": "disk_space",
+            "ok": true,
+            "detail": "free disk at datadir: 3325 MB"
+        },
+        {
+            "id": "kill_switches_all_false",
+            "ok": true,
+            "detail": "All seven production switches false: {\"miningPostingEnabled\":false,\"miningAutoPostEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false}"
+        },
+        {
+            "id": "live_connection_read_only",
+            "ok": true,
+            "detail": "Live account grants verified SELECT-only: [\"GRANT USAGE ON *.* TO `p13c_live_ro`@`localhost` \",\"GRANT SELECT ON `coin_platform`.* TO `p13c_live_ro`@`localhost`\"]"
+        },
+        {
+            "id": "twelve_decision_ids",
+            "ok": true,
+            "detail": "Worksheet decision ids: monthly_percent,day_divisor,denomination,approval_day,locked_coins,post_maturity,post_sale,rounding,residual,effective_dates,scheduler_time,alert_destination"
+        },
+        {
+            "id": "live_all_pending",
+            "ok": true,
+            "detail": "All 12 live decisions are PENDING_BUSINESS_APPROVAL."
+        },
+        {
+            "id": "calendar_days_all_months",
+            "ok": true,
+            "detail": "13 months (incl. Feb 28/29) match the engine divisor at first and last day."
+        },
+        {
+            "id": "following_date_rule_cases",
+            "ok": true,
+            "detail": "Following-business-date rule: 9 timestamp cases evaluated."
+        },
+        {
+            "id": "restore_coin_platform_phase13c",
+            "ok": true,
+            "detail": "mysql restore into coin_platform_phase13c exit=0 in 6.66s"
+        },
+        {
+            "id": "snapshot_account_select_only",
+            "ok": true,
+            "detail": "Snapshot account privileges verified SELECT-only on coin_platform_phase13c_snapshot."
+        },
+        {
+            "id": "clone_has_hub_tables",
+            "ok": true,
+            "detail": "Hub tables exist on the migrated clone."
+        },
+        {
+            "id": "hub_four_drafts_unapproved",
+            "ok": true,
+            "detail": "4 DRAFT hub policies created on the clone; approved/active before=0 after=0; effective date unset."
+        },
+        {
+            "id": "worksheet_still_pending_after_drafts",
+            "ok": true,
+            "detail": "Drafts do not change any decision: all 12 remain PENDING_BUSINESS_APPROVAL."
+        },
+        {
+            "id": "as_of_matches_proposed_rule",
+            "ok": true,
+            "detail": "Real as-of engine under the proposed policy matches expected eligibility for 11 synthetic cases x 3 dates (following business date, locked included, sales, reservation, missing/future approval)."
+        },
+        {
+            "id": "eligibility_independent_of_mining_wallet",
+            "ok": true,
+            "detail": "Eligibility reads only ownership ledger / purchases / locks \u2014 never the Mining Wallet (so P2P and mining credits cannot change eligibility)."
+        },
+        {
+            "id": "rate_self_approval_blocked",
+            "ok": true,
+            "detail": "Creator cannot approve their own rate (existing dual control)."
+        },
+        {
+            "id": "posting_amounts_match_independent_math",
+            "ok": true,
+            "detail": "Real mining:post credits equal independent integer arithmetic for every eligible member/date (rate change Oct 3% -> Nov 4% included)."
+        },
+        {
+            "id": "posting_excludes_ineligible",
+            "ok": true,
+            "detail": "No credit for: pre-eligibility day, full sale, inactive, missing approval timestamp, future-dated approval."
+        },
+        {
+            "id": "posting_no_duplicates",
+            "ok": true,
+            "detail": "Duplicate re-run created no second credit (duplicate groups=0)."
+        },
+        {
+            "id": "posting_ownership_unchanged",
+            "ok": true,
+            "detail": "Ownership ledger/balances identical before and after posting: mining credits do NOT become eligible ownership (no compounding)."
+        },
+        {
+            "id": "posting_wallet_equals_ledger",
+            "ok": true,
+            "detail": "Mining Wallet total 18.91182797 equals ledger net 18.91182797."
+        },
+        {
+            "id": "wallet_asset_single_coin",
+            "ok": true,
+            "detail": "Mining wallet assets: [\"COIN\"] (no mixing)."
+        },
+        {
+            "id": "live_unchanged",
+            "ok": true,
+            "detail": "Live fingerprint identical before and after Phase 13C.1."
+        }
+    ],
+    "pass": 23,
+    "fail": 0,
+    "duration_s": 18.03,
+    "finished_at": "2026-11-18T08:48:31+00:00"
+}

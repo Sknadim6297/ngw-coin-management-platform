@@ -115,6 +115,18 @@ class Platform extends BaseConfig
      */
     public bool $commissionPostingEnabled = false;
 
+    /**
+     * Phase 14 — purchase-approval auto-post remains fail-closed OFF even if commissionPostingEnabled is later
+     * toggled, until the execution architecture and commission policies are separately approved.
+     */
+    public bool $commissionAutoPostOnApprovalEnabled = false;
+
+    public string $commissionBasePolicyStatus = 'pending_business_decision';
+
+    public string $commissionRoundingPolicyStatus = 'pending_business_decision';
+
+    public string $commissionRootEligibilityPolicyStatus = 'pending_business_decision';
+
     public bool $commissionWithdrawalEnabled = false;
 
     public bool $commissionBlockchainPayoutEnabled = false;
@@ -125,6 +137,23 @@ class Platform extends BaseConfig
     public bool $miningPostingEnabled = false;
 
     public bool $miningP2pEnabled = false;
+
+    /**
+     * Phase 13A — scheduler kill-switch for `mining:post --scheduled`.
+     * Fail-closed OFF. Even when ON, live posting also needs miningPostingEnabled,
+     * all mining policy statuses = approved, --allow-production and the exact confirm phrase.
+     * Never enable in production without a separate written authorization.
+     */
+    public bool $miningAutoPostEnabled = false;
+
+    /** Max attempts for a transient failure (deadlock / lock wait / connection loss). */
+    public int $miningPostMaxAttempts = 3;
+
+    /** Base back-off in seconds between attempts (multiplied by attempt number). */
+    public int $miningPostRetryDelaySeconds = 5;
+
+    /** TTL of the per-business-date job lock (ops_job_locks). */
+    public int $miningPostLockTtlSeconds = 1800;
 
     /**
      * Mining business timezone for daily date boundaries (does not change global appTimezone).
@@ -168,6 +197,35 @@ class Platform extends BaseConfig
     public string $miningPostSaleEligibilityStatus = 'pending_business_decision';
 
     public string $miningRoundingPolicyStatus = 'pending_business_decision';
+
+    public string $miningRewardSupplySourceStatus = 'pending_business_decision';
+
+    public string $miningCompoundingPolicyStatus = 'pending_business_decision';
+
+    /**
+     * Phase 13B — DRAFT calculation policies (none is a production approval; see
+     * docs/phase13b-business-decisions-required.md). Defaults reproduce the pre-13B behaviour.
+     *
+     * miningRoundingMode:        down | half_up       (final amount only, never intermediate values)
+     * miningReservedCoinPolicy:  include | exclude    (coins reserved for an open sale order)
+     * miningMaturityPolicy:      include_all | exclude_matured_locked
+     */
+    public string $miningRoundingMode = 'down';
+
+    public string $miningReservedCoinPolicy = 'include';
+
+    public string $miningMaturityPolicy = 'include_all';
+
+    /** Phase 13B — default keyset batch size (test default, not a business-approved value). */
+    public int $miningPostBatchSize = 500;
+
+    /** Phase 13B — wall-clock budget for one posting invocation; on expiry the run stops PARTIAL. */
+    public int $miningPostMaxRuntimeSeconds = 3600;
+
+    /** Phase 13B — alert thresholds (local log + event hook only; no external notification). */
+    public int $miningPostAlertRetryThreshold = 2;
+
+    public int $miningPostAlertRuntimeSeconds = 1800;
 
     /**
      * When true, purchase approval creates a mandatory 1000-day lock (Phase 11A).

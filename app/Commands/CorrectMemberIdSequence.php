@@ -26,7 +26,7 @@ class CorrectMemberIdSequence extends BaseCommand
     protected $group       = 'Members';
     protected $name        = 'members:correct-sequence';
     protected $description = 'Preview/apply Member ID sequence correction (NGW1234+). Never renames existing IDs.';
-    protected $usage       = 'members:correct-sequence [--dry-run] [--group=phase12b] [--start=1234] [--padding=4] [--confirm=...] [--allow-production]';
+    protected $usage       = 'members:correct-sequence [--dry-run] [--group phase12b] [--start 1234] [--padding 4] [--confirm ...] [--allow-production]';
     protected $options     = [
         '--dry-run'          => 'Preview only (default if --confirm omitted)',
         '--group'            => 'Database group (default|phase12b). Prefer phase12b.',
@@ -38,6 +38,10 @@ class CorrectMemberIdSequence extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('members:correct-sequence', ['values' => ['group' => ['default', 'phase12a', 'phase12b', 'phase12d', 'phase12f', 'phase13a', 'phase13b', 'phase13c'], 'start' => 'int-positive', 'padding' => 'int-positive', 'confirm' => null], 'flags' => ['dry-run', 'allow-production']]) === null) {
+            return 2;
+        }
+
         $group   = (string) (CLI::getOption('group') ?: ($params['group'] ?? 'default'));
         $start   = (int) (CLI::getOption('start') ?: MemberIdSequenceCorrectionService::TARGET_START);
         $padding = (int) (CLI::getOption('padding') ?: MemberIdSequenceCorrectionService::TARGET_PADDING);
@@ -64,7 +68,7 @@ class CorrectMemberIdSequence extends BaseCommand
             if ($dryRun) {
                 $out = $svc->apply(true, false, null, $group, $start, $padding, 0);
             } else {
-                if (in_array($group, ['phase12a', 'phase12b', 'phase12d'], true)) {
+                if (in_array($group, ['phase12a', 'phase12b', 'phase12d', 'phase12f'], true)) {
                     if ($confirm !== 'APPLY_STAGING') {
                         CLI::error('Staging apply requires --confirm=APPLY_STAGING');
 

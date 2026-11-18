@@ -1,0 +1,158 @@
+{
+    "started_at": "2026-11-17T13:49:08+01:00",
+    "live_before": {
+        "audit_logs": 28,
+        "sequence_last": "981233",
+        "balance": {
+            "available_balance": "5.00000000",
+            "locked_balance": "0.00000000",
+            "reserved_balance": "0.00000000",
+            "balance": "5.00000000"
+        },
+        "locks": 0,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ]
+    },
+    "prod_member_dryrun": {
+        "cmd": "php spark \"members:correct-sequence\" \"--dry-run\" 2>&1",
+        "code": 0,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:08 UTC+00:00\n\n=== members:correct-sequence ===\ndb-group=default dry_run=yes\n{\n    \"database\": \"coin_platform\",\n    \"group\": \"default\",\n    \"is_live\": true,\n    \"existing_ids\": [\n        {\n            \"member_id\": \"NGW000001\",\n            \"numeric\": 1,\n            \"digits\": 6\n        }\n    ],\n    \"preserved\": [\n        \"ROOT0001\",\n        \"NGW000001\"\n    ],\n    \"before\": {\n        \"memberIdStartNumber\": 981234,\n        \"memberIdPadding\": 6,\n        \"sequence_last\": 981233,\n        \"max_existing_numeric\": 1,\n        \"preview_next\": \"NGW981234\"\n    },\n    \"after_projected\": {\n        \"memberIdStartNumber\": 1234,\n        \"memberIdPadding\": 4,\n        \"sequence_last\": 1233,\n        \"max_existing_numeric\": 1,\n        \"preview_next\": \"NGW1234\",\n        \"env_lines\": [\n            \"platform.memberIdStartNumber = 1234\",\n            \"platform.memberIdPadding = 4\"\n        ]\n    },\n    \"collision_next_id\": false,\n    \"blocked_by_high_existing\": false,\n    \"already_past_target\": false,\n    \"ready\": true,\n    \"note\": \"Safe to apply sequence last_number=1233 after config update; existing IDs unchanged.\",\n    \"executed\": false,\n    \"dry_run\": true\n}\nDRY-RUN only \u2014 no sequence write.\nRemember: update .env platform.memberIdStartNumber / memberIdPadding separately for production.\nKill-switches: {\"miningPostingEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false,\"sandbox_window_open\":false}"
+    },
+    "prod_lock_dryrun": {
+        "cmd": "php spark \"locking:remediate-mandatory\" \"--purchase\" \"PUR-10D7174B7FF83054\" \"--dry-run\" 2>&1",
+        "code": 0,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:09 UTC+00:00\n\n=== locking:remediate-mandatory ===\npurchase_ref=PUR-10D7174B7FF83054 db-group=default dry_run=yes\n{\n    \"database\": \"coin_platform\",\n    \"group\": \"default\",\n    \"is_live\": true,\n    \"purchase_ref\": \"PUR-10D7174B7FF83054\",\n    \"member_id\": \"NGW000001\",\n    \"member_user_id\": 5,\n    \"purchase\": {\n        \"status\": \"approved\",\n        \"coin_quantity\": \"5.00000000\",\n        \"reviewed_at\": \"2026-11-17 06:45:44\",\n        \"total_usdt\": \"5.00000000\"\n    },\n    \"existing_mandatory_lock\": null,\n    \"idempotency_key\": \"mandatory-lock:PUR-10D7174B7FF83054\",\n    \"checks\": {\n        \"purchase_approved\": true,\n        \"quantity_positive\": true,\n        \"ownership_present\": true,\n        \"reviewed_at_set\": true,\n        \"no_existing_mandatory_lock\": true,\n        \"sufficient_available\": true,\n        \"total_matches_parts\": true\n    },\n    \"ready\": true,\n    \"before\": {\n        \"available_balance\": \"5.00000000\",\n        \"locked_balance\": \"0.00000000\",\n        \"reserved_balance\": \"0.00000000\",\n        \"balance\": \"5.00000000\"\n    },\n    \"after_projected\": {\n        \"available_balance\": \"0.00000000\",\n        \"locked_balance\": \"5.00000000\",\n        \"reserved_balance\": \"0.00000000\",\n        \"balance\": \"5.00000000\",\n        \"plan\": \"LOCK1000\",\n        \"locked_at\": \"2026-11-17 06:45:44\",\n        \"matures_at\": \"2029-08-13 06:45:44\",\n        \"duration_days\": 1000\n    },\n    \"note\": \"Ready for remediation via CoinLockingService::lockMandatoryForPurchase (total owned unchanged).\",\n    \"executed\": false,\n    \"dry_run\": true\n}\nDRY-RUN only \u2014 no lock created.\nKill-switches: {\"miningPostingEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false,\"sandbox_window_open\":false}"
+    },
+    "prod_member_refuse_wrong_confirm": {
+        "cmd": "php spark \"members:correct-sequence\" \"--allow-production\" \"--confirm\" \"WRONG\" 2>&1",
+        "code": 1,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:09 UTC+00:00\n\n=== members:correct-sequence ===\ndb-group=default dry_run=no\nLive member_id_sequence_correction requires --confirm=\"I_AUTHORIZE_PRODUCTION_CHANGE\"."
+    },
+    "prod_lock_refuse_wrong_confirm": {
+        "cmd": "php spark \"locking:remediate-mandatory\" \"--purchase\" \"PUR-10D7174B7FF83054\" \"--allow-production\" \"--confirm\" \"WRONG\" 2>&1",
+        "code": 1,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:11 UTC+00:00\n\n=== locking:remediate-mandatory ===\npurchase_ref=PUR-10D7174B7FF83054 db-group=default dry_run=no\nLive mandatory_lock_remediation requires --confirm=\"I_AUTHORIZE_PRODUCTION_CHANGE\"."
+    },
+    "prod_member_refuse_missing_allow": {
+        "cmd": "php spark \"members:correct-sequence\" \"--confirm\" \"I_AUTHORIZE_PRODUCTION_CHANGE\" 2>&1",
+        "code": 1,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:12 UTC+00:00\n\n=== members:correct-sequence ===\ndb-group=default dry_run=no\nRefusing member_id_sequence_correction on live database \"coin_platform\". Use staging (--db-group=phase12b) or pass --allow-production with explicit confirm."
+    },
+    "live_after_prod_probes": {
+        "audit_logs": 28,
+        "sequence_last": "981233",
+        "balance": {
+            "available_balance": "5.00000000",
+            "locked_balance": "0.00000000",
+            "reserved_balance": "0.00000000",
+            "balance": "5.00000000"
+        },
+        "locks": 0,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ]
+    },
+    "live_unchanged_after_probes": true,
+    "iso_before": {
+        "sequence_last": "981233",
+        "balance": {
+            "available_balance": "5.00000000",
+            "locked_balance": "0.00000000",
+            "reserved_balance": "0.00000000",
+            "balance": "5.00000000"
+        },
+        "target_locks": 0,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ]
+    },
+    "iso_member_dryrun": {
+        "cmd": "php spark \"members:correct-sequence\" \"--group\" \"phase12f\" \"--dry-run\" 2>&1",
+        "code": 0,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:12 UTC+00:00\n\n=== members:correct-sequence ===\ndb-group=phase12f dry_run=yes\n{\n    \"database\": \"coin_platform_phase12f\",\n    \"group\": \"phase12f\",\n    \"is_live\": false,\n    \"existing_ids\": [\n        {\n            \"member_id\": \"NGW000001\",\n            \"numeric\": 1,\n            \"digits\": 6\n        }\n    ],\n    \"preserved\": [\n        \"ROOT0001\",\n        \"NGW000001\"\n    ],\n    \"before\": {\n        \"memberIdStartNumber\": 981234,\n        \"memberIdPadding\": 6,\n        \"sequence_last\": 981233,\n        \"max_existing_numeric\": 1,\n        \"preview_next\": \"NGW981234\"\n    },\n    \"after_projected\": {\n        \"memberIdStartNumber\": 1234,\n        \"memberIdPadding\": 4,\n        \"sequence_last\": 1233,\n        \"max_existing_numeric\": 1,\n        \"preview_next\": \"NGW1234\",\n        \"env_lines\": [\n            \"platform.memberIdStartNumber = 1234\",\n            \"platform.memberIdPadding = 4\"\n        ]\n    },\n    \"collision_next_id\": false,\n    \"blocked_by_high_existing\": false,\n    \"already_past_target\": false,\n    \"ready\": true,\n    \"note\": \"Safe to apply sequence last_number=1233 after config update; existing IDs unchanged.\",\n    \"executed\": false,\n    \"dry_run\": true\n}\nDRY-RUN only \u2014 no sequence write.\nRemember: update .env platform.memberIdStartNumber / memberIdPadding separately for production.\nKill-switches: {\"miningPostingEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false,\"sandbox_window_open\":false}"
+    },
+    "iso_member_apply": {
+        "cmd": "php spark \"members:correct-sequence\" \"--group\" \"phase12f\" \"--confirm\" \"APPLY_STAGING\" 2>&1",
+        "code": 0,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:14 UTC+00:00\n\n=== members:correct-sequence ===\ndb-group=phase12f dry_run=no\n{\n    \"database\": \"coin_platform_phase12f\",\n    \"group\": \"phase12f\",\n    \"is_live\": false,\n    \"existing_ids\": [\n        {\n            \"member_id\": \"NGW000001\",\n            \"numeric\": 1,\n            \"digits\": 6\n        }\n    ],\n    \"preserved\": [\n        \"ROOT0001\",\n        \"NGW000001\"\n    ],\n    \"before\": {\n        \"memberIdStartNumber\": 981234,\n        \"memberIdPadding\": 6,\n        \"sequence_last\": 981233,\n        \"max_existing_numeric\": 1,\n        \"preview_next\": \"NGW981234\"\n    },\n    \"after_projected\": {\n        \"memberIdStartNumber\": 1234,\n        \"memberIdPadding\": 4,\n        \"sequence_last\": 1233,\n        \"max_existing_numeric\": 1,\n        \"preview_next\": \"NGW1234\",\n        \"env_lines\": [\n            \"platform.memberIdStartNumber = 1234\",\n            \"platform.memberIdPadding = 4\"\n        ]\n    },\n    \"collision_next_id\": false,\n    \"blocked_by_high_existing\": false,\n    \"already_past_target\": false,\n    \"ready\": true,\n    \"note\": \"Safe to apply sequence last_number=1233 after config update; existing IDs unchanged.\",\n    \"executed\": true,\n    \"dry_run\": false,\n    \"before_last\": 981233,\n    \"after_last\": 1233,\n    \"verify_next\": \"NGW1234\",\n    \"rollback_hint\": \"UPDATE member_id_sequences SET last_number=981233 WHERE prefix='NGW'; restore prior .env start/padding.\"\n}\nSequence updated on coin_platform_phase12f\nRemember: update .env platform.memberIdStartNumber / memberIdPadding separately for production.\nKill-switches: {\"miningPostingEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false,\"sandbox_window_open\":false}"
+    },
+    "iso_after_member": {
+        "sequence_last": "1233",
+        "balance": {
+            "available_balance": "5.00000000",
+            "locked_balance": "0.00000000",
+            "reserved_balance": "0.00000000",
+            "balance": "5.00000000"
+        },
+        "target_locks": 0,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ]
+    },
+    "iso_lock_dryrun": {
+        "cmd": "php spark \"locking:remediate-mandatory\" \"--group\" \"phase12f\" \"--purchase\" \"PUR-10D7174B7FF83054\" \"--dry-run\" 2>&1",
+        "code": 0,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:14 UTC+00:00\n\n=== locking:remediate-mandatory ===\npurchase_ref=PUR-10D7174B7FF83054 db-group=phase12f dry_run=yes\n{\n    \"database\": \"coin_platform_phase12f\",\n    \"group\": \"phase12f\",\n    \"is_live\": false,\n    \"purchase_ref\": \"PUR-10D7174B7FF83054\",\n    \"member_id\": \"NGW000001\",\n    \"member_user_id\": 5,\n    \"purchase\": {\n        \"status\": \"approved\",\n        \"coin_quantity\": \"5.00000000\",\n        \"reviewed_at\": \"2026-11-17 06:45:44\",\n        \"total_usdt\": \"5.00000000\"\n    },\n    \"existing_mandatory_lock\": null,\n    \"idempotency_key\": \"mandatory-lock:PUR-10D7174B7FF83054\",\n    \"checks\": {\n        \"purchase_approved\": true,\n        \"quantity_positive\": true,\n        \"ownership_present\": true,\n        \"reviewed_at_set\": true,\n        \"no_existing_mandatory_lock\": true,\n        \"sufficient_available\": true,\n        \"total_matches_parts\": true\n    },\n    \"ready\": true,\n    \"before\": {\n        \"available_balance\": \"5.00000000\",\n        \"locked_balance\": \"0.00000000\",\n        \"reserved_balance\": \"0.00000000\",\n        \"balance\": \"5.00000000\"\n    },\n    \"after_projected\": {\n        \"available_balance\": \"0.00000000\",\n        \"locked_balance\": \"5.00000000\",\n        \"reserved_balance\": \"0.00000000\",\n        \"balance\": \"5.00000000\",\n        \"plan\": \"LOCK1000\",\n        \"locked_at\": \"2026-11-17 06:45:44\",\n        \"matures_at\": \"2029-08-13 06:45:44\",\n        \"duration_days\": 1000\n    },\n    \"note\": \"Ready for remediation via CoinLockingService::lockMandatoryForPurchase (total owned unchanged).\",\n    \"executed\": false,\n    \"dry_run\": true\n}\nDRY-RUN only \u2014 no lock created.\nKill-switches: {\"miningPostingEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false,\"sandbox_window_open\":false}"
+    },
+    "iso_lock_apply_1": {
+        "cmd": "php spark \"locking:remediate-mandatory\" \"--group\" \"phase12f\" \"--purchase\" \"PUR-10D7174B7FF83054\" \"--confirm\" \"APPLY_STAGING\" 2>&1",
+        "code": 0,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:17 UTC+00:00\n\n=== locking:remediate-mandatory ===\npurchase_ref=PUR-10D7174B7FF83054 db-group=phase12f dry_run=no\n{\n    \"database\": \"coin_platform_phase12f\",\n    \"group\": \"phase12f\",\n    \"is_live\": false,\n    \"purchase_ref\": \"PUR-10D7174B7FF83054\",\n    \"member_id\": \"NGW000001\",\n    \"member_user_id\": 5,\n    \"purchase\": {\n        \"status\": \"approved\",\n        \"coin_quantity\": \"5.00000000\",\n        \"reviewed_at\": \"2026-11-17 06:45:44\",\n        \"total_usdt\": \"5.00000000\"\n    },\n    \"existing_mandatory_lock\": null,\n    \"idempotency_key\": \"mandatory-lock:PUR-10D7174B7FF83054\",\n    \"checks\": {\n        \"purchase_approved\": true,\n        \"quantity_positive\": true,\n        \"ownership_present\": true,\n        \"reviewed_at_set\": true,\n        \"no_existing_mandatory_lock\": true,\n        \"sufficient_available\": true,\n        \"total_matches_parts\": true\n    },\n    \"ready\": true,\n    \"before\": {\n        \"available_balance\": \"5.00000000\",\n        \"locked_balance\": \"0.00000000\",\n        \"reserved_balance\": \"0.00000000\",\n        \"balance\": \"5.00000000\"\n    },\n    \"after_projected\": {\n        \"available_balance\": \"0.00000000\",\n        \"locked_balance\": \"5.00000000\",\n        \"reserved_balance\": \"0.00000000\",\n        \"balance\": \"5.00000000\",\n        \"plan\": \"LOCK1000\",\n        \"locked_at\": \"2026-11-17 06:45:44\",\n        \"matures_at\": \"2029-08-13 06:45:44\",\n        \"duration_days\": 1000\n    },\n    \"note\": \"Ready for remediation via CoinLockingService::lockMandatoryForPurchase (total owned unchanged).\",\n    \"executed\": true,\n    \"dry_run\": false,\n    \"result\": {\n        \"lock_ref\": \"LCK-M-8E756DE1357F647A\",\n        \"duplicate\": false,\n        \"balance\": {\n            \"balance\": \"5.00000000\",\n            \"available\": \"0.00000000\",\n            \"locked\": \"5.00000000\",\n            \"reserved\": \"0.00000000\",\n            \"total_acquired\": \"5.00000000\",\n            \"member_id\": \"NGW000001\"\n        }\n    }\n}\nRemediation executed on coin_platform_phase12f\nKill-switches: {\"miningPostingEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false,\"sandbox_window_open\":false}"
+    },
+    "iso_after_lock_1": {
+        "sequence_last": "1233",
+        "balance": {
+            "available_balance": "0.00000000",
+            "locked_balance": "5.00000000",
+            "reserved_balance": "0.00000000",
+            "balance": "5.00000000"
+        },
+        "target_locks": 1,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ]
+    },
+    "iso_lock_apply_2": {
+        "cmd": "php spark \"locking:remediate-mandatory\" \"--group\" \"phase12f\" \"--purchase\" \"PUR-10D7174B7FF83054\" \"--confirm\" \"APPLY_STAGING\" 2>&1",
+        "code": 1,
+        "out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:49:18 UTC+00:00\n\n=== locking:remediate-mandatory ===\npurchase_ref=PUR-10D7174B7FF83054 db-group=phase12f dry_run=no\nRemediation not ready: Ambiguous or inconsistent records \u2014 remediation refused until checks pass."
+    },
+    "iso_after_lock_2": {
+        "sequence_last": "1233",
+        "balance": {
+            "available_balance": "0.00000000",
+            "locked_balance": "5.00000000",
+            "reserved_balance": "0.00000000",
+            "balance": "5.00000000"
+        },
+        "target_locks": 1,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ]
+    },
+    "collision_note": "No NGW1234 row after correction (expected); collision checked via service when max_existing >= start",
+    "live_final": {
+        "audit_logs": 28,
+        "sequence_last": "981233",
+        "balance": {
+            "available_balance": "5.00000000",
+            "locked_balance": "0.00000000",
+            "reserved_balance": "0.00000000",
+            "balance": "5.00000000"
+        },
+        "locks": 0,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ]
+    },
+    "live_unchanged_final": true,
+    "finished_at": "2026-11-17T13:49:18+01:00"
+}

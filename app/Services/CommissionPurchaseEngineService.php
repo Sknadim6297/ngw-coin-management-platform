@@ -265,6 +265,38 @@ class CommissionPurchaseEngineService
                         'posted'       => $posted,
                     ];
                 }
+                if (($calc['status'] ?? '') === self::STATUS_NO_PLAN && $db->tableExists('commission_calculation_revisions')) {
+                    $rev = $db->table('commission_calculation_revisions')
+                        ->where('purchase_ref', (string) $calc['purchase_ref'])
+                        ->where('sponsor_level', (int) $calc['sponsor_level'])
+                        ->orderBy('id', 'DESC')
+                        ->get()
+                        ->getRowArray();
+                    if ($rev !== null && ($rev['status'] ?? '') === 'CALCULATED_SUPERSEDING') {
+                        $revPosted = $this->postedAmountForCalc($rev);
+                        if (MoneyMath::compare($revPosted, '0', $this->scale()) === 1 && ! $this->wallets->postingEnabled()) {
+                            $mismatches[] = [
+                                'type'         => 'unexpected_credit_while_posting_off',
+                                'purchase_ref' => $calc['purchase_ref'],
+                                'level'        => (int) $calc['sponsor_level'],
+                                'posted'       => $revPosted,
+                            ];
+                        }
+                        if (MoneyMath::compare((string) $rev['expected_amount_usdt'], '0', $this->scale()) === 1
+                            && MoneyMath::compare($revPosted, (string) $rev['expected_amount_usdt'], $this->scale()) !== 0
+                            && $this->wallets->postingEnabled()
+                        ) {
+                            $mismatches[] = [
+                                'type'         => 'expected_vs_posted_mismatch',
+                                'purchase_ref' => $calc['purchase_ref'],
+                                'level'        => (int) $calc['sponsor_level'],
+                                'expected'     => $rev['expected_amount_usdt'],
+                                'posted'       => $revPosted,
+                                'revision_ref' => $rev['revision_ref'],
+                            ];
+                        }
+                    }
+                }
                 if (($calc['status'] ?? '') === self::STATUS_CALCULATED
                     && MoneyMath::compare((string) $calc['expected_amount_usdt'], '0', $this->scale()) === 1
                     && MoneyMath::compare($posted, (string) $calc['expected_amount_usdt'], $this->scale()) !== 0
@@ -466,9 +498,11 @@ class CommissionPurchaseEngineService
             $totalPosted = MoneyMath::add($totalPosted, $amt, $scale);
 
             if (db_connect()->tableExists('commission_purchase_calculations')) {
+                // Preserve immutable historical NO_APPROVED_PLAN rows; only advance CALCULATED_NOT_POSTED rows.
                 db_connect()->table('commission_purchase_calculations')
                     ->where('purchase_ref', $purchaseRef)
                     ->where('sponsor_level', $level)
+                    ->where('status', self::STATUS_CALCULATED)
                     ->update([
                         'posted_amount_usdt' => $amt,
                         'status'             => 'POSTED',
@@ -637,14 +671,18 @@ class CommissionPurchaseEngineService
             return MoneyMath::normalize('0', $this->scale());
         }
 
-        $row = db_connect()->table('commission_wallet_ledger_entries')
+        $level = (int) ($line['sponsor_level'] ?? 0);
+        $pRef  = (string) $line['purchase_ref'];
+        $row   = db_connect()->table('commission_wallet_ledger_entries')
             ->selectSum('amount', 'qty')
             ->where('member_user_id', (int) $line['beneficiary_user_id'])
             ->where('direction', 'credit')
             ->where('entry_type', 'commission_credit')
             ->groupStart()
-                ->where('reference_id', (string) $line['purchase_ref'])
-                ->orLike('idempotency_key', 'commission:' . $line['purchase_ref'] . ':L' . $line['sponsor_level'], 'after')
+                ->where('idempotency_key', 'comm-post:' . $pRef . ':L' . $level)
+                ->orWhere('reference_id', $pRef . ':L' . $level)
+                ->orWhere('reference_id', $pRef)
+                ->orLike('idempotency_key', 'commission:' . $pRef . ':L' . $level, 'after')
             ->groupEnd()
             ->get()
             ->getRowArray();

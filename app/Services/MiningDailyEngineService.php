@@ -274,9 +274,12 @@ class MiningDailyEngineService
      * Post daily mining credits for eligible members.
      * Production remains blocked unless Financial Sandbox window is open.
      *
-     * @return array{business_date: string, credited: int, skipped: int, duplicates: int, rows: list<array<string, mixed>>}
+     * @param bool $continueOnError When true (scheduler), a failure for one member is recorded in
+     *                              `errors` and the remaining members are still processed. Default
+     *                              false keeps the original fail-fast behaviour.
+     * @return array{business_date: string, credited: int, skipped: int, duplicates: int, rows: list<array<string, mixed>>, errors: list<array<string, mixed>>}
      */
-    public function postDay(string $businessDate, int $limit = 200, ?int $actorUserId = null): array
+    public function postDay(string $businessDate, int $limit = 200, ?int $actorUserId = null, bool $continueOnError = false): array
     {
         if (! $this->wallets->postingEnabled()) {
             throw new RuntimeException('Mining posting is disabled (kill-switch).');
@@ -293,6 +296,7 @@ class MiningDailyEngineService
         $skipped  = 0;
         $dupes    = 0;
         $outRows  = [];
+        $errors   = [];
 
         foreach ($preview['rows'] as $row) {
             if (($row['status'] ?? '') !== 'NOT_POSTED' || empty($row['eligible_coins'])) {
@@ -306,24 +310,39 @@ class MiningDailyEngineService
             }
 
             $memberId = (string) $row['member_id'];
-            if ($sandbox->isWindowOpen()) {
-                $sandbox->assertSyntheticMember($memberId, 'mining_post_day');
+
+            try {
+                if ($sandbox->isWindowOpen()) {
+                    $sandbox->assertSyntheticMember($memberId, 'mining_post_day');
+                }
+
+                $idem = 'mining-daily:' . (int) $row['member_user_id'] . ':' . $businessDate;
+                $before = $this->wallets->postedAmountForDate((int) $row['member_user_id'], $businessDate);
+                $entry = $this->wallets->creditDailyMining((int) $row['member_user_id'], $memberId, [
+                    'amount'          => $expected,
+                    'business_date'   => $businessDate,
+                    'idempotency_key' => $idem,
+                    'rate_ref'        => $preview['rate']['rate_ref'] ?? null,
+                    'created_by'      => $actorUserId,
+                    'meta'            => [
+                        'eligible_coins' => $row['eligible_coins'],
+                        'sandbox'        => $sandbox->isWindowOpen(),
+                    ],
+                ]);
+                $after = $this->wallets->postedAmountForDate((int) $row['member_user_id'], $businessDate);
+            } catch (\Throwable $e) {
+                if (! $continueOnError) {
+                    throw $e;
+                }
+                $errors[] = [
+                    'member_id' => $memberId,
+                    'class'     => $e::class,
+                    'message'   => $e->getMessage(),
+                ];
+
+                continue;
             }
 
-            $idem = 'mining-daily:' . (int) $row['member_user_id'] . ':' . $businessDate;
-            $before = $this->wallets->postedAmountForDate((int) $row['member_user_id'], $businessDate);
-            $entry = $this->wallets->creditDailyMining((int) $row['member_user_id'], $memberId, [
-                'amount'          => $expected,
-                'business_date'   => $businessDate,
-                'idempotency_key' => $idem,
-                'rate_ref'        => $preview['rate']['rate_ref'] ?? null,
-                'created_by'      => $actorUserId,
-                'meta'            => [
-                    'eligible_coins' => $row['eligible_coins'],
-                    'sandbox'        => true,
-                ],
-            ]);
-            $after = $this->wallets->postedAmountForDate((int) $row['member_user_id'], $businessDate);
             if (MoneyMath::compare($before, $after, 8) === 0) {
                 $dupes++;
             } else {
@@ -343,6 +362,7 @@ class MiningDailyEngineService
             'skipped'       => $skipped,
             'duplicates'    => $dupes,
             'rows'          => $outRows,
+            'errors'        => $errors,
             'rate'          => $preview['rate'] ?? null,
         ];
     }

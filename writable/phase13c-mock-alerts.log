@@ -1,0 +1,17 @@
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"FAILED","exit_code":50,"run_ref":null,"code":"nonzero_exit","detail":"something broke"}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"PARTIAL","exit_code":40,"run_ref":null,"code":"nonzero_exit","detail":""}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"PARTIAL","exit_code":40,"run_ref":null,"code":"partial_run","detail":"x"}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"BLOCKED","exit_code":30,"run_ref":null,"code":"nonzero_exit","detail":"No approved mining rate for 2026-11"}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"BLOCKED","exit_code":30,"run_ref":null,"code":"missing_rate","detail":"No approved mining rate for the business month."}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"PARTIAL","exit_code":40,"run_ref":null,"code":"nonzero_exit","detail":""}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"PARTIAL","exit_code":40,"run_ref":null,"code":"blocked_historical_data","detail":"members blocked (missing/ambiguous historical ownership evidence)=3"}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"PARTIAL","exit_code":40,"run_ref":null,"code":"nonzero_exit","detail":""}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"PARTIAL","exit_code":40,"run_ref":null,"code":"reconciliation_failed","detail":"mismatches=0"}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"SKIPPED","exit_code":20,"run_ref":null,"code":"lock_contention","detail":"Another mining:post invocation holds the per-date lock (duplicate or overlapping job)."}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"PARTIAL","exit_code":40,"run_ref":null,"code":"nonzero_exit","detail":""}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"PARTIAL","exit_code":40,"run_ref":null,"code":"partial_run","detail":"unresolved members remain"}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"PARTIAL","exit_code":40,"run_ref":null,"code":"job_timeout","detail":"Run stopped at the max-runtime budget; day left PARTIAL (resume by re-running)."}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"POSTED","exit_code":0,"run_ref":null,"code":"excessive_retry","detail":"retry_passes=99"}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"FAILED","exit_code":50,"run_ref":null,"code":"nonzero_exit","detail":"mysqli_sql_exception: Connection refused"}
+{"ts":"2026-11-18T07:46:14+00:00","business_date":null,"database":null,"scheduler_status":"FAILED","exit_code":50,"run_ref":null,"code":"database_connection_failure","detail":"Database connection failure; nothing was written."}
+{"ts":"2026-11-18T07:46:14+00:00","code":"missing_scheduled_run","business_date":"2026-11-17","detail":"No mining day run exists for 2026-11-17.","state":null}

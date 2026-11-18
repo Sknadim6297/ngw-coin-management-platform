@@ -1,0 +1,43 @@
+{
+    "label": "after",
+    "captured_at": "2026-11-17T13:55:15+01:00",
+    "database": "coin_platform",
+    "read_only": true,
+    "table_count": 73,
+    "member_count": 2,
+    "member_ids": [
+        "ROOT0001",
+        "NGW000001"
+    ],
+    "sequence": {
+        "prefix": "NGW",
+        "last_number": "981233",
+        "updated_at": "2026-11-17 11:23:15"
+    },
+    "target_purchase": {
+        "purchase_ref": "PUR-10D7174B7FF83054",
+        "member_id": "NGW000001",
+        "status": "approved",
+        "coin_quantity": "5.00000000",
+        "total_usdt": "5.00000000",
+        "reviewed_at": "2026-11-17 06:45:44"
+    },
+    "target_balance": {
+        "member_id": "NGW000001",
+        "available_balance": "5.00000000",
+        "locked_balance": "0.00000000",
+        "reserved_balance": "0.00000000",
+        "balance": "5.00000000"
+    },
+    "target_lock": null,
+    "counts": {
+        "approved_purchases": 1,
+        "mandatory_locks": 0,
+        "mining_ledger": 0,
+        "commission_ledger": 0,
+        "p2p_transfers": 0,
+        "withdrawals": 0,
+        "coin_sells": 0,
+        "audit_logs": 28
+    }
+}

@@ -1,0 +1,3256 @@
+{
+    "phase": "13B",
+    "started_at": "2026-11-18T06:32:24+00:00",
+    "database": "coin_platform_phase13b",
+    "success": true,
+    "errors": [],
+    "timezone_note": "Ledger/approval timestamps are UTC; mining business date is Asia/Kolkata.",
+    "live_identity": {
+        "configured_host": "localhost",
+        "configured_database": "coin_platform",
+        "mysql_server_hostname": "DESKTOP-BHPK7S1",
+        "is_local_host": true,
+        "inspectable": true,
+        "reason": "configured host is loopback (local MySQL); inspection is SELECT-only"
+    },
+    "live_fingerprint_before": {
+        "database": "coin_platform",
+        "member_count": "2",
+        "ownership_total": "5.00000000",
+        "ownership_ledger_rows": "1",
+        "mining_wallet_total": "0.00000000",
+        "mining_ledger_count": "0",
+        "commission_ledger_count": "0",
+        "mandatory_lock_count": "0",
+        "member_id_sequences": "NGW:981233",
+        "mining_post_day_runs_present": "0",
+        "latest_migration": "2026-11-17-992001",
+        "kill_switches": {
+            "miningPostingEnabled": false,
+            "miningAutoPostEnabled": false,
+            "miningP2pEnabled": false,
+            "commissionPostingEnabled": false,
+            "commissionWithdrawalEnabled": false,
+            "commissionBlockchainPayoutEnabled": false,
+            "coinSellingEnabled": false
+        }
+    },
+    "provision": {
+        "database": "coin_platform_phase13b",
+        "action": "reused (marker present; tables are wiped before seeding)",
+        "dedicated_account": "phase13b (GRANT only on coin_platform_phase13b.*)"
+    },
+    "switches_before": {
+        "miningPostingEnabled": false,
+        "miningP2pEnabled": false,
+        "commissionPostingEnabled": false,
+        "commissionWithdrawalEnabled": false,
+        "commissionBlockchainPayoutEnabled": false,
+        "coinSellingEnabled": false,
+        "sandbox_window_open": false
+    },
+    "cohort": {
+        "A": {
+            "case": "A",
+            "member_id": "SYN000001",
+            "story": "Buys 100 on 15 Oct, 50 more on 16 Oct. Mining for 15 Oct must use 100 (not today's 150)."
+        },
+        "B": {
+            "case": "B",
+            "member_id": "SYN000002",
+            "story": "100 coins, fully LOCKED (mandatory lock)."
+        },
+        "C": {
+            "case": "C",
+            "member_id": "SYN000003",
+            "story": "40 available + 60 locked = 100 total."
+        },
+        "D": {
+            "case": "D",
+            "member_id": "SYN000004",
+            "story": "Registered member, no purchase."
+        },
+        "E": {
+            "case": "E",
+            "member_id": "SYN000005",
+            "story": "100 coins but account INACTIVE."
+        },
+        "F": {
+            "case": "F",
+            "member_id": "SYN000006",
+            "story": "Purchases on different dates: 10 (10 Oct), 20 (12 Oct), 30 (17 Oct)."
+        },
+        "G": {
+            "case": "G",
+            "member_id": "SYN000007",
+            "story": "Partial sale BEFORE the business date: 100 bought, 30 sold 12 Oct."
+        },
+        "H": {
+            "case": "H",
+            "member_id": "SYN000008",
+            "story": "Partial sale AFTER 15 Oct: 100 bought, 30 sold 17 Oct."
+        },
+        "H2": {
+            "case": "H2",
+            "member_id": "SYN000009",
+            "story": "Sale reserved 14 Oct, settled 17 Oct (reserved-coin policy probe)."
+        },
+        "I": {
+            "case": "I",
+            "member_id": "SYN000010",
+            "story": "Lock movement only: 100 available, moved to locked 14 Oct \u2014 total unchanged."
+        },
+        "J": {
+            "case": "J",
+            "member_id": "SYN000011",
+            "story": "Backdated posting after later transactions: 100 (10 Oct), +200 (16 Oct), sale 50 (17 Oct)."
+        },
+        "K": {
+            "case": "K",
+            "member_id": "SYN000012",
+            "story": "Missing ledger evidence (tampered in the Case K stage only)."
+        },
+        "L1": {
+            "case": "L1",
+            "member_id": "SYN000013",
+            "story": "Approved 00:30 IST on 15 Oct (= 14 Oct 19:00 UTC; UTC date differs from IST date)."
+        },
+        "L2": {
+            "case": "L2",
+            "member_id": "SYN000014",
+            "story": "Approved 23:59:59 IST on 15 Oct (= 15 Oct 18:29:59 UTC)."
+        },
+        "L3": {
+            "case": "L3",
+            "member_id": "SYN000015",
+            "story": "Approved 00:00:00 IST on 16 Oct (= 15 Oct 18:30:00 UTC; UTC date is still 15 Oct)."
+        },
+        "M": {
+            "case": "M",
+            "member_id": "SYN000016",
+            "story": "100 locked; lock matured 12 Oct (maturity-policy probe)."
+        }
+    },
+    "cases": {
+        "runs": {
+            "2026-10-17": {
+                "exit": 0,
+                "status": "completed",
+                "state": "COMPLETED",
+                "credited": 14,
+                "credited_total": 14,
+                "failed": 0,
+                "blocked": 0,
+                "reconcile": "OK",
+                "cutoff_utc": "2026-10-17 18:30:00",
+                "policy_version": "MPOL-ab4aac6c8ab8",
+                "seconds": 2.8
+            },
+            "2026-10-15": {
+                "exit": 0,
+                "status": "completed",
+                "state": "COMPLETED",
+                "credited": 13,
+                "credited_total": 13,
+                "failed": 0,
+                "blocked": 0,
+                "reconcile": "OK",
+                "cutoff_utc": "2026-10-15 18:30:00",
+                "policy_version": "MPOL-ab4aac6c8ab8",
+                "seconds": 2.64
+            },
+            "2026-10-16": {
+                "exit": 0,
+                "status": "completed",
+                "state": "COMPLETED",
+                "credited": 14,
+                "credited_total": 14,
+                "failed": 0,
+                "blocked": 0,
+                "reconcile": "OK",
+                "cutoff_utc": "2026-10-16 18:30:00",
+                "policy_version": "MPOL-ab4aac6c8ab8",
+                "seconds": 2.94
+            },
+            "2026-10-14": {
+                "exit": 0,
+                "status": "completed",
+                "state": "COMPLETED",
+                "credited": 10,
+                "credited_total": 10,
+                "failed": 0,
+                "blocked": 0,
+                "reconcile": "OK",
+                "cutoff_utc": "2026-10-14 18:30:00",
+                "policy_version": "MPOL-ab4aac6c8ab8",
+                "seconds": 3.21
+            }
+        },
+        "rows": [
+            {
+                "case": "A",
+                "member_id": "SYN000001",
+                "business_date": "2026-10-14",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "no_eligible_ownership_as_of_snapshot",
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709677",
+                "wallet_balance_actual": "0.38709677",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "A",
+                "member_id": "SYN000001",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-81F193A9BDA9",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709677",
+                "wallet_balance_actual": "0.38709677",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "A",
+                "member_id": "SYN000001",
+                "business_date": "2026-10-16",
+                "eligible_expected": "150.00000000",
+                "eligible_recorded": "150.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.14516129",
+                "actual_daily_income": "0.14516129",
+                "ledger_ref": "MWL-23F1660D70CB",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709677",
+                "wallet_balance_actual": "0.38709677",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "A",
+                "member_id": "SYN000001",
+                "business_date": "2026-10-17",
+                "eligible_expected": "150.00000000",
+                "eligible_recorded": "150.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.14516129",
+                "actual_daily_income": "0.14516129",
+                "ledger_ref": "MWL-51DD57CD1067",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709677",
+                "wallet_balance_actual": "0.38709677",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "B",
+                "member_id": "SYN000002",
+                "business_date": "2026-10-14",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-1BDAA8B6F880",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "B",
+                "member_id": "SYN000002",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-C92FB08FBC8B",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "B",
+                "member_id": "SYN000002",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-FC716BF99B14",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "B",
+                "member_id": "SYN000002",
+                "business_date": "2026-10-17",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-4747275B35AC",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "C",
+                "member_id": "SYN000003",
+                "business_date": "2026-10-14",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-4C02A45BF7BA",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "C",
+                "member_id": "SYN000003",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-0571F7AE3DC3",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "C",
+                "member_id": "SYN000003",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-39E81CE2D4E5",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "C",
+                "member_id": "SYN000003",
+                "business_date": "2026-10-17",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-735C251896A0",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "D",
+                "member_id": "SYN000004",
+                "business_date": "2026-10-14",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "member_inactive",
+                "result": "PASS",
+                "wallet_balance_expected": "0.00000000",
+                "wallet_balance_actual": "0.00000000",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "D",
+                "member_id": "SYN000004",
+                "business_date": "2026-10-15",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "member_inactive",
+                "result": "PASS",
+                "wallet_balance_expected": "0.00000000",
+                "wallet_balance_actual": "0.00000000",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "D",
+                "member_id": "SYN000004",
+                "business_date": "2026-10-16",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "member_inactive",
+                "result": "PASS",
+                "wallet_balance_expected": "0.00000000",
+                "wallet_balance_actual": "0.00000000",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "D",
+                "member_id": "SYN000004",
+                "business_date": "2026-10-17",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "member_inactive",
+                "result": "PASS",
+                "wallet_balance_expected": "0.00000000",
+                "wallet_balance_actual": "0.00000000",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "E",
+                "member_id": "SYN000005",
+                "business_date": "2026-10-14",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "member_inactive",
+                "result": "PASS",
+                "wallet_balance_expected": "0.00000000",
+                "wallet_balance_actual": "0.00000000",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "E",
+                "member_id": "SYN000005",
+                "business_date": "2026-10-15",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "member_inactive",
+                "result": "PASS",
+                "wallet_balance_expected": "0.00000000",
+                "wallet_balance_actual": "0.00000000",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "E",
+                "member_id": "SYN000005",
+                "business_date": "2026-10-16",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "member_inactive",
+                "result": "PASS",
+                "wallet_balance_expected": "0.00000000",
+                "wallet_balance_actual": "0.00000000",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "E",
+                "member_id": "SYN000005",
+                "business_date": "2026-10-17",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "member_inactive",
+                "result": "PASS",
+                "wallet_balance_expected": "0.00000000",
+                "wallet_balance_actual": "0.00000000",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "F",
+                "member_id": "SYN000006",
+                "business_date": "2026-10-14",
+                "eligible_expected": "30.00000000",
+                "eligible_recorded": "30.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.02903226",
+                "actual_daily_income": "0.02903226",
+                "ledger_ref": "MWL-05F0473CD080",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.14516130",
+                "wallet_balance_actual": "0.14516130",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "F",
+                "member_id": "SYN000006",
+                "business_date": "2026-10-15",
+                "eligible_expected": "30.00000000",
+                "eligible_recorded": "30.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.02903226",
+                "actual_daily_income": "0.02903226",
+                "ledger_ref": "MWL-98862E6E2293",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.14516130",
+                "wallet_balance_actual": "0.14516130",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "F",
+                "member_id": "SYN000006",
+                "business_date": "2026-10-16",
+                "eligible_expected": "30.00000000",
+                "eligible_recorded": "30.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.02903226",
+                "actual_daily_income": "0.02903226",
+                "ledger_ref": "MWL-A2775C1E75CF",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.14516130",
+                "wallet_balance_actual": "0.14516130",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "F",
+                "member_id": "SYN000006",
+                "business_date": "2026-10-17",
+                "eligible_expected": "60.00000000",
+                "eligible_recorded": "60.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.05806452",
+                "actual_daily_income": "0.05806452",
+                "ledger_ref": "MWL-1BB244EB3E02",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.14516130",
+                "wallet_balance_actual": "0.14516130",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "G",
+                "member_id": "SYN000007",
+                "business_date": "2026-10-14",
+                "eligible_expected": "70.00000000",
+                "eligible_recorded": "70.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.06774194",
+                "actual_daily_income": "0.06774194",
+                "ledger_ref": "MWL-790C55D889C0",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.27096776",
+                "wallet_balance_actual": "0.27096776",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "G",
+                "member_id": "SYN000007",
+                "business_date": "2026-10-15",
+                "eligible_expected": "70.00000000",
+                "eligible_recorded": "70.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.06774194",
+                "actual_daily_income": "0.06774194",
+                "ledger_ref": "MWL-3BE92A7495DF",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.27096776",
+                "wallet_balance_actual": "0.27096776",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "G",
+                "member_id": "SYN000007",
+                "business_date": "2026-10-16",
+                "eligible_expected": "70.00000000",
+                "eligible_recorded": "70.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.06774194",
+                "actual_daily_income": "0.06774194",
+                "ledger_ref": "MWL-71DEB84BBD24",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.27096776",
+                "wallet_balance_actual": "0.27096776",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "G",
+                "member_id": "SYN000007",
+                "business_date": "2026-10-17",
+                "eligible_expected": "70.00000000",
+                "eligible_recorded": "70.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.06774194",
+                "actual_daily_income": "0.06774194",
+                "ledger_ref": "MWL-7DDB17F67E0F",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.27096776",
+                "wallet_balance_actual": "0.27096776",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "H",
+                "member_id": "SYN000008",
+                "business_date": "2026-10-14",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-3482B3D06032",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.35806451",
+                "wallet_balance_actual": "0.35806451",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "H",
+                "member_id": "SYN000008",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-0FC8AB96051C",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.35806451",
+                "wallet_balance_actual": "0.35806451",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "H",
+                "member_id": "SYN000008",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-C0CBFC1760E5",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.35806451",
+                "wallet_balance_actual": "0.35806451",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "H",
+                "member_id": "SYN000008",
+                "business_date": "2026-10-17",
+                "eligible_expected": "70.00000000",
+                "eligible_recorded": "70.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.06774194",
+                "actual_daily_income": "0.06774194",
+                "ledger_ref": "MWL-476C1F3BA989",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.35806451",
+                "wallet_balance_actual": "0.35806451",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "H2",
+                "member_id": "SYN000009",
+                "business_date": "2026-10-14",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-A24C97BD6788",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.35806451",
+                "wallet_balance_actual": "0.35806451",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "H2",
+                "member_id": "SYN000009",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-95B259C19F50",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.35806451",
+                "wallet_balance_actual": "0.35806451",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "H2",
+                "member_id": "SYN000009",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-D39F197B040C",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.35806451",
+                "wallet_balance_actual": "0.35806451",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "H2",
+                "member_id": "SYN000009",
+                "business_date": "2026-10-17",
+                "eligible_expected": "70.00000000",
+                "eligible_recorded": "70.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.06774194",
+                "actual_daily_income": "0.06774194",
+                "ledger_ref": "MWL-C08AAFB4E2A8",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.35806451",
+                "wallet_balance_actual": "0.35806451",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "I",
+                "member_id": "SYN000010",
+                "business_date": "2026-10-14",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-454B5A6F34D9",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "I",
+                "member_id": "SYN000010",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-0B8AEAE35D9A",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "I",
+                "member_id": "SYN000010",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-8F4FE6EACB7E",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "I",
+                "member_id": "SYN000010",
+                "business_date": "2026-10-17",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-6C05F311CC6B",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "J",
+                "member_id": "SYN000011",
+                "business_date": "2026-10-14",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-9D515D474E60",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.72580644",
+                "wallet_balance_actual": "0.72580644",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "J",
+                "member_id": "SYN000011",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-4CF385774CF4",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.72580644",
+                "wallet_balance_actual": "0.72580644",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "J",
+                "member_id": "SYN000011",
+                "business_date": "2026-10-16",
+                "eligible_expected": "300.00000000",
+                "eligible_recorded": "300.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.29032258",
+                "actual_daily_income": "0.29032258",
+                "ledger_ref": "MWL-DD0A7549C693",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.72580644",
+                "wallet_balance_actual": "0.72580644",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "J",
+                "member_id": "SYN000011",
+                "business_date": "2026-10-17",
+                "eligible_expected": "250.00000000",
+                "eligible_recorded": "250.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.24193548",
+                "actual_daily_income": "0.24193548",
+                "ledger_ref": "MWL-414E2553B59F",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.72580644",
+                "wallet_balance_actual": "0.72580644",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "K",
+                "member_id": "SYN000012",
+                "business_date": "2026-10-14",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-3CD235C71ECA",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "K",
+                "member_id": "SYN000012",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-2E17173E9CCF",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "K",
+                "member_id": "SYN000012",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-EE8E132EFDB2",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "K",
+                "member_id": "SYN000012",
+                "business_date": "2026-10-17",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-FFFEBB49D9CD",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L1",
+                "member_id": "SYN000013",
+                "business_date": "2026-10-14",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "no_eligible_ownership_as_of_snapshot",
+                "result": "PASS",
+                "wallet_balance_expected": "0.29032257",
+                "wallet_balance_actual": "0.29032257",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L1",
+                "member_id": "SYN000013",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-87F033C5D475",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.29032257",
+                "wallet_balance_actual": "0.29032257",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L1",
+                "member_id": "SYN000013",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-0B140FC9C04E",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.29032257",
+                "wallet_balance_actual": "0.29032257",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L1",
+                "member_id": "SYN000013",
+                "business_date": "2026-10-17",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-7F7F9DD32585",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.29032257",
+                "wallet_balance_actual": "0.29032257",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L2",
+                "member_id": "SYN000014",
+                "business_date": "2026-10-14",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "no_eligible_ownership_as_of_snapshot",
+                "result": "PASS",
+                "wallet_balance_expected": "0.29032257",
+                "wallet_balance_actual": "0.29032257",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L2",
+                "member_id": "SYN000014",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-4EA4AB079CBF",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.29032257",
+                "wallet_balance_actual": "0.29032257",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L2",
+                "member_id": "SYN000014",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-4116C3D93F64",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.29032257",
+                "wallet_balance_actual": "0.29032257",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L2",
+                "member_id": "SYN000014",
+                "business_date": "2026-10-17",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-E5835BAE6F0B",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.29032257",
+                "wallet_balance_actual": "0.29032257",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L3",
+                "member_id": "SYN000015",
+                "business_date": "2026-10-14",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "no_eligible_ownership_as_of_snapshot",
+                "result": "PASS",
+                "wallet_balance_expected": "0.19354838",
+                "wallet_balance_actual": "0.19354838",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L3",
+                "member_id": "SYN000015",
+                "business_date": "2026-10-15",
+                "eligible_expected": "0.00000000",
+                "eligible_recorded": "0.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.00000000",
+                "actual_daily_income": "0.00000000",
+                "ledger_ref": null,
+                "member_run_status": "SKIPPED",
+                "member_run_reason": "no_eligible_ownership_as_of_snapshot",
+                "result": "PASS",
+                "wallet_balance_expected": "0.19354838",
+                "wallet_balance_actual": "0.19354838",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L3",
+                "member_id": "SYN000015",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-EA38068EB84C",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.19354838",
+                "wallet_balance_actual": "0.19354838",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "L3",
+                "member_id": "SYN000015",
+                "business_date": "2026-10-17",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-C5D21CBC0883",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.19354838",
+                "wallet_balance_actual": "0.19354838",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "M",
+                "member_id": "SYN000016",
+                "business_date": "2026-10-14",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-87B5148F3193",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "M",
+                "member_id": "SYN000016",
+                "business_date": "2026-10-15",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-71CE68C408E9",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "M",
+                "member_id": "SYN000016",
+                "business_date": "2026-10-16",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-7E10780DB0A9",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            },
+            {
+                "case": "M",
+                "member_id": "SYN000016",
+                "business_date": "2026-10-17",
+                "eligible_expected": "100.00000000",
+                "eligible_recorded": "100.00000000",
+                "monthly_rate_percent": "3.00000000",
+                "divisor": 31,
+                "expected_daily_income": "0.09677419",
+                "actual_daily_income": "0.09677419",
+                "ledger_ref": "MWL-BF4C2D010A5C",
+                "member_run_status": "CREDITED",
+                "member_run_reason": null,
+                "result": "PASS",
+                "wallet_balance_expected": "0.38709676",
+                "wallet_balance_actual": "0.38709676",
+                "wallet_result": "PASS"
+            }
+        ],
+        "failures": 0,
+        "run_order": [
+            "2026-10-17",
+            "2026-10-15",
+            "2026-10-16",
+            "2026-10-14"
+        ]
+    },
+    "policy_previews": {
+        "rows": [
+            {
+                "policy": "T-RESERVED-EXCL",
+                "case": "H2",
+                "business_date": "2026-10-15",
+                "cutoff_utc": "2026-10-15 18:30:00",
+                "eligible_expected": "70.00000000",
+                "eligible_actual": "70.00000000",
+                "owned": "100.00000000",
+                "locked": "0.00000000",
+                "reserved": "30.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-RESERVED-EXCL",
+                "case": "H",
+                "business_date": "2026-10-17",
+                "cutoff_utc": "2026-10-17 18:30:00",
+                "eligible_expected": "70.00000000",
+                "eligible_actual": "70.00000000",
+                "owned": "70.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-RESERVED-EXCL",
+                "case": "B",
+                "business_date": "2026-10-15",
+                "cutoff_utc": "2026-10-15 18:30:00",
+                "eligible_expected": "100.00000000",
+                "eligible_actual": "100.00000000",
+                "owned": "100.00000000",
+                "locked": "100.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-MATURED-EXCL",
+                "case": "M",
+                "business_date": "2026-10-15",
+                "cutoff_utc": "2026-10-15 18:30:00",
+                "eligible_expected": "0.00000000",
+                "eligible_actual": "0.00000000",
+                "owned": "100.00000000",
+                "locked": "100.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-MATURED-EXCL",
+                "case": "B",
+                "business_date": "2026-10-15",
+                "cutoff_utc": "2026-10-15 18:30:00",
+                "eligible_expected": "100.00000000",
+                "eligible_actual": "100.00000000",
+                "owned": "100.00000000",
+                "locked": "100.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-NEXTDAY-DOWN",
+                "case": "L1",
+                "business_date": "2026-10-15",
+                "cutoff_utc": "2026-10-14 18:30:00",
+                "eligible_expected": "0.00000000",
+                "eligible_actual": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-NEXTDAY-DOWN",
+                "case": "L1",
+                "business_date": "2026-10-16",
+                "cutoff_utc": "2026-10-15 18:30:00",
+                "eligible_expected": "100.00000000",
+                "eligible_actual": "100.00000000",
+                "owned": "100.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-NEXTDAY-DOWN",
+                "case": "L2",
+                "business_date": "2026-10-15",
+                "cutoff_utc": "2026-10-14 18:30:00",
+                "eligible_expected": "0.00000000",
+                "eligible_actual": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-NEXTDAY-DOWN",
+                "case": "L3",
+                "business_date": "2026-10-16",
+                "cutoff_utc": "2026-10-15 18:30:00",
+                "eligible_expected": "0.00000000",
+                "eligible_actual": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-NEXTDAY-DOWN",
+                "case": "L3",
+                "business_date": "2026-10-17",
+                "cutoff_utc": "2026-10-16 18:30:00",
+                "eligible_expected": "100.00000000",
+                "eligible_actual": "100.00000000",
+                "owned": "100.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-NEXTDAY-DOWN",
+                "case": "A",
+                "business_date": "2026-10-15",
+                "cutoff_utc": "2026-10-14 18:30:00",
+                "eligible_expected": "0.00000000",
+                "eligible_actual": "0.00000000",
+                "owned": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-NEXTDAY-DOWN",
+                "case": "A",
+                "business_date": "2026-10-16",
+                "cutoff_utc": "2026-10-15 18:30:00",
+                "eligible_expected": "100.00000000",
+                "eligible_actual": "100.00000000",
+                "owned": "100.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-NEXTDAY-DOWN",
+                "case": "A",
+                "business_date": "2026-10-17",
+                "cutoff_utc": "2026-10-16 18:30:00",
+                "eligible_expected": "150.00000000",
+                "eligible_actual": "150.00000000",
+                "owned": "150.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            },
+            {
+                "policy": "T-NEXTDAY-DOWN",
+                "case": "B",
+                "business_date": "2026-10-15",
+                "cutoff_utc": "2026-10-14 18:30:00",
+                "eligible_expected": "100.00000000",
+                "eligible_actual": "100.00000000",
+                "owned": "100.00000000",
+                "locked": "100.00000000",
+                "reserved": "0.00000000",
+                "result": "PASS"
+            }
+        ],
+        "note": "Read-only snapshot comparisons; no policy is selected for production."
+    },
+    "timezone": {
+        "zones": {
+            "UTC": {
+                "start_utc_15_oct": "2026-10-14 18:30:00",
+                "start_utc_16_oct": "2026-10-15 18:30:00"
+            },
+            "America/New_York": {
+                "start_utc_15_oct": "2026-10-14 18:30:00",
+                "start_utc_16_oct": "2026-10-15 18:30:00"
+            },
+            "Pacific/Auckland": {
+                "start_utc_15_oct": "2026-10-14 18:30:00",
+                "start_utc_16_oct": "2026-10-15 18:30:00"
+            },
+            "Asia/Tokyo": {
+                "start_utc_15_oct": "2026-10-14 18:30:00",
+                "start_utc_16_oct": "2026-10-15 18:30:00"
+            },
+            "Europe/London": {
+                "start_utc_15_oct": "2026-10-14 18:30:00",
+                "start_utc_16_oct": "2026-10-15 18:30:00"
+            },
+            "Asia/Kolkata": {
+                "start_utc_15_oct": "2026-10-14 18:30:00",
+                "start_utc_16_oct": "2026-10-15 18:30:00"
+            }
+        },
+        "ist_midnight_15_oct_utc": "2026-10-14 18:30:00"
+    },
+    "precision": {
+        "rows": [
+            {
+                "case": "Feb 28 days (2026-02-10)",
+                "eligible": "1000.00000000",
+                "rate_percent": "3.00000000",
+                "date": "2026-02-10",
+                "divisor_mode": "calendar_days",
+                "divisor": 28,
+                "rounding": "half_up",
+                "engine": "1.07142857",
+                "independent": "1.07142857",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Feb 29 days leap (2028-02-10)",
+                "eligible": "1000.00000000",
+                "rate_percent": "3.00000000",
+                "date": "2028-02-10",
+                "divisor_mode": "calendar_days",
+                "divisor": 29,
+                "rounding": "half_up",
+                "engine": "1.03448276",
+                "independent": "1.03448276",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Apr 30 days (2026-04-10)",
+                "eligible": "1000.00000000",
+                "rate_percent": "3.00000000",
+                "date": "2026-04-10",
+                "divisor_mode": "calendar_days",
+                "divisor": 30,
+                "rounding": "half_up",
+                "engine": "1.00000000",
+                "independent": "1.00000000",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Jan 31 days (2026-01-10)",
+                "eligible": "1000.00000000",
+                "rate_percent": "3.00000000",
+                "date": "2026-01-10",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "half_up",
+                "engine": "0.96774194",
+                "independent": "0.96774194",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Jan 31 days DOWN",
+                "eligible": "1000.00000000",
+                "rate_percent": "3.00000000",
+                "date": "2026-01-10",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "down",
+                "engine": "0.96774193",
+                "independent": "0.96774193",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Fixed-30 in 31-day month",
+                "eligible": "1000.00000000",
+                "rate_percent": "3.00000000",
+                "date": "2026-01-10",
+                "divisor_mode": "fixed_30",
+                "divisor": 30,
+                "rounding": "half_up",
+                "engine": "1.00000000",
+                "independent": "1.00000000",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Dec 31 (Dec rate month)",
+                "eligible": "1000.00000000",
+                "rate_percent": "3.00000000",
+                "date": "2026-12-31",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "half_up",
+                "engine": "0.96774194",
+                "independent": "0.96774194",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Jan 1 (Jan rate month)",
+                "eligible": "1000.00000000",
+                "rate_percent": "3.00000000",
+                "date": "2027-01-01",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "half_up",
+                "engine": "0.96774194",
+                "independent": "0.96774194",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Smallest balance 0.00000001",
+                "eligible": "0.00000001",
+                "rate_percent": "3.00000000",
+                "date": "2026-10-15",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "half_up",
+                "engine": "0.00000000",
+                "independent": "0.00000000",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Small balance 0.5",
+                "eligible": "0.50000000",
+                "rate_percent": "3.00000000",
+                "date": "2026-10-15",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "down",
+                "engine": "0.00048387",
+                "independent": "0.00048387",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Large balance",
+                "eligible": "999999999999.99999999",
+                "rate_percent": "3.00000000",
+                "date": "2026-10-15",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "half_up",
+                "engine": "967741935.48387097",
+                "independent": "967741935.48387097",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Large balance DOWN",
+                "eligible": "999999999999.99999999",
+                "rate_percent": "3.00000000",
+                "date": "2026-10-15",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "down",
+                "engine": "967741935.48387096",
+                "independent": "967741935.48387096",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Fractional balance + fractional rate",
+                "eligible": "123.45678901",
+                "rate_percent": "2.75000000",
+                "date": "2026-10-15",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "half_up",
+                "engine": "0.10951812",
+                "independent": "0.10951812",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Tiny fractional rate 0.00000005%",
+                "eligible": "1000.00000000",
+                "rate_percent": "0.00000005",
+                "date": "2026-10-15",
+                "divisor_mode": "fixed_30",
+                "divisor": 30,
+                "rounding": "half_up",
+                "engine": "0.00000002",
+                "independent": "0.00000002",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Exact half-unit boundary HALF_UP",
+                "eligible": "0.00015000",
+                "rate_percent": "0.10000000",
+                "date": "2026-10-15",
+                "divisor_mode": "fixed_30",
+                "divisor": 30,
+                "rounding": "half_up",
+                "engine": "0.00000001",
+                "independent": "0.00000001",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Exact half-unit boundary DOWN",
+                "eligible": "0.00015000",
+                "rate_percent": "0.10000000",
+                "date": "2026-10-15",
+                "divisor_mode": "fixed_30",
+                "divisor": 30,
+                "rounding": "down",
+                "engine": "0.00000000",
+                "independent": "0.00000000",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Zero rate",
+                "eligible": "1000.00000000",
+                "rate_percent": "0.00000000",
+                "date": "2026-10-15",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "half_up",
+                "engine": "0.00000000",
+                "independent": "0.00000000",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Max rate 100%",
+                "eligible": "1000.00000000",
+                "rate_percent": "100.00000000",
+                "date": "2026-10-15",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "half_up",
+                "engine": "32.25806452",
+                "independent": "32.25806452",
+                "deterministic": true,
+                "result": "PASS"
+            },
+            {
+                "case": "Illustration 1000 x 3% / 31 HALF_UP",
+                "eligible": "1000.00000000",
+                "rate_percent": "3.00000000",
+                "date": "2026-10-15",
+                "divisor_mode": "calendar_days",
+                "divisor": 31,
+                "rounding": "half_up",
+                "engine": "0.96774194",
+                "independent": "0.96774194",
+                "deterministic": true,
+                "result": "PASS"
+            }
+        ],
+        "invalid_inputs": [
+            {
+                "eligible": "-1",
+                "percent": "3",
+                "rejected": true
+            },
+            {
+                "eligible": "abc",
+                "percent": "3",
+                "rejected": true
+            },
+            {
+                "eligible": "1000",
+                "percent": "-3",
+                "rejected": true
+            },
+            {
+                "eligible": "1000",
+                "percent": "100.00000001",
+                "rejected": true
+            },
+            {
+                "eligible": "1000",
+                "percent": "x",
+                "rejected": true
+            },
+            {
+                "eligible": "1000",
+                "percent": "",
+                "rejected": true
+            }
+        ],
+        "comparative_previews": [
+            {
+                "divisor_mode": "calendar_days",
+                "rounding": "half_up",
+                "per_1000_coins_31_day_month": "0.96774194",
+                "per_1000_coins_30_day_month": "1.00000000",
+                "per_1000_coins_28_day_month": "1.07142857",
+                "cohort_total_15_oct": "1.16129032"
+            },
+            {
+                "divisor_mode": "calendar_days",
+                "rounding": "down",
+                "per_1000_coins_31_day_month": "0.96774193",
+                "per_1000_coins_30_day_month": "1.00000000",
+                "per_1000_coins_28_day_month": "1.07142857",
+                "cohort_total_15_oct": "1.16129032"
+            },
+            {
+                "divisor_mode": "fixed_30",
+                "rounding": "half_up",
+                "per_1000_coins_31_day_month": "1.00000000",
+                "per_1000_coins_30_day_month": "1.00000000",
+                "per_1000_coins_28_day_month": "1.00000000",
+                "cohort_total_15_oct": "1.20000000"
+            },
+            {
+                "divisor_mode": "fixed_30",
+                "rounding": "down",
+                "per_1000_coins_31_day_month": "1.00000000",
+                "per_1000_coins_30_day_month": "1.00000000",
+                "per_1000_coins_28_day_month": "1.00000000",
+                "cohort_total_15_oct": "1.20000000"
+            }
+        ],
+        "month_total_per_1000_coins_oct_31_days": {
+            "fixed_30": "31.00000000",
+            "calendar_days": "30.00000014"
+        },
+        "month_total_note": "Fixed-30 pays 31 x 1.00000000 = 31.00000000 in a 31-day month (3.1% instead of 3%); calendar-days pays ~30.00000000. No residual redistribution / final-day adjustment is applied."
+    },
+    "scheduler": {
+        "scenarios": [
+            {
+                "scenario": "scheduled_yesterday_posts",
+                "expected": "POSTED exit 0, credited=14 for 2026-11-17",
+                "exit": 0,
+                "scheduler_status": "POSTED",
+                "credited": 14,
+                "duplicates": 0,
+                "state": "COMPLETED",
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "scheduled_repeat_zero_new_credits",
+                "expected": "POSTED exit 0, credited_now=0, duplicates=14",
+                "exit": 0,
+                "scheduler_status": "POSTED",
+                "credited": 0,
+                "duplicates": 14,
+                "state": "COMPLETED",
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "manual_same_date_zero_new_credits",
+                "expected": "POSTED exit 0, credited_now=0",
+                "exit": 0,
+                "scheduler_status": "POSTED",
+                "credited": 0,
+                "duplicates": 14,
+                "state": "COMPLETED",
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "concurrent_invocation_skipped",
+                "expected": "SKIPPED exit 20, no day run, no credits",
+                "exit": 20,
+                "scheduler_status": "SKIPPED",
+                "credited": null,
+                "duplicates": null,
+                "state": null,
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "interrupted_batch_is_partial",
+                "expected": "PARTIAL exit 40, <= 3 credits, pending > 0",
+                "exit": 40,
+                "scheduler_status": "PARTIAL",
+                "credited": 3,
+                "duplicates": 0,
+                "state": "PARTIAL",
+                "result": "PASS",
+                "note": "credits so far=3"
+            },
+            {
+                "scenario": "resume_completes_without_duplicates_or_skips",
+                "expected": "POSTED exit 0, total credits=14, no duplicate",
+                "exit": 0,
+                "scheduler_status": "POSTED",
+                "credited": 11,
+                "duplicates": 3,
+                "state": "COMPLETED",
+                "result": "PASS",
+                "note": "credited_now=11 total=14"
+            },
+            {
+                "scenario": "db_connection_failure_fails_closed",
+                "expected": "FAILED exit 50, nothing written",
+                "exit": 50,
+                "scheduler_status": "FAILED",
+                "credited": null,
+                "duplicates": null,
+                "state": null,
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "missing_approved_rate_blocked",
+                "expected": "BLOCKED exit 30",
+                "exit": 30,
+                "scheduler_status": "BLOCKED",
+                "credited": null,
+                "duplicates": null,
+                "state": null,
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "disabled_auto_switch_skips",
+                "expected": "SKIPPED exit 20 (live gates; miningAutoPostEnabled=false)",
+                "exit": 20,
+                "scheduler_status": "SKIPPED",
+                "credited": null,
+                "duplicates": null,
+                "state": null,
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "disabled_posting_switch_blocks",
+                "expected": "BLOCKED exit 30 (miningPostingEnabled=false)",
+                "exit": 30,
+                "scheduler_status": "BLOCKED",
+                "credited": null,
+                "duplicates": null,
+                "state": null,
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "sandbox_scheduled_without_confirmation_skips",
+                "expected": "SKIPPED exit 20 (not authorized)",
+                "exit": 20,
+                "scheduler_status": "SKIPPED",
+                "credited": null,
+                "duplicates": null,
+                "state": null,
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "historical_ownership_mismatch_detected",
+                "expected": "PARTIAL exit 40, mismatch historical_ownership_mismatch",
+                "exit": 40,
+                "scheduler_status": "PARTIAL",
+                "credited": 0,
+                "duplicates": 14,
+                "state": "PARTIAL",
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "historical_mismatch_clears_after_evidence_restored",
+                "expected": "POSTED exit 0 after restore",
+                "exit": 0,
+                "scheduler_status": "POSTED",
+                "credited": 0,
+                "duplicates": 14,
+                "state": "COMPLETED",
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "reconciliation_mismatch_detected",
+                "expected": "PARTIAL exit 40, ledger/run mismatch reported",
+                "exit": 40,
+                "scheduler_status": "PARTIAL",
+                "credited": 0,
+                "duplicates": 14,
+                "state": "PARTIAL",
+                "result": "PASS",
+                "note": "types=ledger_vs_run_totals,ledger_credit_not_matched_by_run_row,wallet_balance_not_equal_ledger_credits"
+            },
+            {
+                "scenario": "reconciliation_clears_after_restore",
+                "expected": "POSTED exit 0 after restore",
+                "exit": 0,
+                "scheduler_status": "POSTED",
+                "credited": 0,
+                "duplicates": 14,
+                "state": "COMPLETED",
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "policy_change_on_resume_blocked",
+                "expected": "BLOCKED exit 30 (frozen policy differs)",
+                "exit": 30,
+                "scheduler_status": "BLOCKED",
+                "credited": null,
+                "duplicates": null,
+                "state": null,
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "resume_with_original_policy_completes",
+                "expected": "POSTED exit 0",
+                "exit": 0,
+                "scheduler_status": "POSTED",
+                "credited": 11,
+                "duplicates": 3,
+                "state": "COMPLETED",
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "incomplete_business_day_blocked_without_flag",
+                "expected": "BLOCKED exit 30",
+                "exit": 30,
+                "scheduler_status": "BLOCKED",
+                "credited": null,
+                "duplicates": null,
+                "state": null,
+                "result": "PASS",
+                "note": ""
+            },
+            {
+                "scenario": "dry_run_never_counted_as_posting",
+                "expected": "DRY_RUN exit 10, no ledger row for today",
+                "exit": 10,
+                "scheduler_status": "DRY_RUN",
+                "credited": null,
+                "duplicates": null,
+                "state": null,
+                "result": "PASS",
+                "note": ""
+            }
+        ],
+        "ledger_log_tail": [
+            "{\"ts\":\"2026-11-18T06:33:14+00:00\",\"level\":\"info\",\"event\":\"command-exit\",\"run_id\":\"MPR-20261118063314-618626\",\"day_run_id\":7,\"business_date\":\"2026-10-19\",\"database_class\":\"sandbox\",\"database\":\"coin_platform_phase13b\",\"run_mode\":\"scheduled\",\"execute\":true,\"policy_version\":\"MPOL-ab4aac6c8ab8\",\"members\":16,\"batches\":1,\"credited\":11,\"skipped\":2,\"failed\":0,\"duplicates\":3,\"total_credited\":\"1.42258063\",\"duration_ms\":267,\"reconcile_status\":\"OK\",\"scheduler_status\":\"POSTED\",\"exit_code\":0,\"error\":null}",
+            "{\"ts\":\"2026-11-18T06:33:16+00:00\",\"level\":\"info\",\"event\":\"run-start\",\"business_date\":\"2026-11-18\",\"database\":\"coin_platform_phase13b\",\"group\":\"phase13b\",\"mode\":\"sandbox\",\"scheduled\":true,\"execute\":true,\"policy_version\":\"MPOL-ab4aac6c8ab8\",\"run_ref\":\"MPR-20261118063316-EFD808\",\"rate_ref\":\"MRC-20261118-37818976\"}",
+            "{\"ts\":\"2026-11-18T06:33:16+00:00\",\"level\":\"error\",\"event\":\"run-refused\",\"business_date\":\"2026-11-18\",\"database\":\"coin_platform_phase13b\",\"group\":\"phase13b\",\"mode\":\"sandbox\",\"scheduled\":true,\"execute\":true,\"policy_version\":\"MPOL-ab4aac6c8ab8\",\"error\":\"Business date 2026-11-18 is not complete in Asia/Kolkata yet (ends 2026-11-18 18:30:00 UTC). Refusing to snapshot a partial day.\"}",
+            "{\"ts\":\"2026-11-18T06:33:16+00:00\",\"level\":\"error\",\"event\":\"command-exit\",\"run_id\":null,\"day_run_id\":null,\"business_date\":null,\"database_class\":null,\"database\":null,\"run_mode\":\"scheduled\",\"execute\":true,\"policy_version\":null,\"members\":null,\"batches\":null,\"credited\":null,\"skipped\":null,\"failed\":null,\"duplicates\":null,\"total_credited\":null,\"duration_ms\":null,\"reconcile_status\":null,\"scheduler_status\":\"BLOCKED\",\"exit_code\":30,\"error\":\"Business date 2026-11-18 is not complete in Asia/Kolkata yet (ends 2026-11-18 18:30:00 UTC). Refusing to snapshot a partial day.\"}",
+            "{\"ts\":\"2026-11-18T06:33:16+00:00\",\"level\":\"info\",\"event\":\"dry-run\",\"business_date\":\"2026-11-18\",\"database\":\"coin_platform_phase13b\",\"group\":\"phase13b\",\"mode\":\"sandbox\",\"scheduled\":false,\"execute\":false,\"status\":\"dry_run\",\"rate_ref\":\"MRC-20261118-37818976\",\"policy_version\":\"MPOL-ab4aac6c8ab8\",\"cutoff_utc\":\"2026-11-18 06:33:17\",\"member_count\":16,\"eligible_count\":14,\"blocked_count\":0,\"expected_total\":\"1.47000000\",\"posted_total\":\"0.00000000\",\"day_run_state\":null,\"duration_ms\":27,\"message\":\"DRY-RUN only \\u2014 no wallet was credited.\"}",
+            "{\"ts\":\"2026-11-18T06:33:16+00:00\",\"level\":\"info\",\"event\":\"command-exit\",\"run_id\":null,\"day_run_id\":null,\"business_date\":\"2026-11-18\",\"database_class\":\"sandbox\",\"database\":\"coin_platform_phase13b\",\"run_mode\":\"manual\",\"execute\":false,\"policy_version\":\"MPOL-ab4aac6c8ab8\",\"members\":16,\"batches\":null,\"credited\":null,\"skipped\":null,\"failed\":null,\"duplicates\":null,\"total_credited\":null,\"duration_ms\":27,\"reconcile_status\":null,\"scheduler_status\":\"DRY_RUN\",\"exit_code\":10,\"error\":null}"
+        ]
+    },
+    "case_k": {
+        "business_date": "2026-10-20",
+        "member_id": "SYN000012",
+        "first_run": {
+            "exit": 40,
+            "state": "PARTIAL",
+            "blocked": 1,
+            "member_status": "BLOCKED",
+            "member_reason": "BLOCKED_HISTORICAL_DATA: approved_purchase_without_ledger_credit:PUR-ABA0A5185F56B285"
+        },
+        "second_run": {
+            "exit": 0,
+            "state": "COMPLETED",
+            "credited_now": 1
+        },
+        "missing_evidence_reported": "BLOCKED_HISTORICAL_DATA: approved_purchase_without_ledger_credit:PUR-ABA0A5185F56B285"
+    },
+    "cli_audit": {
+        "commands": [
+            {
+                "command": "mining:post",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "mining:daily",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "mining:dry-run",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "mining:reconcile",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "mining:simulate",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "mining:status",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": null,
+                "missing_value_exit": null,
+                "result": "PASS"
+            },
+            {
+                "command": "mining:post-verify",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": null,
+                "missing_value_exit": null,
+                "result": "PASS"
+            },
+            {
+                "command": "mining:p2p-reconcile",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "coins:selling-reconcile",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "members:correct-sequence",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "locking:remediate-mandatory",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "financial:staging-e2e",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "financial:test-window",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "coins:check-maturity",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "payment:deliver-alerts",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            },
+            {
+                "command": "payment:integrity-monitor",
+                "unknown_option_exit": 2,
+                "equals_syntax_exit": 2,
+                "missing_value_exit": 2,
+                "result": "PASS"
+            }
+        ],
+        "parser_matrix": [
+            {
+                "case": "equals_group",
+                "args": "--group=phase13b",
+                "errors": [
+                    "Unsupported syntax \"--group=phase13b\". Use \"--group <value>\" (space-separated); \"=\" is not parsed by the CI4 CLI and would be ignored."
+                ],
+                "result": "PASS"
+            },
+            {
+                "case": "unsupported_group",
+                "args": "--group coin_platform",
+                "errors": [
+                    "Invalid value \"coin_platform\" for --group (allowed: default, phase12a, phase12b, phase13a, phase13b)."
+                ],
+                "result": "PASS"
+            },
+            {
+                "case": "unsupported_group_tests",
+                "args": "--group tests",
+                "errors": [
+                    "Invalid value \"tests\" for --group (allowed: default, phase12a, phase12b, phase13a, phase13b)."
+                ],
+                "result": "PASS"
+            },
+            {
+                "case": "missing_value",
+                "args": "--group",
+                "errors": [
+                    "Option \"--group\" requires a value."
+                ],
+                "result": "PASS"
+            },
+            {
+                "case": "flag_given_value_is_positional",
+                "args": "--scheduled now",
+                "errors": [
+                    "Unexpected argument(s): now (this command takes only --options)."
+                ],
+                "result": "PASS"
+            },
+            {
+                "case": "duplicate_group",
+                "args": "--group phase13b --group phase13a",
+                "errors": [
+                    "Option \"--group\" was given more than once."
+                ],
+                "result": "PASS"
+            },
+            {
+                "case": "conflicting",
+                "args": "--dry-run --confirm APPLY_STAGING",
+                "errors": [
+                    "Conflicting options: --dry-run and --confirm cannot be combined."
+                ],
+                "result": "PASS"
+            },
+            {
+                "case": "short_option",
+                "args": "-g phase13b",
+                "errors": [
+                    "Short option \"-g\" is not supported.",
+                    "Unexpected argument(s): phase13b (this command takes only --options)."
+                ],
+                "result": "PASS"
+            },
+            {
+                "case": "bad_limit",
+                "args": "--limit abc",
+                "errors": [
+                    "--limit must be a positive whole number (got \"abc\")."
+                ],
+                "result": "PASS"
+            },
+            {
+                "case": "bad_date",
+                "args": "--date 15-10-2026",
+                "errors": [
+                    "--date must be today, yesterday or YYYY-MM-DD (got \"15-10-2026\")."
+                ],
+                "result": "PASS"
+            }
+        ]
+    },
+    "ledger_totals": {
+        "rows_total": "107",
+        "sum_total": "10.69258050"
+    },
+    "switches_after": {
+        "miningPostingEnabled": false,
+        "miningP2pEnabled": false,
+        "commissionPostingEnabled": false,
+        "commissionWithdrawalEnabled": false,
+        "commissionBlockchainPayoutEnabled": false,
+        "coinSellingEnabled": false,
+        "sandbox_window_open": false
+    },
+    "performance": {
+        "sizes": {
+            "100": {
+                "members": 100,
+                "batch_size": 500,
+                "first_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 4.43,
+                    "duration_ms": 2124,
+                    "peak_memory_mb": 10,
+                    "queries": 1028,
+                    "batches": 1,
+                    "batch_size": 500,
+                    "avg_batch_ms": 2124,
+                    "credited": 100,
+                    "duplicates": 0,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "repeat_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 0.39,
+                    "duration_ms": 70,
+                    "peak_memory_mb": 10,
+                    "queries": 21,
+                    "batches": 1,
+                    "batch_size": 500,
+                    "avg_batch_ms": 70,
+                    "credited": 0,
+                    "duplicates": 100,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "ledger_rows": 100,
+                "ledger_sum": "3.84193574",
+                "expected_sum": "3.84193574",
+                "duplicate_groups": 0,
+                "result": "PASS"
+            },
+            "2000": {
+                "members": 2000,
+                "batch_size": 500,
+                "first_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 40.71,
+                    "duration_ms": 40409,
+                    "peak_memory_mb": 22,
+                    "queries": 20061,
+                    "batches": 4,
+                    "batch_size": 500,
+                    "avg_batch_ms": 10102.3,
+                    "credited": 2000,
+                    "duplicates": 0,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "repeat_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 0.9,
+                    "duration_ms": 618,
+                    "peak_memory_mb": 12,
+                    "queries": 33,
+                    "batches": 4,
+                    "batch_size": 500,
+                    "avg_batch_ms": 154.5,
+                    "credited": 0,
+                    "duplicates": 2000,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "ledger_rows": 2000,
+                "ledger_sum": "77.41936000",
+                "expected_sum": "77.41936000",
+                "duplicate_groups": 0,
+                "result": "PASS"
+            },
+            "2001": {
+                "members": 2001,
+                "batch_size": 500,
+                "first_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 41.56,
+                    "duration_ms": 41294,
+                    "peak_memory_mb": 22,
+                    "queries": 20082,
+                    "batches": 5,
+                    "batch_size": 500,
+                    "avg_batch_ms": 8258.8,
+                    "credited": 2001,
+                    "duplicates": 0,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "repeat_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 1.38,
+                    "duration_ms": 1093,
+                    "peak_memory_mb": 12,
+                    "queries": 37,
+                    "batches": 5,
+                    "batch_size": 500,
+                    "avg_batch_ms": 218.6,
+                    "credited": 0,
+                    "duplicates": 2001,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "ledger_rows": 2001,
+                "ledger_sum": "77.48710194",
+                "expected_sum": "77.48710194",
+                "duplicate_groups": 0,
+                "result": "PASS"
+            },
+            "5000": {
+                "members": 5000,
+                "batch_size": 500,
+                "first_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 102.24,
+                    "duration_ms": 101948,
+                    "peak_memory_mb": 32,
+                    "queries": 50127,
+                    "batches": 10,
+                    "batch_size": 500,
+                    "avg_batch_ms": 10194.8,
+                    "credited": 5000,
+                    "duplicates": 0,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "repeat_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 2.24,
+                    "duration_ms": 1599,
+                    "peak_memory_mb": 12,
+                    "queries": 57,
+                    "batches": 10,
+                    "batch_size": 500,
+                    "avg_batch_ms": 159.9,
+                    "credited": 0,
+                    "duplicates": 5000,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "ledger_rows": 5000,
+                "ledger_sum": "193.51936774",
+                "expected_sum": "193.51936774",
+                "duplicate_groups": 0,
+                "result": "PASS"
+            },
+            "10000": {
+                "members": 10000,
+                "batch_size": 500,
+                "first_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 227.19,
+                    "duration_ms": 226868,
+                    "peak_memory_mb": 54,
+                    "queries": 100237,
+                    "batches": 20,
+                    "batch_size": 500,
+                    "avg_batch_ms": 11343.4,
+                    "credited": 10000,
+                    "duplicates": 0,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "repeat_run": {
+                    "exit": 0,
+                    "state": "COMPLETED",
+                    "wall_seconds": 2.43,
+                    "duration_ms": 1959,
+                    "peak_memory_mb": 12,
+                    "queries": 97,
+                    "batches": 20,
+                    "batch_size": 500,
+                    "avg_batch_ms": 98,
+                    "credited": 0,
+                    "duplicates": 10000,
+                    "retry_passes": 0,
+                    "reconcile": "OK"
+                },
+                "ledger_rows": 10000,
+                "ledger_sum": "387.07744516",
+                "expected_sum": "387.07744516",
+                "duplicate_groups": 0,
+                "result": "PASS"
+            }
+        },
+        "batch_size_comparison": {
+            "100": {
+                "exit": 0,
+                "state": "COMPLETED",
+                "wall_seconds": 45.55,
+                "duration_ms": 43159,
+                "peak_memory_mb": 20,
+                "queries": 20173,
+                "batches": 20,
+                "batch_size": 100,
+                "avg_batch_ms": 2158,
+                "credited": 2000,
+                "duplicates": 0,
+                "retry_passes": 0,
+                "reconcile": "OK"
+            },
+            "250": {
+                "exit": 0,
+                "state": "COMPLETED",
+                "wall_seconds": 47.4,
+                "duration_ms": 44867,
+                "peak_memory_mb": 20,
+                "queries": 16089,
+                "batches": 8,
+                "batch_size": 250,
+                "avg_batch_ms": 5608.4,
+                "credited": 2000,
+                "duplicates": 0,
+                "retry_passes": 0,
+                "reconcile": "OK"
+            },
+            "500": {
+                "exit": 0,
+                "state": "COMPLETED",
+                "wall_seconds": 35.13,
+                "duration_ms": 31893,
+                "peak_memory_mb": 20,
+                "queries": 16061,
+                "batches": 4,
+                "batch_size": 500,
+                "avg_batch_ms": 7973.3,
+                "credited": 2000,
+                "duplicates": 0,
+                "retry_passes": 0,
+                "reconcile": "OK"
+            },
+            "1000": {
+                "exit": 0,
+                "state": "COMPLETED",
+                "wall_seconds": 52.53,
+                "duration_ms": 50046,
+                "peak_memory_mb": 20,
+                "queries": 16047,
+                "batches": 2,
+                "batch_size": 1000,
+                "avg_batch_ms": 25023,
+                "credited": 2000,
+                "duplicates": 0,
+                "retry_passes": 0,
+                "reconcile": "OK"
+            }
+        },
+        "resume": {
+            "members": 5000,
+            "interrupted_run": {
+                "exit": 40,
+                "state": "PARTIAL",
+                "credited_now": 1500,
+                "seconds": 56.35
+            },
+            "recovery_run": {
+                "exit": 0,
+                "state": "COMPLETED",
+                "credited_now": 3500,
+                "seconds": 99.94
+            },
+            "total_credits": 5000,
+            "duplicate_groups": 0
+        },
+        "note": "Measured on this machine (local MySQL + PHP CLI child processes). Synthetic data."
+    },
+    "live_fingerprint_after": {
+        "database": "coin_platform",
+        "member_count": "2",
+        "ownership_total": "5.00000000",
+        "ownership_ledger_rows": "1",
+        "mining_wallet_total": "0.00000000",
+        "mining_ledger_count": "0",
+        "commission_ledger_count": "0",
+        "mandatory_lock_count": "0",
+        "member_id_sequences": "NGW:981233",
+        "mining_post_day_runs_present": "0",
+        "latest_migration": "2026-11-17-992001",
+        "kill_switches": {
+            "miningPostingEnabled": false,
+            "miningAutoPostEnabled": false,
+            "miningP2pEnabled": false,
+            "commissionPostingEnabled": false,
+            "commissionWithdrawalEnabled": false,
+            "commissionBlockchainPayoutEnabled": false,
+            "coinSellingEnabled": false
+        }
+    },
+    "checks": [
+        {
+            "name": "production_switches_off_before",
+            "ok": true,
+            "detail": "{\"miningPostingEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false,\"sandbox_window_open\":false}"
+        },
+        {
+            "name": "cohort_built",
+            "ok": true,
+            "detail": "16 synthetic members (cases A\u2013M)"
+        },
+        {
+            "name": "case_run_2026-10-17_posted_and_reconciled",
+            "ok": true,
+            "detail": "exit=0 state=COMPLETED reconcile=OK"
+        },
+        {
+            "name": "case_run_2026-10-15_posted_and_reconciled",
+            "ok": true,
+            "detail": "exit=0 state=COMPLETED reconcile=OK"
+        },
+        {
+            "name": "case_run_2026-10-16_posted_and_reconciled",
+            "ok": true,
+            "detail": "exit=0 state=COMPLETED reconcile=OK"
+        },
+        {
+            "name": "case_run_2026-10-14_posted_and_reconciled",
+            "ok": true,
+            "detail": "exit=0 state=COMPLETED reconcile=OK"
+        },
+        {
+            "name": "case_A_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000001 wallet expected 0.38709677 actual 0.38709677"
+        },
+        {
+            "name": "case_B_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000002 wallet expected 0.38709676 actual 0.38709676"
+        },
+        {
+            "name": "case_C_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000003 wallet expected 0.38709676 actual 0.38709676"
+        },
+        {
+            "name": "case_D_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000004 wallet expected 0.00000000 actual 0.00000000"
+        },
+        {
+            "name": "case_E_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000005 wallet expected 0.00000000 actual 0.00000000"
+        },
+        {
+            "name": "case_F_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000006 wallet expected 0.14516130 actual 0.14516130"
+        },
+        {
+            "name": "case_G_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000007 wallet expected 0.27096776 actual 0.27096776"
+        },
+        {
+            "name": "case_H_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000008 wallet expected 0.35806451 actual 0.35806451"
+        },
+        {
+            "name": "case_H2_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000009 wallet expected 0.35806451 actual 0.35806451"
+        },
+        {
+            "name": "case_I_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000010 wallet expected 0.38709676 actual 0.38709676"
+        },
+        {
+            "name": "case_J_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000011 wallet expected 0.72580644 actual 0.72580644"
+        },
+        {
+            "name": "case_K_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000012 wallet expected 0.38709676 actual 0.38709676"
+        },
+        {
+            "name": "case_L1_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000013 wallet expected 0.29032257 actual 0.29032257"
+        },
+        {
+            "name": "case_L2_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000014 wallet expected 0.29032257 actual 0.29032257"
+        },
+        {
+            "name": "case_L3_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000015 wallet expected 0.19354838 actual 0.19354838"
+        },
+        {
+            "name": "case_M_expected_equals_actual",
+            "ok": true,
+            "detail": "SYN000016 wallet expected 0.38709676 actual 0.38709676"
+        },
+        {
+            "name": "case_J_backdated_posting_ignores_later_transactions",
+            "ok": true,
+            "detail": "D1 posted after D3; J eligible on D1=100.00000000 (today's balance is 250)"
+        },
+        {
+            "name": "policy_T-RESERVED-EXCL_H2_2026-10-15",
+            "ok": true,
+            "detail": "expected 70 actual 70.00000000"
+        },
+        {
+            "name": "policy_T-RESERVED-EXCL_H_2026-10-17",
+            "ok": true,
+            "detail": "expected 70 actual 70.00000000"
+        },
+        {
+            "name": "policy_T-RESERVED-EXCL_B_2026-10-15",
+            "ok": true,
+            "detail": "expected 100 actual 100.00000000"
+        },
+        {
+            "name": "policy_T-MATURED-EXCL_M_2026-10-15",
+            "ok": true,
+            "detail": "expected 0 actual 0.00000000"
+        },
+        {
+            "name": "policy_T-MATURED-EXCL_B_2026-10-15",
+            "ok": true,
+            "detail": "expected 100 actual 100.00000000"
+        },
+        {
+            "name": "policy_T-NEXTDAY-DOWN_L1_2026-10-15",
+            "ok": true,
+            "detail": "expected 0 actual 0.00000000"
+        },
+        {
+            "name": "policy_T-NEXTDAY-DOWN_L1_2026-10-16",
+            "ok": true,
+            "detail": "expected 100 actual 100.00000000"
+        },
+        {
+            "name": "policy_T-NEXTDAY-DOWN_L2_2026-10-15",
+            "ok": true,
+            "detail": "expected 0 actual 0.00000000"
+        },
+        {
+            "name": "policy_T-NEXTDAY-DOWN_L3_2026-10-16",
+            "ok": true,
+            "detail": "expected 0 actual 0.00000000"
+        },
+        {
+            "name": "policy_T-NEXTDAY-DOWN_L3_2026-10-17",
+            "ok": true,
+            "detail": "expected 100 actual 100.00000000"
+        },
+        {
+            "name": "policy_T-NEXTDAY-DOWN_A_2026-10-15",
+            "ok": true,
+            "detail": "expected 0 actual 0.00000000"
+        },
+        {
+            "name": "policy_T-NEXTDAY-DOWN_A_2026-10-16",
+            "ok": true,
+            "detail": "expected 100 actual 100.00000000"
+        },
+        {
+            "name": "policy_T-NEXTDAY-DOWN_A_2026-10-17",
+            "ok": true,
+            "detail": "expected 150 actual 150.00000000"
+        },
+        {
+            "name": "policy_T-NEXTDAY-DOWN_B_2026-10-15",
+            "ok": true,
+            "detail": "expected 100 actual 100.00000000"
+        },
+        {
+            "name": "business_date_boundary_independent_of_process_timezone",
+            "ok": true,
+            "detail": "IST midnight of 15 Oct = 2026-10-14 18:30:00 UTC under 6 PHP timezones"
+        },
+        {
+            "name": "precision_feb_28_days_2026_02_10_",
+            "ok": true,
+            "detail": "1.07142857 vs independent 1.07142857"
+        },
+        {
+            "name": "precision_feb_29_days_leap_2028_02_10_",
+            "ok": true,
+            "detail": "1.03448276 vs independent 1.03448276"
+        },
+        {
+            "name": "precision_apr_30_days_2026_04_10_",
+            "ok": true,
+            "detail": "1.00000000 vs independent 1.00000000"
+        },
+        {
+            "name": "precision_jan_31_days_2026_01_10_",
+            "ok": true,
+            "detail": "0.96774194 vs independent 0.96774194"
+        },
+        {
+            "name": "precision_jan_31_days_down",
+            "ok": true,
+            "detail": "0.96774193 vs independent 0.96774193"
+        },
+        {
+            "name": "precision_fixed_30_in_31_day_month",
+            "ok": true,
+            "detail": "1.00000000 vs independent 1.00000000"
+        },
+        {
+            "name": "precision_dec_31_dec_rate_month_",
+            "ok": true,
+            "detail": "0.96774194 vs independent 0.96774194"
+        },
+        {
+            "name": "precision_jan_1_jan_rate_month_",
+            "ok": true,
+            "detail": "0.96774194 vs independent 0.96774194"
+        },
+        {
+            "name": "precision_smallest_balance_0_00000001",
+            "ok": true,
+            "detail": "0.00000000 vs independent 0.00000000"
+        },
+        {
+            "name": "precision_small_balance_0_5",
+            "ok": true,
+            "detail": "0.00048387 vs independent 0.00048387"
+        },
+        {
+            "name": "precision_large_balance",
+            "ok": true,
+            "detail": "967741935.48387097 vs independent 967741935.48387097"
+        },
+        {
+            "name": "precision_large_balance_down",
+            "ok": true,
+            "detail": "967741935.48387096 vs independent 967741935.48387096"
+        },
+        {
+            "name": "precision_fractional_balance_fractional_rate",
+            "ok": true,
+            "detail": "0.10951812 vs independent 0.10951812"
+        },
+        {
+            "name": "precision_tiny_fractional_rate_0_00000005_",
+            "ok": true,
+            "detail": "0.00000002 vs independent 0.00000002"
+        },
+        {
+            "name": "precision_exact_half_unit_boundary_half_up",
+            "ok": true,
+            "detail": "0.00000001 vs independent 0.00000001"
+        },
+        {
+            "name": "precision_exact_half_unit_boundary_down",
+            "ok": true,
+            "detail": "0.00000000 vs independent 0.00000000"
+        },
+        {
+            "name": "precision_zero_rate",
+            "ok": true,
+            "detail": "0.00000000 vs independent 0.00000000"
+        },
+        {
+            "name": "precision_max_rate_100_",
+            "ok": true,
+            "detail": "32.25806452 vs independent 32.25806452"
+        },
+        {
+            "name": "precision_illustration_1000_x_3_31_half_up",
+            "ok": true,
+            "detail": "0.96774194 vs independent 0.96774194"
+        },
+        {
+            "name": "illustration_0_96774194_calendar_half_up",
+            "ok": true,
+            "detail": "0.96774194"
+        },
+        {
+            "name": "illustration_1_00000000_fixed_30",
+            "ok": true,
+            "detail": "1.00000000"
+        },
+        {
+            "name": "invalid_rate_and_balance_inputs_rejected",
+            "ok": true,
+            "detail": "[{\"eligible\":\"-1\",\"percent\":\"3\",\"rejected\":true},{\"eligible\":\"abc\",\"percent\":\"3\",\"rejected\":true},{\"eligible\":\"1000\",\"percent\":\"-3\",\"rejected\":true},{\"eligible\":\"1000\",\"percent\":\"100.00000001\",\"rejected\":true},{\"eligible\":\"1000\",\"percent\":\"x\",\"rejected\":true},{\"eligible\":\"1000\",\"percent\":\"\",\"rejected\":true}]"
+        },
+        {
+            "name": "unknown_rounding_mode_rejected",
+            "ok": true,
+            "detail": "banker rounding is not a configured policy"
+        },
+        {
+            "name": "scheduler_scheduled_yesterday_posts",
+            "ok": true,
+            "detail": "POSTED exit 0, credited=14 for 2026-11-17 | exit=0 status=POSTED "
+        },
+        {
+            "name": "scheduler_scheduled_repeat_zero_new_credits",
+            "ok": true,
+            "detail": "POSTED exit 0, credited_now=0, duplicates=14 | exit=0 status=POSTED "
+        },
+        {
+            "name": "scheduler_manual_same_date_zero_new_credits",
+            "ok": true,
+            "detail": "POSTED exit 0, credited_now=0 | exit=0 status=POSTED "
+        },
+        {
+            "name": "scheduler_concurrent_invocation_skipped",
+            "ok": true,
+            "detail": "SKIPPED exit 20, no day run, no credits | exit=20 status=SKIPPED "
+        },
+        {
+            "name": "scheduler_interrupted_batch_is_partial",
+            "ok": true,
+            "detail": "PARTIAL exit 40, <= 3 credits, pending > 0 | exit=40 status=PARTIAL credits so far=3"
+        },
+        {
+            "name": "scheduler_resume_completes_without_duplicates_or_skips",
+            "ok": true,
+            "detail": "POSTED exit 0, total credits=14, no duplicate | exit=0 status=POSTED credited_now=11 total=14"
+        },
+        {
+            "name": "scheduler_db_connection_failure_fails_closed",
+            "ok": true,
+            "detail": "FAILED exit 50, nothing written | exit=50 status=FAILED "
+        },
+        {
+            "name": "scheduler_missing_approved_rate_blocked",
+            "ok": true,
+            "detail": "BLOCKED exit 30 | exit=30 status=BLOCKED "
+        },
+        {
+            "name": "scheduler_disabled_auto_switch_skips",
+            "ok": true,
+            "detail": "SKIPPED exit 20 (live gates; miningAutoPostEnabled=false) | exit=20 status=SKIPPED "
+        },
+        {
+            "name": "scheduler_disabled_posting_switch_blocks",
+            "ok": true,
+            "detail": "BLOCKED exit 30 (miningPostingEnabled=false) | exit=30 status=BLOCKED "
+        },
+        {
+            "name": "scheduler_sandbox_scheduled_without_confirmation_skips",
+            "ok": true,
+            "detail": "SKIPPED exit 20 (not authorized) | exit=20 status=SKIPPED "
+        },
+        {
+            "name": "scheduler_historical_ownership_mismatch_detected",
+            "ok": true,
+            "detail": "PARTIAL exit 40, mismatch historical_ownership_mismatch | exit=40 status=PARTIAL "
+        },
+        {
+            "name": "scheduler_historical_mismatch_clears_after_evidence_restored",
+            "ok": true,
+            "detail": "POSTED exit 0 after restore | exit=0 status=POSTED "
+        },
+        {
+            "name": "scheduler_reconciliation_mismatch_detected",
+            "ok": true,
+            "detail": "PARTIAL exit 40, ledger/run mismatch reported | exit=40 status=PARTIAL types=ledger_vs_run_totals,ledger_credit_not_matched_by_run_row,wallet_balance_not_equal_ledger_credits"
+        },
+        {
+            "name": "scheduler_reconciliation_clears_after_restore",
+            "ok": true,
+            "detail": "POSTED exit 0 after restore | exit=0 status=POSTED "
+        },
+        {
+            "name": "scheduler_policy_change_on_resume_blocked",
+            "ok": true,
+            "detail": "BLOCKED exit 30 (frozen policy differs) | exit=30 status=BLOCKED "
+        },
+        {
+            "name": "scheduler_resume_with_original_policy_completes",
+            "ok": true,
+            "detail": "POSTED exit 0 | exit=0 status=POSTED "
+        },
+        {
+            "name": "scheduler_incomplete_business_day_blocked_without_flag",
+            "ok": true,
+            "detail": "BLOCKED exit 30 | exit=30 status=BLOCKED "
+        },
+        {
+            "name": "scheduler_dry_run_never_counted_as_posting",
+            "ok": true,
+            "detail": "DRY_RUN exit 10, no ledger row for today | exit=10 status=DRY_RUN "
+        },
+        {
+            "name": "watchdog_detects_completed_and_missing_runs",
+            "ok": true,
+            "detail": "completed=true missing_code=missing_scheduled_run"
+        },
+        {
+            "name": "case_K_missing_evidence_blocks_member_and_day_is_partial",
+            "ok": true,
+            "detail": "exit=40 K status=BLOCKED reason=BLOCKED_HISTORICAL_DATA: approved_purchase_without_ledger_credit:PUR-ABA0A5185F56B285"
+        },
+        {
+            "name": "case_K_other_members_still_credited",
+            "ok": true,
+            "detail": "credits=13 (13 eligible members besides K)"
+        },
+        {
+            "name": "case_K_day_never_marked_complete",
+            "ok": true,
+            "detail": "finished_at is NULL while a member is BLOCKED"
+        },
+        {
+            "name": "case_K_evidence_restored_resume_credits_member_once",
+            "ok": true,
+            "detail": "resume credited_now=1 amount=0.09677419"
+        },
+        {
+            "name": "cli_mining_post_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_mining_daily_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_mining_dry_run_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_mining_reconcile_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_mining_simulate_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_mining_status_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=- missing=-"
+        },
+        {
+            "name": "cli_mining_post_verify_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=- missing=-"
+        },
+        {
+            "name": "cli_mining_p2p_reconcile_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_coins_selling_reconcile_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_members_correct_sequence_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_locking_remediate_mandatory_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_financial_staging_e2e_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_financial_test_window_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_coins_check_maturity_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_payment_deliver_alerts_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_payment_integrity_monitor_rejects_malformed_syntax",
+            "ok": true,
+            "detail": "unknown=2 equals=2 missing=2"
+        },
+        {
+            "name": "cli_parser_equals_group",
+            "ok": true,
+            "detail": "Unsupported syntax \"--group=phase13b\". Use \"--group <value>\" (space-separated); \"=\" is not parsed by the CI4 CLI and would be ignored."
+        },
+        {
+            "name": "cli_parser_unsupported_group",
+            "ok": true,
+            "detail": "Invalid value \"coin_platform\" for --group (allowed: default, phase12a, phase12b, phase13a, phase13b)."
+        },
+        {
+            "name": "cli_parser_unsupported_group_tests",
+            "ok": true,
+            "detail": "Invalid value \"tests\" for --group (allowed: default, phase12a, phase12b, phase13a, phase13b)."
+        },
+        {
+            "name": "cli_parser_missing_value",
+            "ok": true,
+            "detail": "Option \"--group\" requires a value."
+        },
+        {
+            "name": "cli_parser_flag_given_value_is_positional",
+            "ok": true,
+            "detail": "Unexpected argument(s): now (this command takes only --options)."
+        },
+        {
+            "name": "cli_parser_duplicate_group",
+            "ok": true,
+            "detail": "Option \"--group\" was given more than once."
+        },
+        {
+            "name": "cli_parser_conflicting",
+            "ok": true,
+            "detail": "Conflicting options: --dry-run and --confirm cannot be combined."
+        },
+        {
+            "name": "cli_parser_short_option",
+            "ok": true,
+            "detail": "Short option \"-g\" is not supported. | Unexpected argument(s): phase13b (this command takes only --options)."
+        },
+        {
+            "name": "cli_parser_bad_limit",
+            "ok": true,
+            "detail": "--limit must be a positive whole number (got \"abc\")."
+        },
+        {
+            "name": "cli_parser_bad_date",
+            "ok": true,
+            "detail": "--date must be today, yesterday or YYYY-MM-DD (got \"15-10-2026\")."
+        },
+        {
+            "name": "cli_parser_valid_command_accepted",
+            "ok": true,
+            "detail": "options={\"group\":\"phase13b\",\"date\":\"yesterday\",\"scheduled\":true,\"strict-exit\":true,\"confirm\":\"APPLY_STAGING\",\"batch-size\":\"250\"}"
+        },
+        {
+            "name": "cli_valid_dry_run_preserved",
+            "ok": true,
+            "detail": "exit=0 status=dry_run"
+        },
+        {
+            "name": "cli_unknown_group_never_falls_back_to_default_db",
+            "ok": true,
+            "detail": "exit=2"
+        },
+        {
+            "name": "ownership_ledger_untouched_by_posting",
+            "ok": true,
+            "detail": "member_coin_balances identical before/after all posting stages"
+        },
+        {
+            "name": "zero_duplicate_credits_per_member_per_date",
+            "ok": true,
+            "detail": "duplicate groups=0"
+        },
+        {
+            "name": "wallet_balance_equals_ledger_for_every_member",
+            "ok": true,
+            "detail": "wallet/ledger mismatches=0"
+        },
+        {
+            "name": "production_switches_off_after",
+            "ok": true,
+            "detail": "{\"miningPostingEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false,\"sandbox_window_open\":false}"
+        },
+        {
+            "name": "perf_100_members_posted_reconciled_idempotent",
+            "ok": true,
+            "detail": "ledger=100 sum=3.84193574 expected=3.84193574 dupes=0 repeat_credited=0"
+        },
+        {
+            "name": "perf_2000_members_posted_reconciled_idempotent",
+            "ok": true,
+            "detail": "ledger=2000 sum=77.41936000 expected=77.41936000 dupes=0 repeat_credited=0"
+        },
+        {
+            "name": "perf_2001_members_posted_reconciled_idempotent",
+            "ok": true,
+            "detail": "ledger=2001 sum=77.48710194 expected=77.48710194 dupes=0 repeat_credited=0"
+        },
+        {
+            "name": "perf_5000_members_posted_reconciled_idempotent",
+            "ok": true,
+            "detail": "ledger=5000 sum=193.51936774 expected=193.51936774 dupes=0 repeat_credited=0"
+        },
+        {
+            "name": "perf_10000_members_posted_reconciled_idempotent",
+            "ok": true,
+            "detail": "ledger=10000 sum=387.07744516 expected=387.07744516 dupes=0 repeat_credited=0"
+        },
+        {
+            "name": "perf_resume_5000_no_duplicates_no_skips",
+            "ok": true,
+            "detail": "ledger=5000 dupes=0"
+        },
+        {
+            "name": "live_database_unchanged",
+            "ok": true,
+            "detail": "coin_platform fingerprint identical before and after"
+        }
+    ],
+    "passed": 125,
+    "failed": 0,
+    "finished_at": "2026-11-18T06:47:48+00:00"
+}

@@ -11,8 +11,8 @@ class MiningReconcile extends BaseCommand
 {
     protected $group       = 'Mining';
     protected $name        = 'mining:reconcile';
-    protected $description = 'Read-only reconcile expected dry-run vs posted mining ledger.';
-    protected $usage       = 'mining:reconcile [--date=YYYY-MM-DD] [--limit=200]';
+    protected $description = 'LEGACY read-only reconcile (current balances, 2000 cap). Not valid for as-of mining; see mining:post.';
+    protected $usage       = 'mining:reconcile [--date YYYY-MM-DD] [--limit 200]';
     protected $options     = [
         '--date'  => 'Business date YYYY-MM-DD',
         '--limit' => 'Max members',
@@ -20,6 +20,11 @@ class MiningReconcile extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('mining:reconcile', ['values' => ['date' => 'date', 'limit' => 'int-positive']]) === null) {
+            return 2;
+        }
+
+        CLI::write('LEGACY reconcile: compares against a CURRENT-balance dry run capped at 2000 members; it is read-only and not valid evidence for as-of (historical) mining. Use `php spark mining:post --dry-run` / the day-run verification instead.', 'red');
         $date = CLI::getOption('date');
         if ($date === null || $date === true || $date === '') {
             $date = service('miningEligibilityService')->businessDate();

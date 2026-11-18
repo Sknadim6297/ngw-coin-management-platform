@@ -15,13 +15,17 @@ class MiningP2pReconcile extends BaseCommand
     protected $group       = 'Mining';
     protected $name        = 'mining:p2p-reconcile';
     protected $description = 'Read-only reconcile mining P2P transfers vs mining wallet ledger.';
-    protected $usage       = 'mining:p2p-reconcile [--limit=200]';
+    protected $usage       = 'mining:p2p-reconcile [--limit 200]';
     protected $options     = [
         '--limit' => 'Max transfer rows to inspect',
     ];
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('mining:p2p-reconcile', ['values' => ['limit' => 'int-positive']]) === null) {
+            return 2;
+        }
+
         $limit  = (int) (CLI::getOption('limit') ?: 200);
         $report = service('miningP2pTransferService')->reconcile($limit);
 

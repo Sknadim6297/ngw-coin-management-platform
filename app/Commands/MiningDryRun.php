@@ -16,7 +16,7 @@ class MiningDryRun extends BaseCommand
     protected $group       = 'Mining';
     protected $name        = 'mining:dry-run';
     protected $description = 'Read-only daily mining preview (no wallet credits).';
-    protected $usage       = 'mining:dry-run [--date=YYYY-MM-DD] [--limit=50] [--persist]';
+    protected $usage       = 'mining:dry-run [--date YYYY-MM-DD] [--limit 50] [--persist]';
     protected $options     = [
         '--date'    => 'Business date YYYY-MM-DD (Asia/Kolkata mining timezone when omitted)',
         '--limit'   => 'Max members to preview (default 50, max 2000)',
@@ -25,6 +25,10 @@ class MiningDryRun extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('mining:dry-run', ['values' => ['date' => 'date', 'limit' => 'int-positive'], 'flags' => ['persist']]) === null) {
+            return 2;
+        }
+
         $date = CLI::getOption('date');
         if ($date === null || $date === true || $date === '') {
             $date = service('miningEligibilityService')->businessDate();

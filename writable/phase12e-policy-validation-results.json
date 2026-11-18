@@ -1,0 +1,85 @@
+{
+  "phase": "12E",
+  "generated_at": "2026-11-17T18:45:00+05:30",
+  "scope": "configuration_and_approval_preparation_only",
+  "database_isolation": {
+    "phpunit_database": "coin_platform_test",
+    "production_database": "coin_platform",
+    "production_mutated": false,
+    "migrations_run_on_production": false
+  },
+  "kill_switches": {
+    "miningPostingEnabled": false,
+    "miningP2pEnabled": false,
+    "commissionPostingEnabled": false,
+    "commissionWithdrawalEnabled": false,
+    "commissionBlockchainPayoutEnabled": false,
+    "coinSellingEnabled": false,
+    "all_off": true
+  },
+  "phpunit": {
+    "filter": "Phase12EFinancialPolicyTest",
+    "executed": true,
+    "tests": 10,
+    "assertions": 45,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "coverage_driver": false,
+    "log_file": "writable/phpunit-phase12e.txt",
+    "cases": [
+      {"name": "testMiningPolicyValidationPreview", "result": "PASS"},
+      {"name": "testCommissionPlanPreviewValidation", "result": "PASS"},
+      {"name": "testP2pWithdrawalSellingSnapshotsUnresolved", "result": "PASS"},
+      {"name": "testMemberIdAndLockPreviewsDoNotMutate", "result": "PASS"},
+      {"name": "testDraftCreateSubmitAndSelfApprovalRejected", "result": "PASS"},
+      {"name": "testApprovedPoliciesImmutableAndVersioning", "result": "PASS"},
+      {"name": "testEffectiveDateValidation", "result": "PASS"},
+      {"name": "testSupportViewRestrictions", "result": "PASS"},
+      {"name": "testKillSwitchesRemainOffAndReadiness", "result": "PASS"},
+      {"name": "testProductionDatabaseIsolation", "result": "PASS"}
+    ]
+  },
+  "policy_previews": {
+    "mining_illustrative": {
+      "owned": "100",
+      "monthly_percent": "3",
+      "divisor": "fixed_30",
+      "daily_earning": "0.10000000",
+      "approved_production_formula": false
+    },
+    "commission_illustrative": {
+      "base_usdt": "100",
+      "l1": "10.00000000",
+      "l2": "5.00000000",
+      "l3": "3.00000000",
+      "total": "18.00000000",
+      "calculation_base_approved": false
+    }
+  },
+  "readiness_summary_defaults": {
+    "mining": "MISSING",
+    "commission": "MISSING",
+    "p2p": "MISSING",
+    "withdrawal": "MISSING",
+    "selling": "MISSING",
+    "member_id_correction": "PENDING",
+    "historical_lock1000": "PENDING",
+    "blockchain_verifier": "BLOCKED",
+    "backup_restore": "NOT_VERIFIED_IN_12E",
+    "scheduler": "BLOCKED",
+    "production_security": "BLOCKED"
+  },
+  "commands_reused_not_executed_on_production": [
+    "php spark members:correct-sequence",
+    "php spark locking:remediate-mandatory"
+  ],
+  "safety": {
+    "balances_unchanged": true,
+    "member_ids_unchanged": true,
+    "lock1000_not_applied": true,
+    "no_real_usdt": true,
+    "no_deploy": true,
+    "no_auto_policy_activation": true
+  }
+}

@@ -1,0 +1,3 @@
+
+[mining:post] Unsupported syntax "--group=phase13b". Use "--group <value>" (space-separated); "=" is not parsed by the CI4 CLI and would be ignored.
+Nothing was executed. See: php spark help mining:post

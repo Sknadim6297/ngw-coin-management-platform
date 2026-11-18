@@ -284,6 +284,18 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
         return redirect()->to(site_url('admin/reports'));
     });
 
+    // Phase 12E financial policies hub (configuration / approval only — no kill-switch enablement)
+    $routes->get('financial-policies', 'Admin\FinancialPoliciesController::index');
+    $routes->get('financial-policies/create', 'Admin\FinancialPoliciesController::create');
+    $routes->get('financial-policies/preview', 'Admin\FinancialPoliciesController::preview');
+    $routes->get('financial-policies/mining-worksheet', 'Admin\FinancialPoliciesController::miningWorksheet');
+    $routes->post('financial-policies', 'Admin\FinancialPoliciesController::store');
+    $routes->get('financial-policies/(:segment)', 'Admin\FinancialPoliciesController::show/$1');
+    $routes->post('financial-policies/(:segment)/submit', 'Admin\FinancialPoliciesController::submit/$1');
+    $routes->post('financial-policies/(:segment)/approve', 'Admin\FinancialPoliciesController::approve/$1');
+    $routes->post('financial-policies/(:segment)/activate', 'Admin\FinancialPoliciesController::activate/$1');
+    $routes->post('financial-policies/(:segment)/reject', 'Admin\FinancialPoliciesController::reject/$1');
+
     // Phase 9C platform settings
     $routes->get('settings', 'Admin\SettingsController::index');
     $routes->post('settings', 'Admin\SettingsController::update');

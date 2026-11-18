@@ -1,0 +1,97 @@
+=== Phase13AMiningPostTest
+PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 01:17.266, Memory: 22.00 MB
+
+There was 1 PHPUnit test runner warning:
+
+1) No code coverage driver available
+
+OK, but there were issues!
+Tests: 6, Assertions: 108, PHPUnit Warnings: 1.
+=== MiningSimulationTest
+PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+
+..........                                                        10 / 10 (100%)
+
+Time: 02:06.556, Memory: 20.00 MB
+
+There was 1 PHPUnit test runner warning:
+
+1) No code coverage driver available
+
+OK, but there were issues!
+Tests: 10, Assertions: 29, PHPUnit Warnings: 1.
+=== Phase11AAutoLockMiningTest
+PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+
+............                                                      12 / 12 (100%)
+
+Time: 03:15.416, Memory: 20.00 MB
+
+There was 1 PHPUnit test runner warning:
+
+1) No code coverage driver available
+
+OK, but there were issues!
+Tests: 12, Assertions: 47, PHPUnit Warnings: 1.
+=== Phase11CMiningP2pTest
+PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+
+.....................                                             21 / 21 (100%)
+
+Time: 04:54.869, Memory: 20.00 MB
+
+There was 1 PHPUnit test runner warning:
+
+1) No code coverage driver available
+
+OK, but there were issues!
+Tests: 21, Assertions: 57, PHPUnit Warnings: 1.
+=== Phase12EFinancialPolicyTest
+PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+
+..........                                                        10 / 10 (100%)
+
+Time: 02:09.566, Memory: 18.00 MB
+
+There was 1 PHPUnit test runner warning:
+
+1) No code coverage driver available
+
+OK, but there were issues!
+Tests: 10, Assertions: 45, PHPUnit Warnings: 1.
+=== Phase12FControlledRemediationTest
+PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+
+..........                                                        10 / 10 (100%)
+
+Time: 02:16.433, Memory: 20.00 MB
+
+There was 1 PHPUnit test runner warning:
+
+1) No code coverage driver available
+
+OK, but there were issues!
+Tests: 10, Assertions: 52, PHPUnit Warnings: 1.
+=== DONE

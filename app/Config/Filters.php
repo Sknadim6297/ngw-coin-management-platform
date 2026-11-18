@@ -50,11 +50,16 @@ class Filters extends BaseFilters
             'forcehttps',
             'pagecache',
         ],
-        'after' => [
-            'pagecache',
-            'performance',
-            'toolbar',
-        ],
+        'after' => ENVIRONMENT === 'production'
+            ? [
+                'pagecache',
+                'performance',
+            ]
+            : [
+                'pagecache',
+                'performance',
+                'toolbar',
+            ],
     ];
 
     public array $globals = [

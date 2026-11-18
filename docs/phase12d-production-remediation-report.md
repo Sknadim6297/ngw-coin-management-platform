@@ -1,4 +1,4 @@
-# Phase 12D — Production Blocker Remediation & Activation Preparation
+﻿# Phase 12D — Production Blocker Remediation & Activation Preparation
 
 **Generated:** 2026-11-17  
 **Project:** NGW Coin Management Platform  
@@ -58,7 +58,7 @@
 php spark members:correct-sequence --dry-run
 php spark members:correct-sequence --group phase12d --confirm APPLY_STAGING
 # Production (separate authorization only):
-php spark members:correct-sequence --allow-production --confirm="I_AUTHORIZE_PRODUCTION_CHANGE"
+php spark members:correct-sequence --allow-production --confirm "I_AUTHORIZE_PRODUCTION_CHANGE"
 ```
 
 Also update `.env`:
@@ -108,7 +108,7 @@ php spark locking:remediate-mandatory --purchase PUR-10D7174B7FF83054 --dry-run
 # Staging:
 php spark locking:remediate-mandatory --group phase12d --purchase PUR-... --confirm APPLY_STAGING
 # Production (separate authorization only):
-php spark locking:remediate-mandatory --purchase PUR-10D7174B7FF83054 --allow-production --confirm="I_AUTHORIZE_PRODUCTION_CHANGE"
+php spark locking:remediate-mandatory --purchase PUR-10D7174B7FF83054 --allow-production --confirm "I_AUTHORIZE_PRODUCTION_CHANGE"
 ```
 
 ### Isolated execution evidence (`coin_platform_phase12d`)
@@ -302,8 +302,8 @@ PHPUnit full suite not re-run (per Phase 12C operator preference). Engine covera
 
 **Status: READY FOR APPROVAL**
 
-1. `.env` Member ID start=1234, padding=4 + `members:correct-sequence --allow-production --confirm=I_AUTHORIZE_PRODUCTION_CHANGE`
-2. `locking:remediate-mandatory --purchase PUR-10D7174B7FF83054 --allow-production --confirm=I_AUTHORIZE_PRODUCTION_CHANGE`
+1. `.env` Member ID start=1234, padding=4 + `members:correct-sequence --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE`
+2. `locking:remediate-mandatory --purchase PUR-10D7174B7FF83054 --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE`
 3. Approved mining monthly % + policy statuses → approved rate row
 4. Dual-control commission plan approve (10/5/3)
 5. Real BEP20 USDT contract + destination + RPC → `depositVerifier=evm_erc20`

@@ -1,0 +1,1507 @@
+{
+    "phase": "13C",
+    "started_at": "2026-11-18T07:45:50+00:00",
+    "notes": "Preparation only. No production posting, migration, remediation, scheduler or deployment.",
+    "preflight": {
+        "configured_default": {
+            "hostname": "localhost",
+            "port": 3306,
+            "database": "coin_platform"
+        },
+        "server": {
+            "hostname": "DESKTOP-BHPK7S1",
+            "version": "10.4.32-MariaDB",
+            "port": "3306"
+        },
+        "classification": "LOCAL XAMPP OPERATIONAL COPY of the application database (coin_platform). It is NOT proven to be the deployed production host: \"localhost\" is not treated as safe, so the live database is only ever read through a verified SELECT-only account.",
+        "default_group_is_live": true,
+        "sandbox_view": {
+            "is_allowed_isolated": false,
+            "is_forbidden": true
+        },
+        "environment": "development",
+        "mysql_client": "C:\\xampp\\mysql\\bin\\mysql.exe",
+        "kill_switches": {
+            "miningPostingEnabled": false,
+            "miningAutoPostEnabled": false,
+            "miningP2pEnabled": false,
+            "commissionPostingEnabled": false,
+            "commissionWithdrawalEnabled": false,
+            "commissionBlockchainPayoutEnabled": false,
+            "coinSellingEnabled": false
+        }
+    },
+    "live_access": {
+        "account": "p13c_live_ro",
+        "privileges": "SELECT on coin_platform.* only",
+        "password": "random, never logged, account dropped afterwards"
+    },
+    "live_fingerprint_before": {
+        "database": "coin_platform",
+        "table_count": 73,
+        "members": 2,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ],
+        "member_id_sequences": [
+            {
+                "prefix": "NGW",
+                "last_number": "981233"
+            }
+        ],
+        "approved_purchases": 1,
+        "owned_total": "5.00000000",
+        "available_total": "5.00000000",
+        "locked_total": "0.00000000",
+        "reserved_total": "0.00000000",
+        "ownership_ledger_rows": 1,
+        "locks_total": 0,
+        "mandatory_locks": 0,
+        "mining_wallet_total": "0.00000000",
+        "mining_ledger_rows": 0,
+        "commission_ledger_rows": 0,
+        "latest_migration": "2026-11-17-992001",
+        "switches": {
+            "miningPostingEnabled": false,
+            "miningP2pEnabled": false,
+            "commissionPostingEnabled": false,
+            "commissionWithdrawalEnabled": false,
+            "commissionBlockchainPayoutEnabled": false,
+            "coinSellingEnabled": false,
+            "sandbox_window_open": false
+        },
+        "row_counts": {
+            "admin_impersonation_grants": 4,
+            "admin_impersonation_sessions": 4,
+            "audit_logs": 35,
+            "auth_groups_users": 5,
+            "auth_identities": 2,
+            "auth_logins": 6,
+            "auth_permissions_users": 0,
+            "auth_remember_tokens": 0,
+            "auth_token_logins": 0,
+            "blockchain_health_snapshots": 1,
+            "coin_inventory": 1,
+            "coin_inventory_transactions": 2,
+            "coin_locking_plans": 0,
+            "coin_price_history": 0,
+            "coin_purchase_requests": 2,
+            "coin_sell_events": 0,
+            "coin_sell_requests": 0,
+            "coin_settings": 1,
+            "commission_eligibility_audit_events": 0,
+            "commission_plans": 0,
+            "commission_plan_approval_events": 0,
+            "commission_plan_levels": 0,
+            "commission_posting_proposals": 0,
+            "commission_posting_proposal_events": 0,
+            "commission_purchase_calculations": 0,
+            "commission_simulation_items": 0,
+            "commission_simulation_runs": 0,
+            "commission_wallet_accounts": 1,
+            "commission_wallet_ledger_entries": 0,
+            "commission_withdrawal_events": 0,
+            "commission_withdrawal_payout_evidence": 0,
+            "commission_withdrawal_requests": 0,
+            "financial_alerts": 0,
+            "financial_remediation_events": 0,
+            "financial_remediation_proposals": 0,
+            "member_coin_balances": 1,
+            "member_coin_locks": 0,
+            "member_coin_lock_events": 0,
+            "member_coin_ownership_transactions": 1,
+            "member_email_change_tokens": 0,
+            "member_id_sequences": 1,
+            "member_profiles": 2,
+            "member_wallet_change_events": 0,
+            "migrations": 45,
+            "mining_daily_calculations": 0,
+            "mining_daily_runs": 0,
+            "mining_eligibility_audit_events": 1,
+            "mining_p2p_transfers": 0,
+            "mining_rate_approval_events": 2,
+            "mining_rate_configs": 1,
+            "mining_simulation_items": 1,
+            "mining_simulation_runs": 1,
+            "mining_wallets": 0,
+            "mining_wallet_ledger": 0,
+            "notification_delivery_events": 0,
+            "notification_outbox": 0,
+            "ops_job_locks": 1,
+            "password_reset_tokens": 0,
+            "payment_destination_change_events": 1,
+            "payment_destination_change_proposals": 1,
+            "platform_settings": 13,
+            "purchase_sponsor_snapshots": 3,
+            "settings": 0,
+            "settings_audit": 0,
+            "sponsor_relationships": 1,
+            "support_tickets": 0,
+            "support_ticket_messages": 0,
+            "usdt_deposit_events": 2,
+            "usdt_deposit_requests": 1,
+            "usdt_payment_allocations": 1,
+            "usdt_payment_allocation_events": 2,
+            "usdt_payment_networks": 2,
+            "users": 2
+        }
+    },
+    "backup_source": {
+        "file": "writable/phase12f-private/coin_platform-full-20261117-134752.sql",
+        "classification": "SOURCE_VERIFIED_LOCAL_COPY",
+        "findings": [],
+        "bytes": 138653,
+        "sha256": "16f44775aca89916c7754192960dc628d27a434f46293a389ef54620fee07766",
+        "file_mtime_utc": "2026-11-17T12:47:53+00:00",
+        "evidence_file": "present",
+        "header": {
+            "host": "localhost",
+            "database": "coin_platform",
+            "server": "10.4.32-MariaDB",
+            "completed": "2026-11-17 18:17:53"
+        },
+        "format": "mysqldump (single-transaction) full schema+data, plain SQL",
+        "create_table_count": 73,
+        "tables_with_data": 34,
+        "dangerous_statements": [],
+        "evidence_backup_timestamp": "2026-11-17T13:47:53+01:00",
+        "authorization": "Created by the user-requested Phase 12F backup/restore task (evidence record present). A written statement that this file represents the DEPLOYED production host is NOT available."
+    },
+    "snapshot_restore": {
+        "database": "coin_platform_phase13c_snapshot",
+        "purpose": "snapshot (audit-only)",
+        "action": "reused (marker present; own tables wiped before restore)",
+        "exit": 0,
+        "duration_s": 3.9,
+        "stderr": ""
+    },
+    "clone_restore": {
+        "database": "coin_platform_phase13c",
+        "purpose": "disposable clone",
+        "action": "reused (marker present; own tables wiped before restore)",
+        "exit": 0,
+        "duration_s": 5.49,
+        "stderr": ""
+    },
+    "snapshot_validation": {
+        "fingerprint": {
+            "database": "coin_platform_phase13c_snapshot",
+            "table_count": 73,
+            "members": 2,
+            "member_ids": [
+                "ROOT0001",
+                "NGW000001"
+            ],
+            "member_id_sequences": [
+                {
+                    "prefix": "NGW",
+                    "last_number": "981233"
+                }
+            ],
+            "approved_purchases": 1,
+            "owned_total": "5.00000000",
+            "available_total": "5.00000000",
+            "locked_total": "0.00000000",
+            "reserved_total": "0.00000000",
+            "ownership_ledger_rows": 1,
+            "locks_total": 0,
+            "mandatory_locks": 0,
+            "mining_wallet_total": "0.00000000",
+            "mining_ledger_rows": 0,
+            "commission_ledger_rows": 0,
+            "latest_migration": "2026-11-17-992001",
+            "switches": {
+                "miningPostingEnabled": false,
+                "miningP2pEnabled": false,
+                "commissionPostingEnabled": false,
+                "commissionWithdrawalEnabled": false,
+                "commissionBlockchainPayoutEnabled": false,
+                "coinSellingEnabled": false,
+                "sandbox_window_open": false
+            },
+            "row_counts": {
+                "admin_impersonation_grants": 2,
+                "admin_impersonation_sessions": 2,
+                "audit_logs": 28,
+                "auth_groups_users": 5,
+                "auth_identities": 2,
+                "auth_logins": 5,
+                "auth_permissions_users": 0,
+                "auth_remember_tokens": 0,
+                "auth_token_logins": 0,
+                "blockchain_health_snapshots": 1,
+                "coin_inventory": 1,
+                "coin_inventory_transactions": 2,
+                "coin_locking_plans": 0,
+                "coin_price_history": 0,
+                "coin_purchase_requests": 2,
+                "coin_sell_events": 0,
+                "coin_sell_requests": 0,
+                "coin_settings": 1,
+                "commission_eligibility_audit_events": 0,
+                "commission_plans": 0,
+                "commission_plan_approval_events": 0,
+                "commission_plan_levels": 0,
+                "commission_posting_proposals": 0,
+                "commission_posting_proposal_events": 0,
+                "commission_purchase_calculations": 0,
+                "commission_simulation_items": 0,
+                "commission_simulation_runs": 0,
+                "commission_wallet_accounts": 1,
+                "commission_wallet_ledger_entries": 0,
+                "commission_withdrawal_events": 0,
+                "commission_withdrawal_payout_evidence": 0,
+                "commission_withdrawal_requests": 0,
+                "financial_alerts": 0,
+                "financial_remediation_events": 0,
+                "financial_remediation_proposals": 0,
+                "member_coin_balances": 1,
+                "member_coin_locks": 0,
+                "member_coin_lock_events": 0,
+                "member_coin_ownership_transactions": 1,
+                "member_email_change_tokens": 0,
+                "member_id_sequences": 1,
+                "member_profiles": 2,
+                "member_wallet_change_events": 0,
+                "migrations": 45,
+                "mining_daily_calculations": 0,
+                "mining_daily_runs": 0,
+                "mining_eligibility_audit_events": 1,
+                "mining_p2p_transfers": 0,
+                "mining_rate_approval_events": 2,
+                "mining_rate_configs": 1,
+                "mining_simulation_items": 1,
+                "mining_simulation_runs": 1,
+                "mining_wallets": 0,
+                "mining_wallet_ledger": 0,
+                "notification_delivery_events": 0,
+                "notification_outbox": 0,
+                "ops_job_locks": 1,
+                "password_reset_tokens": 0,
+                "payment_destination_change_events": 1,
+                "payment_destination_change_proposals": 1,
+                "platform_settings": 13,
+                "purchase_sponsor_snapshots": 3,
+                "settings": 0,
+                "settings_audit": 0,
+                "sponsor_relationships": 1,
+                "support_tickets": 0,
+                "support_ticket_messages": 0,
+                "usdt_deposit_events": 2,
+                "usdt_deposit_requests": 1,
+                "usdt_payment_allocations": 1,
+                "usdt_payment_allocation_events": 2,
+                "usdt_payment_networks": 2,
+                "users": 2
+            }
+        },
+        "check_table_failures": [],
+        "foreign_keys_checked": 32,
+        "fk_orphans": [],
+        "duplicate_references": [],
+        "balance_ledger_mismatch": [],
+        "snapshot_vs_live_now": {
+            "members": {
+                "snapshot": 2,
+                "live": 2,
+                "equal": true
+            },
+            "approved_purchases": {
+                "snapshot": 1,
+                "live": 1,
+                "equal": true
+            },
+            "owned_total": {
+                "snapshot": "5.00000000",
+                "live": "5.00000000",
+                "equal": true
+            },
+            "available_total": {
+                "snapshot": "5.00000000",
+                "live": "5.00000000",
+                "equal": true
+            },
+            "locked_total": {
+                "snapshot": "0.00000000",
+                "live": "0.00000000",
+                "equal": true
+            },
+            "ownership_ledger_rows": {
+                "snapshot": 1,
+                "live": 1,
+                "equal": true
+            },
+            "locks_total": {
+                "snapshot": 0,
+                "live": 0,
+                "equal": true
+            },
+            "mining_ledger_rows": {
+                "snapshot": 0,
+                "live": 0,
+                "equal": true
+            },
+            "commission_ledger_rows": {
+                "snapshot": 0,
+                "live": 0,
+                "equal": true
+            }
+        },
+        "snapshot_matches_live_core": true,
+        "classification": "FULL_DATA_RESTORE_VERIFIED",
+        "scope_caveat": "Verified for the LOCAL operational copy only. This is not proof that the file equals the DEPLOYED production host."
+    },
+    "historical_audit": {
+        "members_in_snapshot": 2,
+        "non_root_members": 1,
+        "business_dates": [
+            "2026-11-16",
+            "2026-11-17",
+            "2026-11-18"
+        ],
+        "rows": [
+            {
+                "member_id": "ROOT0001",
+                "note": "root sponsor \u2014 excluded from the mining population"
+            },
+            {
+                "member_id": "NGW000001",
+                "account_status": "active",
+                "business_date": "2026-11-16",
+                "policy": "T-CALENDAR-HALFUP",
+                "cutoff_utc": "2026-11-16 18:30:00",
+                "incomplete_day": false,
+                "status": "ZERO",
+                "owned": "0.00000000",
+                "available": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "eligible": "0.00000000",
+                "evidence_ref": null,
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "illustrative_daily_at_3pct_calendar31_half_up": "0.00000000"
+            },
+            {
+                "member_id": "NGW000001",
+                "account_status": "active",
+                "business_date": "2026-11-16",
+                "policy": "T-NEXTDAY-DOWN",
+                "cutoff_utc": "2026-11-15 18:30:00",
+                "incomplete_day": false,
+                "status": "ZERO",
+                "owned": "0.00000000",
+                "available": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "eligible": "0.00000000",
+                "evidence_ref": null,
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "illustrative_daily_at_3pct_calendar31_half_up": "0.00000000"
+            },
+            {
+                "member_id": "NGW000001",
+                "account_status": "active",
+                "business_date": "2026-11-17",
+                "policy": "T-CALENDAR-HALFUP",
+                "cutoff_utc": "2026-11-17 18:30:00",
+                "incomplete_day": false,
+                "status": "ELIGIBLE",
+                "owned": "5.00000000",
+                "available": "5.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "eligible": "5.00000000",
+                "evidence_ref": "OWN-70336107CE255D07",
+                "reasons": [],
+                "illustrative_daily_at_3pct_calendar31_half_up": "0.00483871"
+            },
+            {
+                "member_id": "NGW000001",
+                "account_status": "active",
+                "business_date": "2026-11-17",
+                "policy": "T-NEXTDAY-DOWN",
+                "cutoff_utc": "2026-11-16 18:30:00",
+                "incomplete_day": false,
+                "status": "ZERO",
+                "owned": "0.00000000",
+                "available": "0.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "eligible": "0.00000000",
+                "evidence_ref": null,
+                "reasons": [
+                    "no_eligible_ownership_as_of_snapshot"
+                ],
+                "illustrative_daily_at_3pct_calendar31_half_up": "0.00000000"
+            },
+            {
+                "member_id": "NGW000001",
+                "account_status": "active",
+                "business_date": "2026-11-18",
+                "policy": "T-CALENDAR-HALFUP",
+                "cutoff_utc": "2026-11-18 07:46:05",
+                "incomplete_day": true,
+                "status": "ELIGIBLE",
+                "owned": "5.00000000",
+                "available": "5.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "eligible": "5.00000000",
+                "evidence_ref": "OWN-70336107CE255D07",
+                "reasons": [],
+                "illustrative_daily_at_3pct_calendar31_half_up": "0.00483871"
+            },
+            {
+                "member_id": "NGW000001",
+                "account_status": "active",
+                "business_date": "2026-11-18",
+                "policy": "T-NEXTDAY-DOWN",
+                "cutoff_utc": "2026-11-17 18:30:00",
+                "incomplete_day": false,
+                "status": "ELIGIBLE",
+                "owned": "5.00000000",
+                "available": "5.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "eligible": "5.00000000",
+                "evidence_ref": "OWN-70336107CE255D07",
+                "reasons": [],
+                "illustrative_daily_at_3pct_calendar31_half_up": "0.00483871"
+            }
+        ],
+        "ledger_evidence": [
+            {
+                "purchase_ref": "PUR-10D7174B7FF83054",
+                "member_id": "NGW000001",
+                "quantity": "5.00000000",
+                "approved_at_utc": "2026-11-17 06:45:44",
+                "approved_business_date": "2026-11-17 12:15:44 IST",
+                "ledger_credit_rows": 1,
+                "ledger_quantity_matches": true,
+                "ownership_ref_matches": true
+            }
+        ],
+        "missing_or_inconsistent_events": [],
+        "lock_movement_rows": 0,
+        "blocked_rows": 0,
+        "as_of_far_future_vs_cached_balance": {
+            "5": {
+                "status": "ELIGIBLE",
+                "eligible": "5.00000000",
+                "owned": "5.00000000",
+                "available": "5.00000000",
+                "locked": "0.00000000",
+                "reserved": "0.00000000",
+                "evidence_ref": "OWN-70336107CE255D07",
+                "reasons": []
+            }
+        },
+        "classification": "HISTORICAL_OWNERSHIP_RECONSTRUCTED_FOR_SNAPSHOT_MEMBERS",
+        "scope": "Only the 2 members present in the local snapshot. The member tree quoted for production (NGW000002.. NGW981235) is NOT in this data, so its historical ownership is NOT VERIFIED.",
+        "dry_run_only": true
+    },
+    "lock1000_audit": {
+        "purchase_ref": "PUR-10D7174B7FF83054",
+        "checks": {
+            "purchase_exists": {
+                "ok": true,
+                "detail": "found"
+            },
+            "purchase_approved": {
+                "ok": true,
+                "detail": "status=approved"
+            },
+            "member_matches": {
+                "ok": true,
+                "detail": "member_id=NGW000001"
+            },
+            "approval_timestamp_present": {
+                "ok": true,
+                "detail": "reviewed_at=2026-11-17 06:45:44 UTC"
+            },
+            "ownership_credit_exists": {
+                "ok": true,
+                "detail": "PURCHASE_CREDIT rows=1"
+            },
+            "quantity_matches": {
+                "ok": true,
+                "detail": "purchase qty=5.00000000"
+            },
+            "mandatory_lock_missing": {
+                "ok": true,
+                "detail": "locks for purchase=0"
+            },
+            "no_reservation": {
+                "ok": true,
+                "detail": "reserved=0.00000000"
+            },
+            "no_prior_remediation": {
+                "ok": true,
+                "detail": "prior remediation audit rows=0"
+            },
+            "invariant_total": {
+                "ok": true,
+                "detail": "total=5.00000000 available=5.00000000 locked=0.00000000"
+            },
+            "cli_dry_run_ok": {
+                "ok": true,
+                "detail": "php spark locking:remediate-mandatory --group phase13c_snapshot --dry-run exit=0"
+            },
+            "snapshot_apply_refused": {
+                "ok": true,
+                "detail": "Apply against the snapshot group is refused (exit=1)."
+            }
+        },
+        "computed_maturity_utc": "2029-08-13 06:45:44",
+        "balance_before": {
+            "balance": "5.00000000",
+            "available_balance": "5.00000000",
+            "locked_balance": "0.00000000",
+            "reserved_balance": "0.00000000"
+        },
+        "cli_dry_run_exit": 0,
+        "cli_dry_run": {
+            "database": "coin_platform_phase13c_snapshot",
+            "group": "phase13c_snapshot",
+            "is_live": false,
+            "purchase_ref": "PUR-10D7174B7FF83054",
+            "member_id": "NGW000001",
+            "member_user_id": 5,
+            "purchase": {
+                "status": "approved",
+                "coin_quantity": "5.00000000",
+                "reviewed_at": "2026-11-17 06:45:44",
+                "total_usdt": "5.00000000"
+            },
+            "existing_mandatory_lock": null,
+            "idempotency_key": "mandatory-lock:PUR-10D7174B7FF83054",
+            "checks": {
+                "purchase_approved": true,
+                "quantity_positive": true,
+                "ownership_present": true,
+                "reviewed_at_set": true,
+                "no_existing_mandatory_lock": true,
+                "sufficient_available": true,
+                "total_matches_parts": true
+            },
+            "ready": true,
+            "before": {
+                "available_balance": "5.00000000",
+                "locked_balance": "0.00000000",
+                "reserved_balance": "0.00000000",
+                "balance": "5.00000000"
+            },
+            "after_projected": {
+                "available_balance": "0.00000000",
+                "locked_balance": "5.00000000",
+                "reserved_balance": "0.00000000",
+                "balance": "5.00000000",
+                "plan": "LOCK1000",
+                "locked_at": "2026-11-17 06:45:44",
+                "matures_at": "2029-08-13 06:45:44",
+                "duration_days": 1000
+            },
+            "note": "Ready for remediation via CoinLockingService::lockMandatoryForPurchase (total owned unchanged).",
+            "executed": false,
+            "dry_run": true
+        },
+        "cli_dry_run_stdout_excerpt": null,
+        "classification": "LOCK1000_ELIGIBLE_FOR_REMEDIATION_ON_SNAPSHOT"
+    },
+    "migration_readiness": {
+        "database": "coin_platform_phase13c",
+        "migrations_alter_existing_tables": [],
+        "applied": {
+            "previous_latest": "2026-11-17-992001",
+            "new_versions": [
+                "2026-11-17-993001",
+                "2026-11-18-994001"
+            ],
+            "duration_s": 0.49
+        },
+        "new_tables": [
+            "financial_policy_events",
+            "financial_policy_versions",
+            "mining_post_day_runs",
+            "mining_post_members"
+        ],
+        "existing_tables_ddl_changed": [],
+        "existing_tables_data_changed": [],
+        "new_table_foreign_keys": [],
+        "new_table_indexes": {
+            "financial_policy_events": [
+                "PRIMARY",
+                "policy_ref"
+            ],
+            "financial_policy_versions": [
+                "PRIMARY",
+                "policy_ref",
+                "domain_status",
+                "domain_version_no"
+            ],
+            "mining_post_day_runs": [
+                "PRIMARY",
+                "business_date",
+                "state"
+            ],
+            "mining_post_members": [
+                "PRIMARY",
+                "business_date_member_user_id",
+                "business_date_status_member_user_id"
+            ]
+        },
+        "compatibility": {
+            "worksheet_builds": true,
+            "hub_tables_visible_to_worksheet": true,
+            "mining_post_dry_run_exit": 0,
+            "mining_post_dry_run_tail": "ted_total\": \"0.00000000\",\n    \"posted_total\": \"0.00000000\",\n    \"message\": \"DRY-RUN only \\u2014 no approved mining rate for 2026-11; a real run would be BLOCKED.\"\n}\r\nDRY_RUN \u2014 DRY-RUN only \u2014 no approved mining rate for 2026-11; a real run would be BLOCKED.\r\nSCHEDULER_STATUS=DRY_RUN EXIT_CODE=0",
+            "mining_post_expected": "DRY_RUN reporting that no approved mining rate exists (a real run would be BLOCKED) \u2014 proves the command runs on the migrated restored schema without crashing or posting."
+        },
+        "rollback": {
+            "versions_after_down": true,
+            "new_tables_remaining": [],
+            "original_tables_identical_after_down": true,
+            "limit": "down() DROPs the new tables including any rows they contain: rollback is only data-safe BEFORE the scheduler/policies write to them (export first otherwise)."
+        },
+        "reapply_ok": true,
+        "production_checklist": [
+            "1. Take a fresh verified FULL-data backup of the production database; record sha256 and row counts.",
+            "2. Maintenance window; keep every kill-switch FALSE; confirm no scheduler/cron entry exists.",
+            "3. Run `php spark migrate` ONLY with a written production migration authorization; expected set = 2026-11-17-993001, 2026-11-18-994001 (additive only).",
+            "4. Verify: only those 2 versions added; 3 hub/run tables created; all pre-existing tables unchanged (CHECKSUM TABLE).",
+            "5. Re-run this phase's read-only fingerprint; confirm balances/ledgers/members unchanged.",
+            "6. If anything is wrong before any policy/run rows exist: `php spark migrate:rollback` is safe (drops only new empty tables). After rows exist: export first."
+        ]
+    },
+    "lock1000_simulation": {
+        "database": "coin_platform_phase13c",
+        "baseline": {
+            "database": "coin_platform_phase13c",
+            "table_count": 77,
+            "members": 2,
+            "member_ids": [
+                "ROOT0001",
+                "NGW000001"
+            ],
+            "member_id_sequences": [
+                {
+                    "prefix": "NGW",
+                    "last_number": "981233"
+                }
+            ],
+            "approved_purchases": 1,
+            "owned_total": "5.00000000",
+            "available_total": "5.00000000",
+            "locked_total": "0.00000000",
+            "reserved_total": "0.00000000",
+            "ownership_ledger_rows": 1,
+            "locks_total": 0,
+            "mandatory_locks": 0,
+            "mining_wallet_total": "0.00000000",
+            "mining_ledger_rows": 0,
+            "commission_ledger_rows": 0,
+            "latest_migration": "2026-11-18-994001",
+            "member_balance": {
+                "balance": "5.00000000",
+                "available_balance": "5.00000000",
+                "locked_balance": "0.00000000",
+                "reserved_balance": "0.00000000"
+            },
+            "inventory": {
+                "available_balance": "19995.00000000",
+                "total_allocated": "5.00000000"
+            },
+            "inventory_txn_rows": 2,
+            "purchase_credit_rows": 1,
+            "withdrawal_or_sale_tables": 0
+        },
+        "dry_run_exit": 0,
+        "apply_exit": 0,
+        "apply_tail": "ok",
+        "after": {
+            "database": "coin_platform_phase13c",
+            "table_count": 77,
+            "members": 2,
+            "member_ids": [
+                "ROOT0001",
+                "NGW000001"
+            ],
+            "member_id_sequences": [
+                {
+                    "prefix": "NGW",
+                    "last_number": "981233"
+                }
+            ],
+            "approved_purchases": 1,
+            "owned_total": "5.00000000",
+            "available_total": "0.00000000",
+            "locked_total": "5.00000000",
+            "reserved_total": "0.00000000",
+            "ownership_ledger_rows": 2,
+            "locks_total": 1,
+            "mandatory_locks": 1,
+            "mining_wallet_total": "0.00000000",
+            "mining_ledger_rows": 0,
+            "commission_ledger_rows": 0,
+            "latest_migration": "2026-11-18-994001",
+            "member_balance": {
+                "balance": "5.00000000",
+                "available_balance": "0.00000000",
+                "locked_balance": "5.00000000",
+                "reserved_balance": "0.00000000"
+            },
+            "inventory": {
+                "available_balance": "19995.00000000",
+                "total_allocated": "5.00000000"
+            },
+            "inventory_txn_rows": 2,
+            "purchase_credit_rows": 1,
+            "withdrawal_or_sale_tables": 0
+        },
+        "reconciliation": {
+            "before": {
+                "available": "5.00000000",
+                "locked": "0.00000000",
+                "total": "5.00000000"
+            },
+            "proposed": {
+                "available": "0.00000000",
+                "locked": "5.00000000",
+                "total": "5.00000000"
+            },
+            "actual_simulated": {
+                "available": "0.00000000",
+                "locked": "5.00000000",
+                "total": "5.00000000"
+            },
+            "difference_actual_vs_proposed": {
+                "available": "0.00000000",
+                "locked": "0.00000000",
+                "total": "0.00000000"
+            },
+            "status": "PASS (snapshot clone only \u2014 NOT a production correction)"
+        },
+        "no_side_effects": true,
+        "ledger_rows_added": 1,
+        "locks_added": 1,
+        "second_apply_exit": 0,
+        "second_apply_idempotent": true
+    },
+    "legacy_commands": {
+        "MiningDaily": {
+            "labelled_legacy": true,
+            "references_batch_poster": false,
+            "points_to_safe_command": true,
+            "writes_wallet_tables": false
+        },
+        "MiningReconcile": {
+            "labelled_legacy": true,
+            "references_batch_poster": false,
+            "points_to_safe_command": true,
+            "writes_wallet_tables": false
+        },
+        "mining_daily_run": {
+            "exit": 0,
+            "legacy_banner": true
+        },
+        "mining_reconcile_run": {
+            "exit": 0,
+            "legacy_banner": true
+        },
+        "wallet_state_unchanged": true,
+        "post_flag_refused": true
+    },
+    "monitoring": {
+        "scenarios": {
+            "failed_run": {
+                "expected": "nonzero_exit",
+                "raised": [
+                    "nonzero_exit"
+                ],
+                "ok": true
+            },
+            "partial_run": {
+                "expected": "partial_run",
+                "raised": [
+                    "nonzero_exit",
+                    "partial_run"
+                ],
+                "ok": true
+            },
+            "missing_rate": {
+                "expected": "missing_rate",
+                "raised": [
+                    "nonzero_exit",
+                    "missing_rate"
+                ],
+                "ok": true
+            },
+            "missing_evidence": {
+                "expected": "blocked_historical_data",
+                "raised": [
+                    "nonzero_exit",
+                    "blocked_historical_data"
+                ],
+                "ok": true
+            },
+            "reconciliation_mismatch": {
+                "expected": "reconciliation_failed",
+                "raised": [
+                    "nonzero_exit",
+                    "reconciliation_failed"
+                ],
+                "ok": true
+            },
+            "duplicate_invocation": {
+                "expected": "lock_contention",
+                "raised": [
+                    "lock_contention"
+                ],
+                "ok": true
+            },
+            "timeout": {
+                "expected": "job_timeout",
+                "raised": [
+                    "nonzero_exit",
+                    "partial_run",
+                    "job_timeout"
+                ],
+                "ok": true
+            },
+            "excessive_retry": {
+                "expected": "excessive_retry",
+                "raised": [
+                    "excessive_retry"
+                ],
+                "ok": true
+            },
+            "database_loss": {
+                "expected": "database_connection_failure",
+                "raised": [
+                    "nonzero_exit",
+                    "database_connection_failure"
+                ],
+                "ok": true
+            },
+            "missed_scheduled_run": {
+                "expected": "missing_scheduled_run",
+                "raised": [
+                    "missing_scheduled_run"
+                ],
+                "ok": true
+            }
+        },
+        "events_captured": 17,
+        "delivery": "LOCAL ONLY (writable/phase13c-mock-alerts.log + CI log + in-process event). No recipient configured or contacted.",
+        "alert_destination": "NOT CONFIGURED (BLOCKER) \u2014 recipients must be supplied by the business; none were invented."
+    },
+    "rollback_proof": {
+        "restore_duration_s": 4.87,
+        "clone_identical_to_baseline": true,
+        "method": "drop clone tables (marker-guarded) + restore the same dump"
+    },
+    "snapshot_pristine_after_audit": {
+        "ok": true,
+        "detail": "CHECKSUM TABLE of all 73 snapshot tables identical before and after all audits."
+    },
+    "live_readiness": {
+        "database": "coin_platform",
+        "worksheet_decisions": [
+            {
+                "id": "monthly_percent",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "day_divisor",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "denomination",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "approval_day",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "locked_coins",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "post_maturity",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "post_sale",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "rounding",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "residual",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "effective_dates",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "scheduler_time",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            },
+            {
+                "id": "alert_destination",
+                "state": "PENDING_BUSINESS_APPROVAL"
+            }
+        ],
+        "worksheet_blockers": [
+            {
+                "id": "POLICY-MONTHLY_PERCENT",
+                "blocker": "Monthly mining percentage is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-DAY_DIVISOR",
+                "blocker": "Daily divisor (fixed 30 vs calendar days) is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-DENOMINATION",
+                "blocker": "Mining denomination (COIN vs USDT) is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-APPROVAL_DAY",
+                "blocker": "Approval-day eligibility is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-LOCKED_COINS",
+                "blocker": "Locked coin eligibility is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-POST_MATURITY",
+                "blocker": "Mining after LOCK1000 maturity / unlock is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-POST_SALE",
+                "blocker": "Mining after sale / during reservation is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-ROUNDING",
+                "blocker": "Rounding policy is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-RESIDUAL",
+                "blocker": "Residual / final-day adjustment is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-EFFECTIVE_DATES",
+                "blocker": "Effective dates & policy versions is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-SCHEDULER_TIME",
+                "blocker": "Scheduler run time is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "POLICY-ALERT_DESTINATION",
+                "blocker": "Alert destination is not approved (PENDING_BUSINESS_APPROVAL).",
+                "status": "OPEN"
+            },
+            {
+                "id": "RATE-APPROVED",
+                "blocker": "No approved, non-test monthly mining rate exists in this database.",
+                "status": "OPEN"
+            },
+            {
+                "id": "HUB-MIGRATION",
+                "blocker": "financial_policy_versions table is absent (migration 993001 not applied to this database).",
+                "status": "OPEN"
+            }
+        ],
+        "matrix_written": "docs/phase13c-mining-business-decision-matrix.md",
+        "scheduler_readiness": {
+            "checks": [
+                {
+                    "id": "php_cli",
+                    "requirement": "Correct PHP CLI binary",
+                    "status": "PASS",
+                    "evidence": "PHP_BINARY=C:\\xampp\\php\\php.exe sapi=cli version=8.2.12 (local machine; the DEPLOYMENT server path is NOT_VERIFIED)"
+                },
+                {
+                    "id": "php_cli_deployment_path",
+                    "requirement": "PHP CLI path on the deployment server",
+                    "status": "NOT_VERIFIED",
+                    "evidence": "Cannot be proven from this machine."
+                },
+                {
+                    "id": "project_root",
+                    "requirement": "Correct project root with spark entry",
+                    "status": "PASS",
+                    "evidence": "ROOTPATH=C:\\xampp\\htdocs\\coin-platform\\ spark=present"
+                },
+                {
+                    "id": "spark_command",
+                    "requirement": "Spark command mining:post registered and planned arguments parse cleanly",
+                    "status": "PASS",
+                    "evidence": "planned=\"php spark mining:post --scheduled --strict-exit --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE\" parse_errors=0; \"--confirm=\" syntax refused=yes"
+                },
+                {
+                    "id": "database_classification",
+                    "requirement": "Active database classified (live target must be explicit)",
+                    "status": "PASS",
+                    "evidence": "default group -> database \"coin_platform\" mode=live (live mode requires every production gate)"
+                },
+                {
+                    "id": "timezone",
+                    "requirement": "Business timezone is Asia/Kolkata",
+                    "status": "PASS",
+                    "evidence": "miningBusinessTimezone=Asia/Kolkata"
+                },
+                {
+                    "id": "business_date",
+                    "requirement": "Scheduler posts the previous completed business day",
+                    "status": "PASS",
+                    "evidence": "yesterday=2026-11-17 today=2026-11-18; future dates refused; incomplete day refused without --allow-incomplete-day (sandbox only)"
+                },
+                {
+                    "id": "policies_approved",
+                    "requirement": "All 8 mining policy status flags approved",
+                    "status": "BLOCKED",
+                    "evidence": "not approved: miningMonthlyPercentStatus, miningDayDivisorStatus, miningDenominationStatus, miningApprovalDayPolicyStatus, miningLockedCoinEligibilityStatus, miningPostMaturityEligibilityStatus, miningPostSaleEligibilityStatus, miningRoundingPolicyStatus"
+                },
+                {
+                    "id": "approved_rate",
+                    "requirement": "Approved monthly rate exists for the posting month",
+                    "status": "BLOCKED",
+                    "evidence": "month=2026-11 approved_rates=0"
+                },
+                {
+                    "id": "posting_gate",
+                    "requirement": "miningPostingEnabled gate",
+                    "status": "BLOCKED",
+                    "evidence": "miningPostingEnabled=false (false is the REQUIRED state until written production authorization)"
+                },
+                {
+                    "id": "auto_post_gate",
+                    "requirement": "miningAutoPostEnabled gate",
+                    "status": "BLOCKED",
+                    "evidence": "miningAutoPostEnabled=false (false is the REQUIRED state until written production authorization)"
+                },
+                {
+                    "id": "lock_ttl_vs_runtime",
+                    "requirement": "Per-date lock outlives the max runtime budget",
+                    "status": "PASS",
+                    "evidence": "configured lock TTL=1800s, max runtime=3600s -> effective lock TTL=3900s (Phase 13C fix: TTL = max(configured, runtime+300); the lock is not renewed during a run)"
+                },
+                {
+                    "id": "retry",
+                    "requirement": "Bounded transient retry",
+                    "status": "PASS",
+                    "evidence": "attempts=3 delay=5s (permanent errors are not retried)"
+                },
+                {
+                    "id": "timeout_handling",
+                    "requirement": "Timeout ends the run PARTIAL (resumable), never COMPLETED",
+                    "status": "PASS",
+                    "evidence": "Verified by Phase 13B scenarios interrupted_batch_is_partial / resume_completes_without_duplicates_or_skips (previously reported; not re-run in 13C)"
+                },
+                {
+                    "id": "run_history_tables",
+                    "requirement": "Run-history / resume tables present (migration 994001)",
+                    "status": "BLOCKED",
+                    "evidence": "mining_post_day_runs+mining_post_members ABSENT in this database"
+                },
+                {
+                    "id": "ops_lock_table",
+                    "requirement": "ops_job_locks present",
+                    "status": "PASS",
+                    "evidence": "present"
+                },
+                {
+                    "id": "exit_codes",
+                    "requirement": "Distinct non-zero failure exit codes",
+                    "status": "PASS",
+                    "evidence": "{\"POSTED\":0,\"DRY_RUN\":10,\"SKIPPED\":20,\"BLOCKED\":30,\"PARTIAL\":40,\"FAILED\":50}"
+                },
+                {
+                    "id": "reconciliation",
+                    "requirement": "Ledger reconciliation after every run",
+                    "status": "PASS",
+                    "evidence": "Built into MiningBatchPostingService::finalize (mismatch => PARTIAL, exit 40); previously verified in 13B"
+                },
+                {
+                    "id": "alert_destination",
+                    "requirement": "Alert destination configured and approved",
+                    "status": "BLOCKED",
+                    "evidence": "Only local log/event hooks exist. No e-mail/webhook/admin-notification destination is configured and none may be invented."
+                },
+                {
+                    "id": "no_production_schedule",
+                    "requirement": "No production cron / Task Scheduler entry exists",
+                    "status": "PASS",
+                    "evidence": "Phase 13C creates none (documented template only)."
+                }
+            ],
+            "summary": {
+                "PASS": 13,
+                "BLOCKED": 6,
+                "NOT_VERIFIED": 1,
+                "INFO": 0
+            },
+            "planned_command": "php spark mining:post --scheduled --strict-exit --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE",
+            "activated": false
+        }
+    },
+    "live_fingerprint_after": {
+        "database": "coin_platform",
+        "table_count": 73,
+        "members": 2,
+        "member_ids": [
+            "ROOT0001",
+            "NGW000001"
+        ],
+        "member_id_sequences": [
+            {
+                "prefix": "NGW",
+                "last_number": "981233"
+            }
+        ],
+        "approved_purchases": 1,
+        "owned_total": "5.00000000",
+        "available_total": "5.00000000",
+        "locked_total": "0.00000000",
+        "reserved_total": "0.00000000",
+        "ownership_ledger_rows": 1,
+        "locks_total": 0,
+        "mandatory_locks": 0,
+        "mining_wallet_total": "0.00000000",
+        "mining_ledger_rows": 0,
+        "commission_ledger_rows": 0,
+        "latest_migration": "2026-11-17-992001",
+        "switches": {
+            "miningPostingEnabled": false,
+            "miningP2pEnabled": false,
+            "commissionPostingEnabled": false,
+            "commissionWithdrawalEnabled": false,
+            "commissionBlockchainPayoutEnabled": false,
+            "coinSellingEnabled": false,
+            "sandbox_window_open": false
+        },
+        "row_counts": {
+            "admin_impersonation_grants": 4,
+            "admin_impersonation_sessions": 4,
+            "audit_logs": 35,
+            "auth_groups_users": 5,
+            "auth_identities": 2,
+            "auth_logins": 6,
+            "auth_permissions_users": 0,
+            "auth_remember_tokens": 0,
+            "auth_token_logins": 0,
+            "blockchain_health_snapshots": 1,
+            "coin_inventory": 1,
+            "coin_inventory_transactions": 2,
+            "coin_locking_plans": 0,
+            "coin_price_history": 0,
+            "coin_purchase_requests": 2,
+            "coin_sell_events": 0,
+            "coin_sell_requests": 0,
+            "coin_settings": 1,
+            "commission_eligibility_audit_events": 0,
+            "commission_plans": 0,
+            "commission_plan_approval_events": 0,
+            "commission_plan_levels": 0,
+            "commission_posting_proposals": 0,
+            "commission_posting_proposal_events": 0,
+            "commission_purchase_calculations": 0,
+            "commission_simulation_items": 0,
+            "commission_simulation_runs": 0,
+            "commission_wallet_accounts": 1,
+            "commission_wallet_ledger_entries": 0,
+            "commission_withdrawal_events": 0,
+            "commission_withdrawal_payout_evidence": 0,
+            "commission_withdrawal_requests": 0,
+            "financial_alerts": 0,
+            "financial_remediation_events": 0,
+            "financial_remediation_proposals": 0,
+            "member_coin_balances": 1,
+            "member_coin_locks": 0,
+            "member_coin_lock_events": 0,
+            "member_coin_ownership_transactions": 1,
+            "member_email_change_tokens": 0,
+            "member_id_sequences": 1,
+            "member_profiles": 2,
+            "member_wallet_change_events": 0,
+            "migrations": 45,
+            "mining_daily_calculations": 0,
+            "mining_daily_runs": 0,
+            "mining_eligibility_audit_events": 1,
+            "mining_p2p_transfers": 0,
+            "mining_rate_approval_events": 2,
+            "mining_rate_configs": 1,
+            "mining_simulation_items": 1,
+            "mining_simulation_runs": 1,
+            "mining_wallets": 0,
+            "mining_wallet_ledger": 0,
+            "notification_delivery_events": 0,
+            "notification_outbox": 0,
+            "ops_job_locks": 1,
+            "password_reset_tokens": 0,
+            "payment_destination_change_events": 1,
+            "payment_destination_change_proposals": 1,
+            "platform_settings": 13,
+            "purchase_sponsor_snapshots": 3,
+            "settings": 0,
+            "settings_audit": 0,
+            "sponsor_relationships": 1,
+            "support_tickets": 0,
+            "support_ticket_messages": 0,
+            "usdt_deposit_events": 2,
+            "usdt_deposit_requests": 1,
+            "usdt_payment_allocations": 1,
+            "usdt_payment_allocation_events": 2,
+            "usdt_payment_networks": 2,
+            "users": 2
+        }
+    },
+    "live_unchanged": {
+        "ok": true,
+        "detail": "Live fingerprint (counts, balances, switches, latest migration) identical before and after Phase 13C."
+    },
+    "live_ro_account_dropped": true,
+    "checks": [
+        {
+            "id": "mysql_cli_present",
+            "ok": true,
+            "detail": "mysql client: found"
+        },
+        {
+            "id": "disk_space",
+            "ok": true,
+            "detail": "free disk at datadir: 3464 MB"
+        },
+        {
+            "id": "kill_switches_all_false",
+            "ok": true,
+            "detail": "All seven production switches false: {\"miningPostingEnabled\":false,\"miningAutoPostEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false}"
+        },
+        {
+            "id": "live_connection_read_only",
+            "ok": true,
+            "detail": "Live account grants verified SELECT-only: [\"GRANT USAGE ON *.* TO `p13c_live_ro`@`localhost` \",\"GRANT SELECT ON `coin_platform`.* TO `p13c_live_ro`@`localhost`\"]"
+        },
+        {
+            "id": "backup_present",
+            "ok": true,
+            "detail": "Existing Phase 12F full dump found."
+        },
+        {
+            "id": "backup_size_matches_evidence",
+            "ok": true,
+            "detail": "Dump size 138653 bytes equals the Phase 12F evidence record."
+        },
+        {
+            "id": "backup_complete_marker",
+            "ok": true,
+            "detail": "Dump trailer \"Dump completed on 2026-11-17 18:17:53\" present."
+        },
+        {
+            "id": "backup_no_dangerous_statements",
+            "ok": true,
+            "detail": "No USE / CREATE|DROP DATABASE / account statements in the dump."
+        },
+        {
+            "id": "backup_source_identity",
+            "ok": true,
+            "detail": "Dump header: host=localhost database=coin_platform server=10.4.32-MariaDB (local XAMPP copy)."
+        },
+        {
+            "id": "backup_contains_data",
+            "ok": true,
+            "detail": "73 tables; data present for 34 tables (not schema-only)."
+        },
+        {
+            "id": "backup_not_in_public_path",
+            "ok": true,
+            "detail": "Dump lives in writable/phase12f-private (git-ignored, outside the web root)."
+        },
+        {
+            "id": "restore_coin_platform_phase13c_snapshot",
+            "ok": true,
+            "detail": "mysql restore into coin_platform_phase13c_snapshot exit=0 in 3.9s"
+        },
+        {
+            "id": "restore_coin_platform_phase13c",
+            "ok": true,
+            "detail": "mysql restore into coin_platform_phase13c exit=0 in 5.49s"
+        },
+        {
+            "id": "snapshot_account_select_only",
+            "ok": true,
+            "detail": "Snapshot account privileges verified SELECT-only on coin_platform_phase13c_snapshot."
+        },
+        {
+            "id": "restore_table_count",
+            "ok": true,
+            "detail": "table_count=73 (evidence 73)"
+        },
+        {
+            "id": "restore_row_counts_vs_evidence",
+            "ok": true,
+            "detail": "Row counts of member_profiles,member_id_sequences,coin_purchase_requests,member_coin_balances,member_coin_locks equal the Phase 12F evidence."
+        },
+        {
+            "id": "restore_schema_version",
+            "ok": true,
+            "detail": "latest migration in snapshot=2026-11-17-992001"
+        },
+        {
+            "id": "restore_clone_identical_to_snapshot",
+            "ok": true,
+            "detail": "Snapshot and clone are table-for-table identical (CHECKSUM TABLE on 73 tables)."
+        },
+        {
+            "id": "restore_check_table",
+            "ok": true,
+            "detail": "CHECK TABLE on all tables: OK"
+        },
+        {
+            "id": "restore_fk_consistency",
+            "ok": true,
+            "detail": "32 foreign keys checked; orphans: []"
+        },
+        {
+            "id": "restore_no_duplicate_references",
+            "ok": true,
+            "detail": "Duplicate financial references: []"
+        },
+        {
+            "id": "restore_balance_vs_ledger",
+            "ok": true,
+            "detail": "Cached balances equal the last ledger row and total = available+locked+reserved."
+        },
+        {
+            "id": "full_data_restore_verified",
+            "ok": true,
+            "detail": "Classification FULL_DATA_RESTORE_VERIFIED (schema AND data restored and validated)."
+        },
+        {
+            "id": "historical_audit_no_blocked",
+            "ok": true,
+            "detail": "As-of reconstruction: blocked rows=0, purchases with missing/inconsistent ledger evidence=0."
+        },
+        {
+            "id": "lock1000_audit_checks",
+            "ok": true,
+            "detail": "LOCK1000 audit: {\"purchase_exists\":true,\"purchase_approved\":true,\"member_matches\":true,\"approval_timestamp_present\":true,\"ownership_credit_exists\":true,\"quantity_matches\":true,\"mandatory_lock_missing\":true,\"no_reservation\":true,\"no_prior_remediation\":true,\"invariant_total\":true,\"cli_dry_run_ok\":true,\"snapshot_apply_refused\":true}"
+        },
+        {
+            "id": "migrations_are_additive",
+            "ok": true,
+            "detail": "Static scan: 993001/994001 add tables only (no ALTER/dropTable on existing tables)."
+        },
+        {
+            "id": "migrations_apply_exact_set",
+            "ok": true,
+            "detail": "Applied on clone: [\"2026-11-17-993001\",\"2026-11-18-994001\"]"
+        },
+        {
+            "id": "migrations_preserve_existing_data_and_schema",
+            "ok": true,
+            "detail": "All 73 pre-existing tables: DDL and data identical after migration (excluding the migrations bookkeeping table)."
+        },
+        {
+            "id": "migrated_clone_compat",
+            "ok": true,
+            "detail": "Worksheet builds; hub tables present; mining:post dry-run on clone exit=0."
+        },
+        {
+            "id": "migrations_down_clean",
+            "ok": true,
+            "detail": "down() removed only the new tables; originals identical to baseline."
+        },
+        {
+            "id": "migrations_reapply_after_down",
+            "ok": true,
+            "detail": "Re-applied after down() on the clone."
+        },
+        {
+            "id": "simulation_dry_run_no_writes",
+            "ok": true,
+            "detail": "Dry-run on the clone changed nothing."
+        },
+        {
+            "id": "simulation_apply_ok",
+            "ok": true,
+            "detail": "Clone after apply: {\"available\":\"0.00000000\",\"locked\":\"5.00000000\",\"total\":\"5.00000000\"} vs proposed {\"available\":\"0.00000000\",\"locked\":\"5.00000000\",\"total\":\"5.00000000\"}"
+        },
+        {
+            "id": "simulation_no_mint_no_side_effects",
+            "ok": true,
+            "detail": "No minting/duplicate credit, no mining/commission/inventory/sale effect; +1 lock, +1 ledger row."
+        },
+        {
+            "id": "simulation_second_apply_idempotent",
+            "ok": true,
+            "detail": "Second apply is a no-op and changed nothing (exit=0)."
+        },
+        {
+            "id": "legacy_commands_safe",
+            "ok": true,
+            "detail": "mining:daily / mining:reconcile are labelled LEGACY, print banners, contain no posting code and left wallet/ledger state unchanged on the clone."
+        },
+        {
+            "id": "monitoring_mock_alerts",
+            "ok": true,
+            "detail": "All 10 failure scenarios raise their local alert; 17 events captured; nothing sent externally."
+        },
+        {
+            "id": "restore_coin_platform_phase13c",
+            "ok": true,
+            "detail": "mysql restore into coin_platform_phase13c exit=0 in 4.87s"
+        },
+        {
+            "id": "rollback_restore_returns_baseline",
+            "ok": true,
+            "detail": "Re-restoring the dump into the clone returns it to the exact baseline (73 tables identical) in 4.87s."
+        },
+        {
+            "id": "snapshot_pristine_after_audit",
+            "ok": true,
+            "detail": "CHECKSUM TABLE of all 73 snapshot tables identical before and after all audits."
+        },
+        {
+            "id": "scheduler_not_activated",
+            "ok": true,
+            "detail": "Scheduler readiness evaluated read-only; nothing activated."
+        },
+        {
+            "id": "no_policy_auto_approved",
+            "ok": true,
+            "detail": "12 of 12 decisions are not approved (none auto-approved)."
+        },
+        {
+            "id": "live_unchanged",
+            "ok": true,
+            "detail": "Live fingerprint (counts, balances, switches, latest migration) identical before and after Phase 13C."
+        }
+    ],
+    "pass": 43,
+    "fail": 0,
+    "duration_s": 30.75,
+    "finished_at": "2026-11-18T07:46:21+00:00"
+}

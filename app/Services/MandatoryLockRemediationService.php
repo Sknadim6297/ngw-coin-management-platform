@@ -142,16 +142,27 @@ class MandatoryLockRemediationService
         $preview = $this->preview($purchaseRef, $dbGroup);
 
         if (! $preview['ready']) {
+            // Idempotent safe no-op when mandatory lock already exists for this purchase.
+            $checks = $preview['checks'] ?? [];
+            $already = ! empty($preview['existing_mandatory_lock'])
+                && ($checks['purchase_approved'] ?? false)
+                && ($checks['ownership_present'] ?? false)
+                && ($checks['total_matches_parts'] ?? false)
+                && ! ($checks['no_existing_mandatory_lock'] ?? true);
+            if ($already) {
+                return array_merge($preview, [
+                    'executed'           => false,
+                    'dry_run'            => $dryRun,
+                    'already_remediated' => true,
+                    'safe_noop'          => true,
+                    'note'               => 'ALREADY REMEDIATED / SAFE NO-OP — mandatory lock already present; no balance change.',
+                ]);
+            }
             throw new RuntimeException('Remediation not ready: ' . ($preview['note'] ?? 'blocked'));
         }
 
         if ($dryRun) {
-            $this->audit->log('coin.lock_mandatory_remediation_dry_run', $actorUserId, 'coin_purchase', $purchaseRef, [
-                'database' => $preview['database'],
-                'before'   => $preview['before'],
-                'after'    => $preview['after_projected'],
-            ]);
-
+            // Phase 12F: dry-run must remain strictly read-only (no audit / wallet / lock writes).
             return array_merge($preview, [
                 'executed' => false,
                 'dry_run'  => true,

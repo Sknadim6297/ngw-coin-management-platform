@@ -20,7 +20,7 @@ class FinancialTestWindow extends BaseCommand
     protected $group       = 'Finance';
     protected $name        = 'financial:test-window';
     protected $description = 'Run a time-boxed financial engine test on coin_platform_phase12a only.';
-    protected $usage       = 'financial:test-window [--seconds=120] [--fresh]';
+    protected $usage       = 'financial:test-window [--seconds 120] [--fresh]';
     protected $options     = [
         '--seconds' => 'Authorization window seconds (1–300, default 120)',
         '--fresh'   => 'DROP and recreate coin_platform_phase12a before running',
@@ -28,6 +28,10 @@ class FinancialTestWindow extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('financial:test-window', ['values' => ['seconds' => 'int-positive'], 'flags' => ['fresh']]) === null) {
+            return 2;
+        }
+
         $seconds = (int) (CLI::getOption('seconds') ?: ($params['seconds'] ?? 120));
         $fresh   = CLI::getOption('fresh') !== null || array_key_exists('fresh', $params);
 

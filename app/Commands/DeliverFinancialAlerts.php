@@ -22,6 +22,10 @@ class DeliverFinancialAlerts extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('payment:deliver-alerts', ['values' => ['limit' => 'int-positive']]) === null) {
+            return 2;
+        }
+
         $limit  = (int) (CLI::getOption('limit') ?? ($params['limit'] ?? 25));
         $result = service('financialNotificationService')->processPending($limit);
 

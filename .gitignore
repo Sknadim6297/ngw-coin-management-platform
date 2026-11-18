@@ -63,6 +63,9 @@ Vagrantfile
 /writable/debugbar/*
 !/writable/debugbar/index.html
 
+# Phase 12F private DB dumps (may contain operational data — never publish)
+/writable/phase12f-private/
+
 php_errors.log
 
 #-------------------------

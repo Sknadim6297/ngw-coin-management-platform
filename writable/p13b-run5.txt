@@ -1,0 +1,149 @@
+
+CodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-18 06:32:24 UTC+00:00
+
+=== Phase 13B isolated verification ===
+Target DB: coin_platform_phase13b (marker-guarded). Live coin_platform: SELECT-only fingerprint.
+Root sponsor ROOT0001 and admin admin@aureumcoin.local seeded successfully.
+Seeded: App\Database\Seeds\RootSponsorSeeder
+Root sponsor ROOT0001 and admin admin@aureumcoin.local seeded successfully.
+Seeded: App\Database\Seeds\RootSponsorSeeder
+Root sponsor ROOT0001 and admin admin@aureumcoin.local seeded successfully.
+Seeded: App\Database\Seeds\RootSponsorSeeder
+Root sponsor ROOT0001 and admin admin@aureumcoin.local seeded successfully.
+Seeded: App\Database\Seeds\RootSponsorSeeder
+Root sponsor ROOT0001 and admin admin@aureumcoin.local seeded successfully.
+Seeded: App\Database\Seeds\RootSponsorSeeder
+Root sponsor ROOT0001 and admin admin@aureumcoin.local seeded successfully.
+Seeded: App\Database\Seeds\RootSponsorSeeder
+Root sponsor ROOT0001 and admin admin@aureumcoin.local seeded successfully.
+Seeded: App\Database\Seeds\RootSponsorSeeder
+Root sponsor ROOT0001 and admin admin@aureumcoin.local seeded successfully.
+Seeded: App\Database\Seeds\RootSponsorSeeder
+[PASS] production_switches_off_before — {"miningPostingEnabled":false,"miningP2pEnabled":false,"commissionPostingEnabled":false,"commissionWithdrawalEnabled":false,"commissionBlockchainPayoutEnabled":false,"coinSellingEnabled":false,"sandbox_window_open":false}
+[PASS] cohort_built — 16 synthetic members (cases A–M)
+[PASS] case_run_2026-10-17_posted_and_reconciled — exit=0 state=COMPLETED reconcile=OK
+[PASS] case_run_2026-10-15_posted_and_reconciled — exit=0 state=COMPLETED reconcile=OK
+[PASS] case_run_2026-10-16_posted_and_reconciled — exit=0 state=COMPLETED reconcile=OK
+[PASS] case_run_2026-10-14_posted_and_reconciled — exit=0 state=COMPLETED reconcile=OK
+[PASS] case_A_expected_equals_actual — SYN000001 wallet expected 0.38709677 actual 0.38709677
+[PASS] case_B_expected_equals_actual — SYN000002 wallet expected 0.38709676 actual 0.38709676
+[PASS] case_C_expected_equals_actual — SYN000003 wallet expected 0.38709676 actual 0.38709676
+[PASS] case_D_expected_equals_actual — SYN000004 wallet expected 0.00000000 actual 0.00000000
+[PASS] case_E_expected_equals_actual — SYN000005 wallet expected 0.00000000 actual 0.00000000
+[PASS] case_F_expected_equals_actual — SYN000006 wallet expected 0.14516130 actual 0.14516130
+[PASS] case_G_expected_equals_actual — SYN000007 wallet expected 0.27096776 actual 0.27096776
+[PASS] case_H_expected_equals_actual — SYN000008 wallet expected 0.35806451 actual 0.35806451
+[PASS] case_H2_expected_equals_actual — SYN000009 wallet expected 0.35806451 actual 0.35806451
+[PASS] case_I_expected_equals_actual — SYN000010 wallet expected 0.38709676 actual 0.38709676
+[PASS] case_J_expected_equals_actual — SYN000011 wallet expected 0.72580644 actual 0.72580644
+[PASS] case_K_expected_equals_actual — SYN000012 wallet expected 0.38709676 actual 0.38709676
+[PASS] case_L1_expected_equals_actual — SYN000013 wallet expected 0.29032257 actual 0.29032257
+[PASS] case_L2_expected_equals_actual — SYN000014 wallet expected 0.29032257 actual 0.29032257
+[PASS] case_L3_expected_equals_actual — SYN000015 wallet expected 0.19354838 actual 0.19354838
+[PASS] case_M_expected_equals_actual — SYN000016 wallet expected 0.38709676 actual 0.38709676
+[PASS] case_J_backdated_posting_ignores_later_transactions — D1 posted after D3; J eligible on D1=100.00000000 (today's balance is 250)
+[PASS] policy_T-RESERVED-EXCL_H2_2026-10-15 — expected 70 actual 70.00000000
+[PASS] policy_T-RESERVED-EXCL_H_2026-10-17 — expected 70 actual 70.00000000
+[PASS] policy_T-RESERVED-EXCL_B_2026-10-15 — expected 100 actual 100.00000000
+[PASS] policy_T-MATURED-EXCL_M_2026-10-15 — expected 0 actual 0.00000000
+[PASS] policy_T-MATURED-EXCL_B_2026-10-15 — expected 100 actual 100.00000000
+[PASS] policy_T-NEXTDAY-DOWN_L1_2026-10-15 — expected 0 actual 0.00000000
+[PASS] policy_T-NEXTDAY-DOWN_L1_2026-10-16 — expected 100 actual 100.00000000
+[PASS] policy_T-NEXTDAY-DOWN_L2_2026-10-15 — expected 0 actual 0.00000000
+[PASS] policy_T-NEXTDAY-DOWN_L3_2026-10-16 — expected 0 actual 0.00000000
+[PASS] policy_T-NEXTDAY-DOWN_L3_2026-10-17 — expected 100 actual 100.00000000
+[PASS] policy_T-NEXTDAY-DOWN_A_2026-10-15 — expected 0 actual 0.00000000
+[PASS] policy_T-NEXTDAY-DOWN_A_2026-10-16 — expected 100 actual 100.00000000
+[PASS] policy_T-NEXTDAY-DOWN_A_2026-10-17 — expected 150 actual 150.00000000
+[PASS] policy_T-NEXTDAY-DOWN_B_2026-10-15 — expected 100 actual 100.00000000
+[PASS] business_date_boundary_independent_of_process_timezone — IST midnight of 15 Oct = 2026-10-14 18:30:00 UTC under 6 PHP timezones
+[PASS] precision_feb_28_days_2026_02_10_ — 1.07142857 vs independent 1.07142857
+[PASS] precision_feb_29_days_leap_2028_02_10_ — 1.03448276 vs independent 1.03448276
+[PASS] precision_apr_30_days_2026_04_10_ — 1.00000000 vs independent 1.00000000
+[PASS] precision_jan_31_days_2026_01_10_ — 0.96774194 vs independent 0.96774194
+[PASS] precision_jan_31_days_down — 0.96774193 vs independent 0.96774193
+[PASS] precision_fixed_30_in_31_day_month — 1.00000000 vs independent 1.00000000
+[PASS] precision_dec_31_dec_rate_month_ — 0.96774194 vs independent 0.96774194
+[PASS] precision_jan_1_jan_rate_month_ — 0.96774194 vs independent 0.96774194
+[PASS] precision_smallest_balance_0_00000001 — 0.00000000 vs independent 0.00000000
+[PASS] precision_small_balance_0_5 — 0.00048387 vs independent 0.00048387
+[PASS] precision_large_balance — 967741935.48387097 vs independent 967741935.48387097
+[PASS] precision_large_balance_down — 967741935.48387096 vs independent 967741935.48387096
+[PASS] precision_fractional_balance_fractional_rate — 0.10951812 vs independent 0.10951812
+[PASS] precision_tiny_fractional_rate_0_00000005_ — 0.00000002 vs independent 0.00000002
+[PASS] precision_exact_half_unit_boundary_half_up — 0.00000001 vs independent 0.00000001
+[PASS] precision_exact_half_unit_boundary_down — 0.00000000 vs independent 0.00000000
+[PASS] precision_zero_rate — 0.00000000 vs independent 0.00000000
+[PASS] precision_max_rate_100_ — 32.25806452 vs independent 32.25806452
+[PASS] precision_illustration_1000_x_3_31_half_up — 0.96774194 vs independent 0.96774194
+[PASS] illustration_0_96774194_calendar_half_up — 0.96774194
+[PASS] illustration_1_00000000_fixed_30 — 1.00000000
+[PASS] invalid_rate_and_balance_inputs_rejected — [{"eligible":"-1","percent":"3","rejected":true},{"eligible":"abc","percent":"3","rejected":true},{"eligible":"1000","percent":"-3","rejected":true},{"eligible":"1000","percent":"100.00000001","rejected":true},{"eligible":"1000","percent":"x","rejected":true},{"eligible":"1000","percent":"","rejected":true}]
+[PASS] unknown_rounding_mode_rejected — banker rounding is not a configured policy
+[PASS] scheduler_scheduled_yesterday_posts — POSTED exit 0, credited=14 for 2026-11-17 | exit=0 status=POSTED 
+[PASS] scheduler_scheduled_repeat_zero_new_credits — POSTED exit 0, credited_now=0, duplicates=14 | exit=0 status=POSTED 
+[PASS] scheduler_manual_same_date_zero_new_credits — POSTED exit 0, credited_now=0 | exit=0 status=POSTED 
+[PASS] scheduler_concurrent_invocation_skipped — SKIPPED exit 20, no day run, no credits | exit=20 status=SKIPPED 
+[PASS] scheduler_interrupted_batch_is_partial — PARTIAL exit 40, <= 3 credits, pending > 0 | exit=40 status=PARTIAL credits so far=3
+[PASS] scheduler_resume_completes_without_duplicates_or_skips — POSTED exit 0, total credits=14, no duplicate | exit=0 status=POSTED credited_now=11 total=14
+[PASS] scheduler_db_connection_failure_fails_closed — FAILED exit 50, nothing written | exit=50 status=FAILED 
+[PASS] scheduler_missing_approved_rate_blocked — BLOCKED exit 30 | exit=30 status=BLOCKED 
+[PASS] scheduler_disabled_auto_switch_skips — SKIPPED exit 20 (live gates; miningAutoPostEnabled=false) | exit=20 status=SKIPPED 
+[PASS] scheduler_disabled_posting_switch_blocks — BLOCKED exit 30 (miningPostingEnabled=false) | exit=30 status=BLOCKED 
+[PASS] scheduler_sandbox_scheduled_without_confirmation_skips — SKIPPED exit 20 (not authorized) | exit=20 status=SKIPPED 
+[PASS] scheduler_historical_ownership_mismatch_detected — PARTIAL exit 40, mismatch historical_ownership_mismatch | exit=40 status=PARTIAL 
+[PASS] scheduler_historical_mismatch_clears_after_evidence_restored — POSTED exit 0 after restore | exit=0 status=POSTED 
+[PASS] scheduler_reconciliation_mismatch_detected — PARTIAL exit 40, ledger/run mismatch reported | exit=40 status=PARTIAL types=ledger_vs_run_totals,ledger_credit_not_matched_by_run_row,wallet_balance_not_equal_ledger_credits
+[PASS] scheduler_reconciliation_clears_after_restore — POSTED exit 0 after restore | exit=0 status=POSTED 
+[PASS] scheduler_policy_change_on_resume_blocked — BLOCKED exit 30 (frozen policy differs) | exit=30 status=BLOCKED 
+[PASS] scheduler_resume_with_original_policy_completes — POSTED exit 0 | exit=0 status=POSTED 
+[PASS] scheduler_incomplete_business_day_blocked_without_flag — BLOCKED exit 30 | exit=30 status=BLOCKED 
+[PASS] scheduler_dry_run_never_counted_as_posting — DRY_RUN exit 10, no ledger row for today | exit=10 status=DRY_RUN 
+[PASS] watchdog_detects_completed_and_missing_runs — completed=true missing_code=missing_scheduled_run
+[PASS] case_K_missing_evidence_blocks_member_and_day_is_partial — exit=40 K status=BLOCKED reason=BLOCKED_HISTORICAL_DATA: approved_purchase_without_ledger_credit:PUR-ABA0A5185F56B285
+[PASS] case_K_other_members_still_credited — credits=13 (13 eligible members besides K)
+[PASS] case_K_day_never_marked_complete — finished_at is NULL while a member is BLOCKED
+[PASS] case_K_evidence_restored_resume_credits_member_once — resume credited_now=1 amount=0.09677419
+[PASS] cli_mining_post_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_mining_daily_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_mining_dry_run_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_mining_reconcile_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_mining_simulate_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_mining_status_rejects_malformed_syntax — unknown=2 equals=- missing=-
+[PASS] cli_mining_post_verify_rejects_malformed_syntax — unknown=2 equals=- missing=-
+[PASS] cli_mining_p2p_reconcile_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_coins_selling_reconcile_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_members_correct_sequence_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_locking_remediate_mandatory_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_financial_staging_e2e_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_financial_test_window_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_coins_check_maturity_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_payment_deliver_alerts_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_payment_integrity_monitor_rejects_malformed_syntax — unknown=2 equals=2 missing=2
+[PASS] cli_parser_equals_group — Unsupported syntax "--group=phase13b". Use "--group <value>" (space-separated); "=" is not parsed by the CI4 CLI and would be ignored.
+[PASS] cli_parser_unsupported_group — Invalid value "coin_platform" for --group (allowed: default, phase12a, phase12b, phase13a, phase13b).
+[PASS] cli_parser_unsupported_group_tests — Invalid value "tests" for --group (allowed: default, phase12a, phase12b, phase13a, phase13b).
+[PASS] cli_parser_missing_value — Option "--group" requires a value.
+[PASS] cli_parser_flag_given_value_is_positional — Unexpected argument(s): now (this command takes only --options).
+[PASS] cli_parser_duplicate_group — Option "--group" was given more than once.
+[PASS] cli_parser_conflicting — Conflicting options: --dry-run and --confirm cannot be combined.
+[PASS] cli_parser_short_option — Short option "-g" is not supported. | Unexpected argument(s): phase13b (this command takes only --options).
+[PASS] cli_parser_bad_limit — --limit must be a positive whole number (got "abc").
+[PASS] cli_parser_bad_date — --date must be today, yesterday or YYYY-MM-DD (got "15-10-2026").
+[PASS] cli_parser_valid_command_accepted — options={"group":"phase13b","date":"yesterday","scheduled":true,"strict-exit":true,"confirm":"APPLY_STAGING","batch-size":"250"}
+[PASS] cli_valid_dry_run_preserved — exit=0 status=dry_run
+[PASS] cli_unknown_group_never_falls_back_to_default_db — exit=2
+[PASS] ownership_ledger_untouched_by_posting — member_coin_balances identical before/after all posting stages
+[PASS] zero_duplicate_credits_per_member_per_date — duplicate groups=0
+[PASS] wallet_balance_equals_ledger_for_every_member — wallet/ledger mismatches=0
+[PASS] production_switches_off_after — {"miningPostingEnabled":false,"miningP2pEnabled":false,"commissionPostingEnabled":false,"commissionWithdrawalEnabled":false,"commissionBlockchainPayoutEnabled":false,"coinSellingEnabled":false,"sandbox_window_open":false}
+[PASS] perf_100_members_posted_reconciled_idempotent — ledger=100 sum=3.84193574 expected=3.84193574 dupes=0 repeat_credited=0
+[PASS] perf_2000_members_posted_reconciled_idempotent — ledger=2000 sum=77.41936000 expected=77.41936000 dupes=0 repeat_credited=0
+[PASS] perf_2001_members_posted_reconciled_idempotent — ledger=2001 sum=77.48710194 expected=77.48710194 dupes=0 repeat_credited=0
+[PASS] perf_5000_members_posted_reconciled_idempotent — ledger=5000 sum=193.51936774 expected=193.51936774 dupes=0 repeat_credited=0
+[PASS] perf_10000_members_posted_reconciled_idempotent — ledger=10000 sum=387.07744516 expected=387.07744516 dupes=0 repeat_credited=0
+[PASS] perf_resume_5000_no_duplicates_no_skips — ledger=5000 dupes=0
+[PASS] live_database_unchanged — coin_platform fingerprint identical before and after
+passed=125 failed=0
+JSON: C:\xampp\htdocs\coin-platform\writable\phase13b-mining-validation-results.json
+Markdown: docs/phase13b-validation-results.md

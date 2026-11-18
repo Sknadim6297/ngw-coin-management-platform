@@ -13,21 +13,23 @@ use Throwable;
 /**
  * Phase 12D — historical LOCK1000 remediation.
  *
+ * Options are space-separated (CI4 does not parse "--opt=value"; the CliArgs guard refuses it).
+ *
  * Dry-run (any DB, read-only projection):
- *   php spark locking:remediate-mandatory --purchase-ref=PUR-... --dry-run
+ *   php spark locking:remediate-mandatory --purchase PUR-... --dry-run
  *
- * Staging execute:
- *   php spark locking:remediate-mandatory --db-group=phase12b --purchase-ref=PUR-... --confirm=APPLY_STAGING
+ * Staging / isolated execute:
+ *   php spark locking:remediate-mandatory --group phase13c --purchase PUR-... --confirm APPLY_STAGING
  *
- * Production execute (separate authorization only):
- *   php spark locking:remediate-mandatory --purchase-ref=PUR-... --allow-production --confirm="I_AUTHORIZE_PRODUCTION_CHANGE"
+ * Production execute (separate written authorization only; NOT part of Phase 13C):
+ *   php spark locking:remediate-mandatory --purchase PUR-... --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE
  */
 class RemediateMandatoryLock extends BaseCommand
 {
     protected $group       = 'Locking';
     protected $name        = 'locking:remediate-mandatory';
     protected $description = 'Dry-run / execute mandatory LOCK1000 remediation for one approved purchase.';
-    protected $usage       = 'locking:remediate-mandatory --purchase=PUR-... [--dry-run] [--group=phase12b] [--confirm=...] [--allow-production]';
+    protected $usage       = 'locking:remediate-mandatory --purchase PUR-... [--dry-run] [--group phase12b] [--confirm ...] [--allow-production]';
     protected $options     = [
         '--purchase'         => 'Purchase reference (required)',
         '--dry-run'          => 'Preview only (default if --confirm omitted)',
@@ -39,6 +41,10 @@ class RemediateMandatoryLock extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('locking:remediate-mandatory', ['values' => ['purchase' => '/^[A-Za-z0-9_-]{3,40}$/', 'group' => ['default', 'phase12a', 'phase12b', 'phase12d', 'phase12f', 'phase13a', 'phase13b', 'phase13c', 'phase13c_snapshot'], 'confirm' => null, 'actor' => 'int'], 'flags' => ['dry-run', 'allow-production'], 'positionals' => 1]) === null) {
+            return 2;
+        }
+
         $purchaseRef = (string) (CLI::getOption('purchase') ?: ($params['purchase'] ?? $params[0] ?? ''));
         if ($purchaseRef === '') {
             CLI::error('--purchase is required');
@@ -53,6 +59,13 @@ class RemediateMandatoryLock extends BaseCommand
         $dryRunFlag = CLI::getOption('dry-run') !== null;
         $dryRun    = $dryRunFlag || $confirm === null || $confirm === '';
         $actor     = (int) (CLI::getOption('actor') ?: 0);
+
+        // Phase 13C: the restored production-snapshot database is audit-only (its DB account is SELECT-only too).
+        if ($group === 'phase13c_snapshot' && ! $dryRun) {
+            CLI::error('Group phase13c_snapshot is read-only: only --dry-run is permitted. Apply on the disposable clone (--group phase13c).');
+
+            return EXIT_ERROR;
+        }
 
         CLI::write('=== locking:remediate-mandatory ===', 'yellow');
         CLI::write('purchase_ref=' . $purchaseRef . ' db-group=' . $group . ' dry_run=' . ($dryRun ? 'yes' : 'no'));
@@ -69,9 +82,9 @@ class RemediateMandatoryLock extends BaseCommand
 
             if ($dryRun) {
                 $out = $svc->execute($purchaseRef, true, false, null, $actor, $group);
-            } elseif (in_array($group, ['phase12a', 'phase12b', 'phase12d'], true)) {
+            } elseif (in_array($group, ['phase12a', 'phase12b', 'phase12d', 'phase12f', 'phase13a', 'phase13b', 'phase13c'], true)) {
                 if ($confirm !== 'APPLY_STAGING') {
-                    CLI::error('Staging apply requires --confirm=APPLY_STAGING');
+                    CLI::error('Staging apply requires --confirm APPLY_STAGING');
 
                     return EXIT_ERROR;
                 }

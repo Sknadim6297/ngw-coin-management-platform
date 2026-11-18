@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Libraries\MiningMath;
 use App\Libraries\MoneyMath;
 use InvalidArgumentException;
 use RuntimeException;
@@ -281,12 +282,37 @@ class MiningRateService
         return $this->daysInMonth($ym);
     }
 
-    public function previewAmount(string $eligibleCoins, array $rate, string $calculationDate): string
-    {
-        $scale  = (int) ($rate['precision_scale'] ?? 8);
-        $factor = $this->dailyFactor($rate, $calculationDate);
+    /**
+     * Daily amount for $eligibleCoins. Phase 13B: evaluated exactly (bcmath, 40 dp intermediate) and
+     * rounded once at the end. `dailyFactor()` is informational only and is NOT used here, because its
+     * 12-dp value used to be truncated again at 8 dp (Phase 13A finding).
+     *
+     * Divisor and rounding come from the Platform draft policy unless overridden (batch posting passes the
+     * frozen run policy explicitly so a mid-run config change cannot alter amounts).
+     */
+    public function previewAmount(
+        string $eligibleCoins,
+        array $rate,
+        string $calculationDate,
+        ?string $divisorMode = null,
+        ?string $roundingMode = null
+    ): string {
+        $cfg     = config('Platform');
+        $scale   = (int) ($rate['precision_scale'] ?? 8);
+        $divisor = MiningMath::divisor(
+            (string) $rate['rate_basis'],
+            $calculationDate,
+            isset($rate['effective_month']) ? (string) $rate['effective_month'] : null,
+            $divisorMode ?? strtolower((string) ($cfg->miningMonthDayDivisorMode ?? 'calendar_days'))
+        );
 
-        return MoneyMath::mul($eligibleCoins, $factor, $scale);
+        return MiningMath::dailyAmount(
+            MoneyMath::normalize($eligibleCoins, 8),
+            (string) $rate['rate_percent'],
+            $divisor,
+            $scale,
+            $roundingMode ?? strtolower((string) ($cfg->miningRoundingMode ?? 'down'))
+        );
     }
 
     private function daysInMonth(string $ym): int

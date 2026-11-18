@@ -31,6 +31,8 @@ use App\Services\MiningRateService;
 use App\Services\MiningSimulationService;
 use App\Services\MiningWalletService;
 use App\Services\MiningDailyEngineService;
+use App\Services\MiningPostingRunnerService;
+use App\Services\MiningRecoveryService;
 use App\Services\CoinPlanAuditService;
 use App\Services\ImpersonationService;
 use App\Services\CommissionPurchaseEngineService;
@@ -40,6 +42,7 @@ use App\Services\CommissionPayoutVerificationService;
 use App\Services\CommissionWithdrawalReconciliationService;
 use App\Services\MiningP2pTransferService;
 use App\Services\CommissionPlanService;
+use App\Services\CommissionPostingRunnerService;
 use App\Services\CommissionGenealogyService;
 use App\Services\CommissionEligibilityService;
 use App\Services\CommissionSimulationService;
@@ -60,6 +63,7 @@ use App\Services\FinanceDashboardService;
 use App\Services\FinancialAlertService;
 use App\Services\FinancialNotificationService;
 use App\Services\FinancialRemediationService;
+use App\Services\FinancialPolicyService;
 use App\Services\FinancialSandboxService;
 use App\Services\FinancialTestWindowService;
 use App\Services\MandatoryLockRemediationService;
@@ -375,6 +379,33 @@ class Services extends BaseService
         return new MandatoryLockRemediationService();
     }
 
+    public static function miningPolicyWorksheetService(bool $getShared = true): \App\Services\MiningPolicyWorksheetService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningPolicyWorksheetService');
+        }
+
+        return new \App\Services\MiningPolicyWorksheetService();
+    }
+
+    public static function miningSchedulerReadinessService(bool $getShared = true): \App\Services\MiningSchedulerReadinessService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningSchedulerReadinessService');
+        }
+
+        return new \App\Services\MiningSchedulerReadinessService();
+    }
+
+    public static function financialPolicyService(bool $getShared = true): FinancialPolicyService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('financialPolicyService');
+        }
+
+        return new FinancialPolicyService();
+    }
+
     public static function memberWalletService(bool $getShared = true): MemberWalletService
     {
         if ($getShared) {
@@ -463,6 +494,15 @@ class Services extends BaseService
         }
 
         return new MiningDailyEngineService();
+    }
+
+    public static function miningPostingRunnerService(bool $getShared = true): MiningPostingRunnerService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningPostingRunnerService');
+        }
+
+        return new MiningPostingRunnerService();
     }
 
     public static function impersonationService(bool $getShared = true): ImpersonationService
@@ -724,6 +764,24 @@ class Services extends BaseService
         }
 
         return new PlatformSettingsService();
+    }
+
+    public static function commissionPostingRunnerService(bool $getShared = true): CommissionPostingRunnerService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionPostingRunnerService');
+        }
+
+        return new CommissionPostingRunnerService();
+    }
+
+    public static function miningRecoveryService(bool $getShared = true): MiningRecoveryService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('miningRecoveryService');
+        }
+
+        return new MiningRecoveryService();
     }
 
     public static function supportTicketService(bool $getShared = true): SupportTicketService

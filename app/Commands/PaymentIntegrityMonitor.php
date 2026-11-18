@@ -25,6 +25,10 @@ class PaymentIntegrityMonitor extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('payment:integrity-monitor', ['values' => ['limit' => 'int-positive']]) === null) {
+            return 2;
+        }
+
         $limit = (int) (CLI::getOption('limit') ?? ($params['limit'] ?? 50));
         $svc   = service('paymentIntegrityMonitorService');
         /** @var PaymentIntegrityMonitorService $svc */

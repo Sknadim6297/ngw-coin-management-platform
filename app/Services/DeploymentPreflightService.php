@@ -30,6 +30,7 @@ class DeploymentPreflightService
         $checks[] = $this->migrations();
         $checks[] = $this->https();
         $checks[] = $this->environment();
+        $checks[] = $this->canonicalUrlAndDebug();
         $checks[] = $this->paymentGate();
         $checks[] = $this->blockchainConfig();
         $checks[] = $this->networks();
@@ -222,6 +223,45 @@ class DeploymentPreflightService
             'detail'  => 'ENVIRONMENT=' . ENVIRONMENT . ($env === 'production'
                 ? ' — production mode detected; complete ops checklist before enabling live payments.'
                 : ' — not claiming production readiness.'),
+            'blocker' => false,
+        ];
+    }
+
+    /**
+     * @return array{id: string, label: string, status: string, detail: string, blocker: bool}
+     */
+    private function canonicalUrlAndDebug(): array
+    {
+        $base    = rtrim((string) config('App')->baseURL, '/');
+        $isLocal = str_contains($base, 'localhost') || str_contains($base, '127.0.0.1');
+        $debugOn = defined('CI_DEBUG') && CI_DEBUG === true;
+        $wrongDomain = str_contains(strtolower($base), 'ngw.in.net');
+
+        if ($wrongDomain) {
+            return [
+                'id'      => 'canonical_url_and_debug',
+                'label'   => 'Canonical baseURL & Debugbar',
+                'status'  => 'fail',
+                'detail'  => 'app.baseURL points to legacy/mismatched ngw.in.net instead of https://ngw.zodianwealth.info/.',
+                'blocker' => true,
+            ];
+        }
+
+        if (! $isLocal && $debugOn) {
+            return [
+                'id'      => 'canonical_url_and_debug',
+                'label'   => 'Canonical baseURL & Debugbar',
+                'status'  => 'fail',
+                'detail'  => 'CI_DEBUG=true (Debugbar active) on non-local host. Set CI_ENVIRONMENT=production in .env.',
+                'blocker' => true,
+            ];
+        }
+
+        return [
+            'id'      => 'canonical_url_and_debug',
+            'label'   => 'Canonical baseURL & Debugbar',
+            'status'  => ($debugOn || ENVIRONMENT !== 'production') ? 'warn' : 'pass',
+            'detail'  => sprintf('ENVIRONMENT=%s CI_DEBUG=%s baseURL=%s', ENVIRONMENT, $debugOn ? 'true' : 'false', $base ?: '(empty)'),
             'blocker' => false,
         ];
     }

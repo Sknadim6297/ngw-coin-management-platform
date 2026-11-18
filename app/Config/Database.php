@@ -285,10 +285,261 @@ class Database extends Config
         ],
     ];
 
+    /**
+     * Phase 12F controlled remediation rehearsal DB. Never point at production.
+     *
+     * @var array<string, mixed>
+     */
+    public array $phase12f = [
+        'DSN'          => '',
+        'hostname'     => 'localhost',
+        'username'     => 'root',
+        'password'     => '',
+        'database'     => 'coin_platform_phase12f',
+        'DBDriver'     => 'MySQLi',
+        'DBPrefix'     => '',
+        'pConnect'     => false,
+        'DBDebug'      => true,
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_general_ci',
+        'swapPre'      => '',
+        'encrypt'      => false,
+        'compress'     => false,
+        'strictOn'     => true,
+        'failover'     => [],
+        'port'         => 3306,
+        'numberNative' => false,
+        'foundRows'    => false,
+        'dateFormat'   => [
+            'date'     => 'Y-m-d',
+            'datetime' => 'Y-m-d H:i:s',
+            'time'     => 'H:i:s',
+        ],
+    ];
+
+    /**
+     * Phase 13A isolated scheduler / daily mining posting test DB. Never point at production.
+     *
+     * @var array<string, mixed>
+     */
+    public array $phase13a = [
+        'DSN'          => '',
+        'hostname'     => 'localhost',
+        'username'     => 'root',
+        'password'     => '',
+        'database'     => 'coin_platform_phase13a',
+        'DBDriver'     => 'MySQLi',
+        'DBPrefix'     => '',
+        'pConnect'     => false,
+        'DBDebug'      => true,
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_general_ci',
+        'swapPre'      => '',
+        'encrypt'      => false,
+        'compress'     => false,
+        'strictOn'     => true,
+        'failover'     => [],
+        'port'         => 3306,
+        'numberNative' => false,
+        'foundRows'    => false,
+        'dateFormat'   => [
+            'date'     => 'Y-m-d',
+            'datetime' => 'Y-m-d H:i:s',
+            'time'     => 'H:i:s',
+        ],
+    ];
+
+    /**
+     * Phase 13B isolated mining accuracy / batching test DB. Never point at production.
+     * Uses a dedicated MySQL account that is GRANTed only on `coin_platform_phase13b`.* (local-only
+     * test credential, created by `mining:phase13b-verify`; override via PHASE13B_DB_USER / PHASE13B_DB_PASS).
+     *
+     * @var array<string, mixed>
+     */
+    public array $phase13b = [
+        'DSN'          => '',
+        'hostname'     => 'localhost',
+        'username'     => 'phase13b',
+        'password'     => 'phase13b_local_only',
+        'database'     => 'coin_platform_phase13b',
+        'DBDriver'     => 'MySQLi',
+        'DBPrefix'     => '',
+        'pConnect'     => false,
+        'DBDebug'      => true,
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_general_ci',
+        'swapPre'      => '',
+        'encrypt'      => false,
+        'compress'     => false,
+        'strictOn'     => true,
+        'failover'     => [],
+        'port'         => 3306,
+        'numberNative' => false,
+        'foundRows'    => false,
+        'dateFormat'   => [
+            'date'     => 'Y-m-d',
+            'datetime' => 'Y-m-d H:i:s',
+            'time'     => 'H:i:s',
+        ],
+    ];
+
+    /**
+     * Phase 13C disposable clone of the verified backup (migration + LOCK1000 what-if). Never point at production.
+     * Dedicated MySQL account GRANTed only on `coin_platform_phase13c`.* (local-only test credential).
+     *
+     * @var array<string, mixed>
+     */
+    public array $phase13c = [
+        'DSN'          => '',
+        'hostname'     => 'localhost',
+        'username'     => 'phase13c',
+        'password'     => 'phase13c_local_only',
+        'database'     => 'coin_platform_phase13c',
+        'DBDriver'     => 'MySQLi',
+        'DBPrefix'     => '',
+        'pConnect'     => false,
+        'DBDebug'      => true,
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_general_ci',
+        'swapPre'      => '',
+        'encrypt'      => false,
+        'compress'     => false,
+        'strictOn'     => true,
+        'failover'     => [],
+        'port'         => 3306,
+        'numberNative' => false,
+        'foundRows'    => false,
+        'dateFormat'   => [
+            'date'     => 'Y-m-d',
+            'datetime' => 'Y-m-d H:i:s',
+            'time'     => 'H:i:s',
+        ],
+    ];
+
+    /**
+     * Phase 13C pristine restore of the verified backup: READ-ONLY baseline. The MySQL account has SELECT only, so a
+     * write through this group fails at the database. Not on the sandbox allow-list (no financial command may target it).
+     *
+     * @var array<string, mixed>
+     */
+    public array $phase13c_snapshot = [
+        'DSN'          => '',
+        'hostname'     => 'localhost',
+        'username'     => 'p13c_snap_ro',
+        'password'     => 'p13c_snap_ro_local_only',
+        'database'     => 'coin_platform_phase13c_snapshot',
+        'DBDriver'     => 'MySQLi',
+        'DBPrefix'     => '',
+        'pConnect'     => false,
+        'DBDebug'      => true,
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_general_ci',
+        'swapPre'      => '',
+        'encrypt'      => false,
+        'compress'     => false,
+        'strictOn'     => true,
+        'failover'     => [],
+        'port'         => 3306,
+        'numberNative' => false,
+        'foundRows'    => false,
+        'dateFormat'   => [
+            'date'     => 'Y-m-d',
+            'datetime' => 'Y-m-d H:i:s',
+            'time'     => 'H:i:s',
+        ],
+    ];
+
+    /**
+     * Phase 13C: SELECT-only connection to the live database. Empty by design: credentials are generated at run time
+     * by Phase13CVerificationService (random password, SELECT-only GRANT, dropped afterwards) and never stored.
+     *
+     * @var array<string, mixed>
+     */
+    public array $phase13c_live_ro = [];
+
+    /**
+     * Phase 14: isolated clone of the restored ng_database backup. Never point at production.
+     *
+     * @var array<string, mixed>
+     */
+    public array $phase14 = [
+        'DSN'          => '',
+        'hostname'     => 'localhost',
+        'username'     => 'phase14',
+        'password'     => 'phase14_local_only',
+        'database'     => 'ng_database_phase14',
+        'DBDriver'     => 'MySQLi',
+        'DBPrefix'     => '',
+        'pConnect'     => false,
+        'DBDebug'      => true,
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_general_ci',
+        'swapPre'      => '',
+        'encrypt'      => false,
+        'compress'     => false,
+        'strictOn'     => true,
+        'failover'     => [],
+        'port'         => 3306,
+        'numberNative' => false,
+        'foundRows'    => false,
+        'dateFormat'   => [
+            'date'     => 'Y-m-d',
+            'datetime' => 'Y-m-d H:i:s',
+            'time'     => 'H:i:s',
+        ],
+    ];
+
+    /**
+     * Phase 14 pristine restore baseline: SELECT-only account, not on the sandbox allow-list.
+     *
+     * @var array<string, mixed>
+     */
+    public array $phase14_snapshot = [
+        'DSN'          => '',
+        'hostname'     => 'localhost',
+        'username'     => 'p14_snap_ro',
+        'password'     => 'p14_snap_ro_local_only',
+        'database'     => 'ng_database_phase14_snapshot',
+        'DBDriver'     => 'MySQLi',
+        'DBPrefix'     => '',
+        'pConnect'     => false,
+        'DBDebug'      => true,
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_general_ci',
+        'swapPre'      => '',
+        'encrypt'      => false,
+        'compress'     => false,
+        'strictOn'     => true,
+        'failover'     => [],
+        'port'         => 3306,
+        'numberNative' => false,
+        'foundRows'    => false,
+        'dateFormat'   => [
+            'date'     => 'Y-m-d',
+            'datetime' => 'Y-m-d H:i:s',
+            'time'     => 'H:i:s',
+        ],
+    ];
+
+    /**
+     * Phase 14 runtime-only SELECT connection to ng_database (random password, dropped at end).
+     *
+     * @var array<string, mixed>
+     */
+    public array $phase14_live_ro = [];
 
     public function __construct()
     {
         parent::__construct();
+
+        $p13bUser = getenv('PHASE13B_DB_USER');
+        $p13bPass = getenv('PHASE13B_DB_PASS');
+        if (is_string($p13bUser) && $p13bUser !== '') {
+            $this->phase13b['username'] = $p13bUser;
+        }
+        if (is_string($p13bPass) && $p13bPass !== '') {
+            $this->phase13b['password'] = $p13bPass;
+        }
 
         // Ensure that we always set the database group to 'tests' if
         // we are currently running an automated test suite, so that

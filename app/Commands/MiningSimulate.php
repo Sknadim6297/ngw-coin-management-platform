@@ -16,7 +16,7 @@ class MiningSimulate extends BaseCommand
     protected $group       = 'Mining';
     protected $name        = 'mining:simulate';
     protected $description = 'Run daily mining simulation (preview only; never credits wallets).';
-    protected $usage       = 'mining:simulate [--date=YYYY-MM-DD] [--limit=500] [--dry-run]';
+    protected $usage       = 'mining:simulate [--date YYYY-MM-DD] [--limit 500] [--dry-run]';
     protected $options     = [
         '--date'    => 'Calculation date YYYY-MM-DD (default: today in app timezone)',
         '--limit'   => 'Max members per run (default 500, max 2000)',
@@ -25,6 +25,10 @@ class MiningSimulate extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('mining:simulate', ['values' => ['date' => 'date', 'limit' => 'int-positive'], 'flags' => ['dry-run']]) === null) {
+            return 2;
+        }
+
         $date  = CLI::getOption('date') ?: date('Y-m-d');
         $limit = (int) (CLI::getOption('limit') ?: 500);
 

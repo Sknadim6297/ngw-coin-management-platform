@@ -14,8 +14,8 @@ class MiningDaily extends BaseCommand
 {
     protected $group       = 'Mining';
     protected $name        = 'mining:daily';
-    protected $description = 'Daily mining dry-run (no wallet credits). Use --dry-run explicitly.';
-    protected $usage       = 'mining:daily [--dry-run] [--date=YYYY-MM-DD] [--limit=200] [--no-persist]';
+    protected $description = 'LEGACY diagnostic dry-run (current balances, 2000 cap; never credits). Use mining:post --dry-run for the Phase 13B as-of preview.';
+    protected $usage       = 'mining:daily [--dry-run] [--date YYYY-MM-DD] [--limit 200] [--no-persist]';
     protected $options     = [
         '--dry-run'    => 'Required safety flag (default behavior; posting never available here)',
         '--date'       => 'Business date YYYY-MM-DD (Asia/Kolkata when omitted uses mining timezone today)',
@@ -25,6 +25,10 @@ class MiningDaily extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('mining:daily', ['values' => ['date' => 'date', 'limit' => 'int-positive'], 'flags' => ['dry-run', 'no-persist']]) === null) {
+            return 2;
+        }
+
         // Refuse any accidental post flag.
         if (CLI::getOption('post') || CLI::getOption('credit') || CLI::getOption('execute')) {
             CLI::error('Posting flags are not supported. mining:daily is dry-run only.');
@@ -40,7 +44,9 @@ class MiningDaily extends BaseCommand
         $limit    = (int) (CLI::getOption('limit') ?: 200);
         $persist  = CLI::getOption('no-persist') ? false : true;
 
-        CLI::write('=== mining:daily DRY-RUN ===', 'yellow');
+        CLI::write('=== mining:daily DRY-RUN (LEGACY DIAGNOSTIC) ===', 'yellow');
+        CLI::write('LEGACY: uses CURRENT member balances (not as-of history), a hard 2000-member scan cap and the older rounding path.', 'red');
+        CLI::write('It can NEVER credit a wallet. For production-grade previews and posting use:  php spark mining:post --dry-run --date yesterday  (Phase 13B as-of engine).', 'red');
         CLI::write('timezone=' . $tz . ' date=' . $date);
         CLI::write('posting_enabled=' . (service('miningWalletService')->postingEnabled() ? 'true' : 'false'));
 

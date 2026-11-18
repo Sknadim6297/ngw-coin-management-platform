@@ -1,0 +1,16 @@
+PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+
+................................................................. 65 / 70 ( 92%)
+.....                                                             70 / 70 (100%)
+
+Time: 13:30.880, Memory: 34.00 MB
+
+There was 1 PHPUnit test runner warning:
+
+1) No code coverage driver available
+
+OK, but there were issues!
+Tests: 70, Assertions: 492, PHPUnit Warnings: 1.

@@ -492,6 +492,30 @@ class CoinPurchaseService
                 );
             }
 
+            // Phase 14: optional purchase-event commission posting AFTER commit.
+            // Remains strictly OFF unless BOTH commissionPostingEnabled AND commissionAutoPostOnApprovalEnabled
+            // AND all commission policy approval flags are explicitly approved.
+            $commissionPost = null;
+            $cfgPlatform    = $this->config ?? config('Platform');
+            if ((bool) $cfgPlatform->commissionPostingEnabled && (bool) $cfgPlatform->commissionAutoPostOnApprovalEnabled) {
+                try {
+                    $commissionPost = (new CommissionPostingRunnerService(null, null, null, null, $cfgPlatform))
+                        ->postApprovedPurchaseEvent($purchaseRef, $adminUserId);
+                } catch (\Throwable $postErr) {
+                    log_message('error', 'Commission purchase event post failed for {ref}: {msg}', [
+                        'ref' => $purchaseRef,
+                        'msg' => $postErr->getMessage(),
+                    ]);
+                    service('auditLogger')->log(
+                        'commission.purchase_event_post_failed',
+                        $adminUserId,
+                        'coin_purchase_request',
+                        $purchaseRef,
+                        ['error' => $postErr->getMessage()]
+                    );
+                }
+            }
+
             $this->audit->log(
                 'coin.purchase_approved',
                 $adminUserId,
@@ -505,7 +529,7 @@ class CoinPurchaseService
                     'sponsor_snapshot'          => true,
                     'mandatory_lock_ref'        => $lockRow['lock_ref'] ?? null,
                     'commission_calc_expected'  => $commissionCalc['totals']['expected_amount_usdt'] ?? null,
-                    'commission_posting'        => 'OFF',
+                    'commission_posting'        => $commissionPost !== null ? ($commissionPost['status'] ?? 'POSTED') : 'OFF',
                 ]
             );
 
@@ -516,6 +540,7 @@ class CoinPurchaseService
                 'activated'        => $activated,
                 'lock'             => $lockRow,
                 'commission_calc'  => $commissionCalc,
+                'commission_post'  => $commissionPost,
             ];
         } catch (\Throwable $e) {
             if ($db->transDepth > 0) {

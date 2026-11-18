@@ -1,0 +1,30 @@
+
+CodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-18 10:41:24 UTC+00:00
+
+[PASS] mysql_cli_present — mysql client: found
+[PASS] kill_switches_all_false — All 8 production switches false: {"miningPostingEnabled":false,"miningAutoPostEnabled":false,"miningP2pEnabled":false,"commissionPostingEnabled":false,"commissionAutoPostOnApprovalEnabled":false,"commissionWithdrawalEnabled":false,"commissionBlockchainPayoutEnabled":false,"coinSellingEnabled":false}
+[PASS] live_connection_read_only — Live account grants verified SELECT-only on ng_database.
+[PASS] mysqldump_present — mysqldump client: found
+[PASS] backup_created_and_verified — mysqldump exit=0 bytes=227685 tables=73 data_tables=39 completed=2026-11-18 16:11:47
+[PASS] restore_ng_database_phase14_snapshot — mysql restore into ng_database_phase14_snapshot exit=0
+[PASS] restore_ng_database_phase14 — mysql restore into ng_database_phase14 exit=0
+[PASS] snapshot_account_select_only — Snapshot account verified SELECT-only on ng_database_phase14_snapshot.
+[PASS] restore_matches_live — Snapshot matches ng_database row counts & balances exactly (10 members, 8 approved purchases, 1300 owned/locked, 8 LOCK1000, 0 mining/commission ledger).
+[PASS] restore_clone_matches_snapshot — Clone CHECKSUM TABLE on 73 tables matches snapshot.
+[PASS] restore_check_table_ok — CHECK TABLE QUICK OK on all restored tables.
+[PASS] clone_migrations_applied — Clone migrations 45 -> 48 (latest=2026-11-18-995001).
+[PASS] dual_control_self_approval_blocked — Self-approval blocked on Hub mining policy, Hub commission policy, mining rate, and commission plan.
+[PASS] old_draft_1052_not_approved — Existing draft CPL-20261118-D5EEC007 (L3=2%) kept unapproved (draft).
+[PASS] approved_rate_and_plan_ready — 3% monthly mining rate and 10/5/3 commission plan dual-approved on clone.
+[PASS] mining_nov17_zero_owed_under_following_day — 2026-11-17 IST yields 0 eligible coins under exclude_approval_day; backdating before 2026-11-18 refused.
+[PASS] mining_nov18_expected_exact — 2026-11-18 IST: 6 eligible members, 700.00000000 eligible coins, 0.70000000 COIN missing, inventory reserve sufficient (2998700.00000000).
+[PASS] mining_recovery_proposal_dual_control — Recovery proposal MRP-20261118-77CE1292 dual-approved.
+[PASS] mining_recovery_posting_reconciled — mining:post credited 6 members = 0.70000000 COIN; duplicate re-run credited 0; wallet==ledger==0.70000000; ownership unchanged (1300, no compounding).
+[PASS] commission_append_only_revisions — 24 append-only revisions created (21 eligible = 11.15000000 USDT, 3 unallocated); all 24 original NO_APPROVED_PLAN rows preserved untouched.
+[PASS] commission_dry_run_before_post — Dry-run exit=10 missing=11.15000000 USDT.
+[PASS] commission_interrupt_resume_and_reconcile — Interrupted batch (10 posted, exit 40) resumed same batch (+11 posted, exit 0); duplicate run posted 0; 21 ledger rows == 11.15000000 USDT; per-member balances exact; 24 NO_APPROVED_PLAN rows intact.
+[PASS] future_purchase_event_and_kill_switches — Future purchase calculated 0.90 USDT with auto-post OFF (0 posted until explicit commissions:post -> 0.90 USDT posted); future mining date refused (exit 30); live scheduled SKIPPED (20) & live manual mining/commission BLOCKED (30).
+[PASS] snapshot_pristine — Snapshot CHECKSUM TABLE on all 73 tables identical before and after Phases 3–7.
+[PASS] live_unchanged — ng_database fingerprint identical before and after Phase 14.
+[PASS] local_unchanged — coin_platform fingerprint identical before and after Phase 14.
+Summary: pass=26 fail=0 duration=68.97s -> C:\xampp\htdocs\coin-platform\writable\phase14-validation-results.json

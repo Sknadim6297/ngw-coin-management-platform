@@ -1,10 +1,10 @@
-# Phase 10C — Coin Plan Business Rule Audit Report
+﻿# Phase 10C — Coin Plan Business Rule Audit Report
 
 Read-only audit + safe corrections. Kill-switches remain OFF. No deploy. No real wallet credits.
 
 Commands:
 - `php spark coinplan:audit`
-- `php spark mining:dry-run [--date=YYYY-MM-DD] [--limit=50]`
+- `php spark mining:dry-run [--date YYYY-MM-DD] [--limit 50]`
 
 ---
 

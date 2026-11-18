@@ -1,4 +1,4 @@
-# Phase 11A — Mining Daily Scheduler (DRY-RUN ONLY)
+﻿# Phase 11A — Mining Daily Scheduler (DRY-RUN ONLY)
 
 Business timezone: `Asia/Kolkata` (`Platform::miningBusinessTimezone`).
 
@@ -16,7 +16,7 @@ Run daily after midnight IST (e.g. 00:15 Asia/Kolkata):
 
 ```text
 Program: C:\xampp\php\php.exe
-Arguments: C:\xampp\htdocs\coin-platform\spark mining:daily --dry-run --date=%DATE_IST%
+Arguments: C:\xampp\htdocs\coin-platform\spark mining:daily --dry-run --date %DATE_IST%
 Start in: C:\xampp\htdocs\coin-platform
 ```
 

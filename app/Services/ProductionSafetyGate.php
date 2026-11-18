@@ -14,7 +14,31 @@ class ProductionSafetyGate
 {
     public const LIVE_DATABASE = 'coin_platform';
 
+    /** @var list<string> */
+    public const LIVE_DATABASES = [
+        'coin_platform',
+        'ng_database',
+    ];
+
     public const CONFIRM_PHRASE = 'I_AUTHORIZE_PRODUCTION_CHANGE';
+
+    /**
+     * @return list<string>
+     */
+    public static function liveDatabases(): array
+    {
+        $list = self::LIVE_DATABASES;
+        $envLive = trim((string) (getenv('platform.liveDatabase') ?: ($_SERVER['platform.liveDatabase'] ?? '')));
+        if ($envLive !== ''
+            && ! in_array($envLive, FinancialSandboxService::ALLOWED_DATABASES, true)
+            && ! str_contains(strtolower($envLive), 'test')
+            && ! str_contains(strtolower($envLive), 'phase')
+        ) {
+            $list[] = $envLive;
+        }
+
+        return array_values(array_unique($list));
+    }
 
     /**
      * @return array{group: string, database: string, is_live: bool}
@@ -28,7 +52,7 @@ class ProductionSafetyGate
         return [
             'group'     => $group,
             'database'  => $name,
-            'is_live'   => $name === self::LIVE_DATABASE,
+            'is_live'   => in_array($name, self::liveDatabases(), true),
         ];
     }
 
@@ -50,7 +74,7 @@ class ProductionSafetyGate
 
         if (! $allowProduction) {
             throw new RuntimeException(
-                'Refusing ' . $operation . ' on live database "' . self::LIVE_DATABASE
+                'Refusing ' . $operation . ' on live database "' . $info['database']
                 . '". Use staging (--db-group=phase12b) or pass --allow-production with explicit confirm.'
             );
         }

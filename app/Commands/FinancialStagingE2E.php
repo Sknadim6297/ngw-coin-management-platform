@@ -17,7 +17,7 @@ class FinancialStagingE2E extends BaseCommand
     protected $group       = 'Finance';
     protected $name        = 'financial:staging-e2e';
     protected $description = 'Phase 12B staging end-to-end financial workflow test (isolated DB only).';
-    protected $usage       = 'financial:staging-e2e [--seconds=180] [--fresh]';
+    protected $usage       = 'financial:staging-e2e [--seconds 180] [--fresh]';
     protected $options     = [
         '--seconds' => 'Sandbox authorization window seconds (default 180)',
         '--fresh'   => 'DROP and recreate coin_platform_phase12b before running',
@@ -25,6 +25,10 @@ class FinancialStagingE2E extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('financial:staging-e2e', ['values' => ['seconds' => 'int-positive'], 'flags' => ['fresh']]) === null) {
+            return 2;
+        }
+
         $seconds = (int) (CLI::getOption('seconds') ?: ($params['seconds'] ?? 180));
         $fresh   = CLI::getOption('fresh') !== null || array_key_exists('fresh', $params);
 

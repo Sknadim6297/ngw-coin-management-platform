@@ -1,0 +1,21 @@
+{
+    "database": "coin_platform_phase12f",
+    "member_ids_preserved": [
+        "ROOT0001",
+        "NGW000001"
+    ],
+    "sequence_last": 1233,
+    "expected_next_ids": [
+        "NGW1234",
+        "NGW1235"
+    ],
+    "balance": {
+        "available_balance": "0.00000000",
+        "locked_balance": "5.00000000",
+        "reserved_balance": "0.00000000",
+        "balance": "5.00000000"
+    },
+    "lock_count": 1,
+    "second_remediation_exit": 0,
+    "second_remediation_out": "\nCodeIgniter v4.7.6 Command Line Tool - Server Time: 2026-11-17 12:55:14 UTC+00:00\n\n=== locking:remediate-mandatory ===\npurchase_ref=PUR-10D7174B7FF83054 db-group=phase12f dry_run=no\n{\n    \"database\": \"coin_platform_phase12f\",\n    \"group\": \"phase12f\",\n    \"is_live\": false,\n    \"purchase_ref\": \"PUR-10D7174B7FF83054\",\n    \"member_id\": \"NGW000001\",\n    \"member_user_id\": 5,\n    \"purchase\": {\n        \"status\": \"approved\",\n        \"coin_quantity\": \"5.00000000\",\n        \"reviewed_at\": \"2026-11-17 06:45:44\",\n        \"total_usdt\": \"5.00000000\"\n    },\n    \"existing_mandatory_lock\": {\n        \"id\": \"1\",\n        \"lock_ref\": \"LCK-M-8E756DE1357F647A\",\n        \"member_user_id\": \"5\",\n        \"member_id\": \"NGW000001\",\n        \"purchase_ref\": \"PUR-10D7174B7FF83054\",\n        \"lock_kind\": \"mandatory_purchase\",\n        \"plan_id\": \"1\",\n        \"plan_code\": \"LOCK1000\",\n        \"plan_name\": \"Mandatory 1000-Day Purchase Lock\",\n        \"quantity\": \"5.00000000\",\n        \"duration_days\": \"1000\",\n        \"status\": \"active\",\n        \"locked_at\": \"2026-11-17 06:45:44\",\n        \"matures_at\": \"2029-08-13 06:45:44\",\n        \"matured_at\": null,\n        \"unlocked_at\": null,\n        \"cancelled_at\": null,\n        \"ownership_lock_txn_ref\": \"OWN-6FD034CDF8F69C9B\",\n        \"ownership_unlock_txn_ref\": null,\n        \"idempotency_key\": \"mandatory-lock:PUR-10D7174B7FF83054\",\n        \"unlock_idempotency_key\": null,\n        \"created_at\": \"2026-11-17 12:49:17\",\n        \"updated_at\": \"2026-11-17 12:49:17\"\n    },\n    \"idempotency_key\": \"mandatory-lock:PUR-10D7174B7FF83054\",\n    \"checks\": {\n        \"purchase_approved\": true,\n        \"quantity_positive\": true,\n        \"ownership_present\": true,\n        \"reviewed_at_set\": true,\n        \"no_existing_mandatory_lock\": false,\n        \"sufficient_available\": false,\n        \"total_matches_parts\": true\n    },\n    \"ready\": false,\n    \"before\": {\n        \"available_balance\": \"0.00000000\",\n        \"locked_balance\": \"5.00000000\",\n        \"reserved_balance\": \"0.00000000\",\n        \"balance\": \"5.00000000\"\n    },\n    \"after_projected\": {\n        \"available_balance\": \"-5.00000000\",\n        \"locked_balance\": \"10.00000000\",\n        \"reserved_balance\": \"0.00000000\",\n        \"balance\": \"5.00000000\",\n        \"plan\": \"LOCK1000\",\n        \"locked_at\": \"2026-11-17 06:45:44\",\n        \"matures_at\": \"2029-08-13 06:45:44\",\n        \"duration_days\": 1000\n    },\n    \"note\": \"ALREADY REMEDIATED / SAFE NO-OP \\u2014 mandatory lock already present; no balance change.\",\n    \"executed\": false,\n    \"dry_run\": false,\n    \"already_remediated\": true,\n    \"safe_noop\": true\n}\nRemediation executed on coin_platform_phase12f\nKill-switches: {\"miningPostingEnabled\":false,\"miningP2pEnabled\":false,\"commissionPostingEnabled\":false,\"commissionWithdrawalEnabled\":false,\"commissionBlockchainPayoutEnabled\":false,\"coinSellingEnabled\":false,\"sandbox_window_open\":false}"
+}

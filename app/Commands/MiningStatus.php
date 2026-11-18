@@ -16,6 +16,10 @@ class MiningStatus extends BaseCommand
 
     public function run(array $params)
     {
+        if (\App\Libraries\CliArgs::guard('mining:status', []) === null) {
+            return 2;
+        }
+
         $status = service('miningDailyEngineService')->status();
         foreach ($status as $k => $v) {
             if (is_array($v)) {
