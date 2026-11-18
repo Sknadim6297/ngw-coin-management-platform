@@ -184,18 +184,28 @@ final class MiningSimulationTest extends CIUnitTestCase
         $this->assertFalse($inactive['eligible']);
         $this->assertContains('member_inactive', $inactive['reason_codes']);
 
-        // Phase 11A: purchase approval mandatory-locks full quantity; locked coins remain eligible.
+        // Phase 11A: purchase approval mandatory-locks full quantity; locked coins remain eligible
+        // starting the next Asia/Kolkata business date under exclude_approval_day.
         $this->credit($member, '80');
 
+        $todayIst    = service('miningEligibilityService')->businessDate();
+        $tomorrowIst = (new \DateTimeImmutable($todayIst, new \DateTimeZone('Asia/Kolkata')))->modify('+1 day')->format('Y-m-d');
+        $month       = substr($tomorrowIst, 0, 7);
+
         $rate = service('miningRateService')->createDraft([
-            'effective_month' => date('Y-m'),
+            'effective_month' => $month,
             'rate_percent'    => '3.00000000',
             'rate_basis'      => 'monthly',
         ], $this->adminUserId);
         service('miningRateService')->approve($rate['rate_ref'], $this->approverUserId);
         $rate = service('miningRateService')->findByRef($rate['rate_ref']);
 
-        $eval = service('miningEligibilityService')->evaluate($member['user_id'], date('Y-m-d'), $rate);
+        $sameDayEval = service('miningEligibilityService')->evaluate($member['user_id'], $todayIst, $rate);
+        $this->assertFalse($sameDayEval['eligible']);
+        $this->assertContains('before_mining_start', $sameDayEval['reason_codes']);
+        $this->assertSame($tomorrowIst, $sameDayEval['mining_start_date']);
+
+        $eval = service('miningEligibilityService')->evaluate($member['user_id'], $tomorrowIst, $rate);
         $this->assertTrue($eval['eligible']);
         $this->assertSame('80.00000000', $eval['eligible_coins']);
         $this->assertSame('80.00000000', $eval['locked']);
@@ -225,8 +235,10 @@ final class MiningSimulationTest extends CIUnitTestCase
     {
         $member = $this->registerMember('sim1');
         $this->credit($member, '100');
+        $todayIst = service('miningEligibilityService')->businessDate();
+        $nextIst  = (new \DateTimeImmutable($todayIst, new \DateTimeZone('Asia/Kolkata')))->modify('+1 day')->format('Y-m-d');
         $draft = service('miningRateService')->createDraft([
-            'effective_month' => date('Y-m'),
+            'effective_month' => substr($nextIst, 0, 7),
             'rate_percent'    => '1.00000000',
             'rate_basis'      => 'daily',
         ], $this->adminUserId);
@@ -236,7 +248,7 @@ final class MiningSimulationTest extends CIUnitTestCase
         $beforeTxn = db_connect()->table('member_coin_ownership_transactions')
             ->where('member_user_id', $member['user_id'])->countAllResults();
 
-        $date = date('Y-m-d');
+        $date = $nextIst;
         $first  = service('miningSimulationService')->simulateDay($date, $this->adminUserId);
         $second = service('miningSimulationService')->simulateDay($date, $this->adminUserId);
         $this->assertFalse($first['reused']);
@@ -257,13 +269,15 @@ final class MiningSimulationTest extends CIUnitTestCase
         $a = $this->registerMember('owna');
         $b = $this->registerMember('ownb');
         $this->credit($a, '40');
+        $todayIst = service('miningEligibilityService')->businessDate();
+        $nextIst  = (new \DateTimeImmutable($todayIst, new \DateTimeZone('Asia/Kolkata')))->modify('+1 day')->format('Y-m-d');
         $draft = service('miningRateService')->createDraft([
-            'effective_month' => date('Y-m'),
+            'effective_month' => substr($nextIst, 0, 7),
             'rate_percent'    => '1.00000000',
             'rate_basis'      => 'daily',
         ], $this->adminUserId);
         service('miningRateService')->approve($draft['rate_ref'], $this->approverUserId);
-        service('miningSimulationService')->simulateDay(date('Y-m-d'), $this->adminUserId);
+        service('miningSimulationService')->simulateDay($nextIst, $this->adminUserId);
 
         $this->post('login', [
             'member_id' => $b['member_id'],

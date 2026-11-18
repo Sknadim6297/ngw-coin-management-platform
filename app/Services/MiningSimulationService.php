@@ -241,7 +241,7 @@ class MiningSimulationService
      */
     public function adminSnapshot(?string $today = null): array
     {
-        $today = $today ?? date('Y-m-d');
+        $today = $today ?? $this->eligibility->businessDate();
         $scale = $this->scale();
         $rate  = $this->rates->approvedForDate($today);
         $run   = $this->latestRun($today);

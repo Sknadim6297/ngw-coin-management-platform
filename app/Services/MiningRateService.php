@@ -268,9 +268,9 @@ class MiningRateService
     /**
      * DRAFT-approved monthly divisor selection for dry-run / future posting.
      */
-    public function monthDayDivisor(string $calculationDate, ?string $effectiveMonth = null): int
+    public function monthDayDivisor(string $calculationDate, ?string $effectiveMonth = null, ?string $divisorMode = null): int
     {
-        $mode = strtolower((string) (config('Platform')->miningMonthDayDivisorMode ?? 'calendar_days'));
+        $mode = strtolower((string) ($divisorMode ?? config('Platform')->miningMonthDayDivisorMode ?? 'calendar_days'));
         if ($mode === 'fixed_30') {
             return 30;
         }

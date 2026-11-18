@@ -208,8 +208,10 @@ class ProductionSafetyGate
         $s = $this->killSwitchSnapshot();
         foreach ([
             'miningPostingEnabled',
+            'miningAutoPostEnabled',
             'miningP2pEnabled',
             'commissionPostingEnabled',
+            'commissionAutoPostOnApprovalEnabled',
             'commissionWithdrawalEnabled',
             'commissionBlockchainPayoutEnabled',
             'coinSellingEnabled',

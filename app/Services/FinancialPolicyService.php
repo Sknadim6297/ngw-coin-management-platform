@@ -118,6 +118,7 @@ class FinancialPolicyService
                 'earning_asset' => (string) $cfg->miningEarningAsset,
                 'eligibility_policy' => 'total_owned_active',
                 'locked_coins_included' => true,
+                'compounding_enabled' => false,
                 'monthly_percent' => null,
                 'monthly_percent_status' => (string) $cfg->miningMonthlyPercentStatus,
                 'day_divisor_status' => (string) $cfg->miningDayDivisorStatus,
@@ -126,9 +127,12 @@ class FinancialPolicyService
                 'post_maturity_status' => (string) $cfg->miningPostMaturityEligibilityStatus,
                 'post_sale_status' => (string) $cfg->miningPostSaleEligibilityStatus,
                 'rounding_status' => (string) $cfg->miningRoundingPolicyStatus,
+                'reward_supply_status' => (string) $cfg->miningRewardSupplySourceStatus,
+                'compounding_status' => (string) $cfg->miningCompoundingPolicyStatus,
                 'approved_rate_count' => $this->countApprovedMiningRates(),
                 'posting_enabled' => (bool) $cfg->miningPostingEnabled,
-                'illustrative_preview' => $this->miningPreview('100', '3', 'fixed_30'),
+                'auto_post_enabled' => (bool) $cfg->miningAutoPostEnabled,
+                'illustrative_preview' => $this->miningPreview('100', '3', (string) $cfg->miningMonthDayDivisorMode, null, (string) $cfg->miningRoundingMode),
             ],
             self::DOMAIN_COMMISSION => [
                 'target_l1' => '10.00000000',
@@ -536,8 +540,10 @@ class FinancialPolicyService
             ],
             'kill_switches' => $switches,
             'all_kill_switches_off' => empty($switches['miningPostingEnabled'])
+                && empty($switches['miningAutoPostEnabled'])
                 && empty($switches['miningP2pEnabled'])
                 && empty($switches['commissionPostingEnabled'])
+                && empty($switches['commissionAutoPostOnApprovalEnabled'])
                 && empty($switches['commissionWithdrawalEnabled'])
                 && empty($switches['commissionBlockchainPayoutEnabled'])
                 && empty($switches['coinSellingEnabled']),

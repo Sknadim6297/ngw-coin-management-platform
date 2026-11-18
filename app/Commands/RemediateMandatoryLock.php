@@ -41,7 +41,7 @@ class RemediateMandatoryLock extends BaseCommand
 
     public function run(array $params)
     {
-        if (\App\Libraries\CliArgs::guard('locking:remediate-mandatory', ['values' => ['purchase' => '/^[A-Za-z0-9_-]{3,40}$/', 'group' => ['default', 'phase12a', 'phase12b', 'phase12d', 'phase12f', 'phase13a', 'phase13b', 'phase13c', 'phase13c_snapshot'], 'confirm' => null, 'actor' => 'int'], 'flags' => ['dry-run', 'allow-production'], 'positionals' => 1]) === null) {
+        if (\App\Libraries\CliArgs::guard('locking:remediate-mandatory', ['values' => ['purchase' => '/^[A-Za-z0-9_-]{3,40}$/', 'group' => ['default', 'phase12a', 'phase12b', 'phase12d', 'phase12f', 'phase13a', 'phase13b', 'phase13c', 'phase13c_snapshot', 'phase14'], 'confirm' => null, 'actor' => 'int'], 'flags' => ['dry-run', 'allow-production'], 'positionals' => 1]) === null) {
             return 2;
         }
 
@@ -82,7 +82,7 @@ class RemediateMandatoryLock extends BaseCommand
 
             if ($dryRun) {
                 $out = $svc->execute($purchaseRef, true, false, null, $actor, $group);
-            } elseif (in_array($group, ['phase12a', 'phase12b', 'phase12d', 'phase12f', 'phase13a', 'phase13b', 'phase13c'], true)) {
+            } elseif (in_array($group, ['phase12a', 'phase12b', 'phase12d', 'phase12f', 'phase13a', 'phase13b', 'phase13c', 'phase14'], true)) {
                 if ($confirm !== 'APPLY_STAGING') {
                     CLI::error('Staging apply requires --confirm APPLY_STAGING');
 

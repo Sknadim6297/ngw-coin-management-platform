@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Libraries\MiningCalculationPolicy;
 use App\Libraries\MoneyMath;
 use App\Models\MemberProfileModel;
 use Config\Platform;
@@ -41,23 +42,38 @@ class MiningDailyEngineService
     public function dryRun(string $businessDate, int $limit = 200, bool $persistRun = true, ?int $actorUserId = null): array
     {
         $this->assertDate($businessDate);
-        $cfg = $this->config ?? config('Platform');
-        $tz  = (string) $cfg->miningBusinessTimezone;
+        $cfg  = $this->config ?? config('Platform');
+        $tz   = (string) $cfg->miningBusinessTimezone;
+        $pol  = MiningCalculationPolicy::fromPlatform($cfg);
         $rate = $this->rates->approvedForDate($businessDate);
+        $unconfirmed = [];
+        foreach ([
+            'monthly_percent'    => 'miningMonthlyPercentStatus',
+            'day_divisor'        => 'miningDayDivisorStatus',
+            'denomination'       => 'miningDenominationStatus',
+            'approval_day'       => 'miningApprovalDayPolicyStatus',
+            'locked_coins'       => 'miningLockedCoinEligibilityStatus',
+            'post_maturity'      => 'miningPostMaturityEligibilityStatus',
+            'post_sale'          => 'miningPostSaleEligibilityStatus',
+            'rounding'           => 'miningRoundingPolicyStatus',
+            'reward_supply'      => 'miningRewardSupplySourceStatus',
+            'compounding_policy' => 'miningCompoundingPolicyStatus',
+        ] as $key => $flag) {
+            if (strtolower((string) ($cfg->{$flag} ?? '')) !== 'approved') {
+                $unconfirmed[] = $key;
+            }
+        }
         $assumptions = [
-            'label'                 => 'DRAFT_ASSUMPTIONS_FOR_DRY_RUN_ONLY',
-            'formula'               => 'eligible_total_owned × (monthly_rate/100) ÷ month_day_divisor',
-            'month_day_divisor_mode'=> (string) $cfg->miningMonthDayDivisorMode,
-            'approval_day_policy'   => (string) $cfg->miningApprovalDayPolicy,
-            'earning_asset'         => (string) $cfg->miningEarningAsset,
-            'posting'               => 'OFF',
-            'unconfirmed'           => [
-                'fixed_30_vs_calendar_days',
-                'coin_vs_usdt_denomination',
-                'full_day_vs_proration_on_approval_day',
-                'mining_after_1000_day_maturity',
-                'unlocked_or_sold_coin_eligibility',
-            ],
+            'label'                  => $unconfirmed === [] ? 'APPROVED_POLICY_DRY_RUN' : 'OWNER_RULES_PENDING_FORMAL_POLICY_ACTIVATION',
+            'formula'                => 'as_of_eligible_owned × (monthly_rate/100) ÷ month_day_divisor (no compounding)',
+            'policy_version'         => $pol->version(),
+            'month_day_divisor_mode' => $pol->divisorMode,
+            'approval_day_policy'    => $pol->approvalDay,
+            'rounding_mode'          => $pol->rounding,
+            'earning_asset'          => (string) $cfg->miningEarningAsset,
+            'compounding_enabled'    => false,
+            'posting'                => $this->wallets->postingEnabled() ? 'ENABLED' : 'OFF',
+            'unconfirmed'            => $unconfirmed,
         ];
 
         $members = $this->profiles->excludeRootSponsors()
@@ -73,12 +89,12 @@ class MiningDailyEngineService
         foreach ($members as $profile) {
             $uid  = (int) $profile->user_id;
             $eval = $this->eligibility->evaluate($uid, $businessDate, $rate);
-            $divisor = $rate !== null ? $this->rates->monthDayDivisor($businessDate, (string) ($rate['effective_month'] ?? '')) : null;
+            $divisor = $rate !== null ? $this->rates->monthDayDivisor($businessDate, (string) ($rate['effective_month'] ?? ''), $pol->divisorMode) : null;
             $dailyFactor = null;
             $expected = MoneyMath::normalize('0', 8);
             if ($rate !== null && ! empty($eval['eligible'])) {
                 $dailyFactor = $this->rates->dailyFactor($rate, $businessDate);
-                $expected = $this->rates->previewAmount((string) $eval['eligible_coins'], $rate, $businessDate);
+                $expected = $this->rates->previewAmount((string) $eval['eligible_coins'], $rate, $businessDate, $pol->divisorMode, $pol->rounding);
             }
             $posted = $this->wallets->postedAmountForDate($uid, $businessDate);
 

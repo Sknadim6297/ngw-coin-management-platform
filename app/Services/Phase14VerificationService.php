@@ -41,6 +41,10 @@ class Phase14VerificationService
     /** @return array<string, mixed> */
     public function run(): array
     {
+        if (ENVIRONMENT === 'production') {
+            throw new RuntimeException('Refusing Phase 14 staging verifier under ENVIRONMENT=production.');
+        }
+
         $started = microtime(true);
         $this->out = [
             'phase'      => '14',

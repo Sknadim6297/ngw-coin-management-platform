@@ -186,7 +186,9 @@ final class Phase10CCoinPlanAuditTest extends CIUnitTestCase
         );
         service('coinPurchaseService')->approveRequest($req['request']['purchase_ref'], $this->adminUserId, true, 'p10c');
 
-        $month = date('Y-m');
+        $todayIst = service('miningEligibilityService')->businessDate();
+        $nextIst  = (new \DateTimeImmutable($todayIst, new \DateTimeZone('Asia/Kolkata')))->modify('+1 day')->format('Y-m-d');
+        $month    = substr($nextIst, 0, 7);
         $draft = service('miningRateService')->createDraft([
             'effective_month' => $month,
             'rate_percent'    => '1.00000000',
@@ -201,7 +203,16 @@ final class Phase10CCoinPlanAuditTest extends CIUnitTestCase
         $approver->addGroup('finance_approver');
         service('miningRateService')->approve($draft['rate_ref'], (int) $approver->id);
 
-        $preview = service('coinPlanAuditService')->miningDryRunPreview(date('Y-m-d'), 100);
+        // Approval day excluded: 0 expected income on approval date; positive on next Asia/Kolkata business date.
+        $todayPreview = service('coinPlanAuditService')->miningDryRunPreview($todayIst, 100);
+        foreach ($todayPreview['rows'] as $row) {
+            if ($row['member_id'] === $member['member_id']) {
+                $this->assertSame('0.00000000', $row['expected_income']);
+                break;
+            }
+        }
+
+        $preview = service('coinPlanAuditService')->miningDryRunPreview($nextIst, 100);
         $this->assertSame('DAILY MINING IS NOT POSTING REAL INCOME.', $preview['posting_status']);
 
         $found = null;

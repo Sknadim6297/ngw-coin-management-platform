@@ -311,6 +311,16 @@ class MiningRecoveryService
             throw new RuntimeException('Mining recovery proposal must be approved before execution (status=' . ($row['status'] ?? 'unknown') . ').');
         }
 
+        $activePolicy = MiningCalculationPolicy::fromPlatform($this->config);
+        if ((string) ($row['policy_version'] ?? '') !== $activePolicy->version()) {
+            throw new RuntimeException(sprintf(
+                'Policy mismatch on recovery proposal %s (%s vs active %s). Create a new proposal under the approved policy.',
+                $proposalRef,
+                (string) ($row['policy_version'] ?? 'unset'),
+                $activePolicy->version()
+            ));
+        }
+
         $runner = new MiningPostingRunnerService(null, null, $this->config);
         $run    = $runner->run(array_merge($runnerOpts, [
             'date'    => (string) $row['business_date'],

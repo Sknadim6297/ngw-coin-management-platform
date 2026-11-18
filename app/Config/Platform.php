@@ -132,14 +132,14 @@ class Platform extends BaseConfig
     public bool $commissionBlockchainPayoutEnabled = false;
 
     /**
-     * Phase 11A mining kill-switches — fail-closed OFF until separately authorized.
-     */
-    /**
      * Optional extra production database name(s), comma separated (env: platform.liveDatabase).
      * Additive only: can never remove a database from the hard-coded production list.
      */
     public string $liveDatabase = '';
 
+    /**
+     * Phase 11A mining kill-switches — fail-closed OFF until separately authorized.
+     */
     public bool $miningPostingEnabled = false;
 
     public bool $miningP2pEnabled = false;
@@ -167,20 +167,20 @@ class Platform extends BaseConfig
     public string $miningBusinessTimezone = 'Asia/Kolkata';
 
     /**
-     * DRAFT assumption — monthly day divisor for dry-run only.
-     * calendar_days = days in the rate's effective month; fixed_30 = always 30.
-     * Live posting blocked until explicitly approved.
+     * Owner-approved rule: actual calendar days of the business month (calendar_days).
+     * Formal versioned Hub/rate approval and kill-switch activation are still required before live posting.
      */
     public string $miningMonthDayDivisorMode = 'calendar_days';
 
     /**
-     * DRAFT assumption — approval-day mining policy for dry-run only.
-     * full_day = eligibility includes approval business date; exclude_approval_day = starts next day.
+     * Owner-approved rule: exclude_approval_day (approval day excluded; mining starts on the next
+     * Asia/Kolkata business date after purchase approval).
+     * Live posting remains blocked until formal Hub/rate approval and explicit switch activation.
      */
-    public string $miningApprovalDayPolicy = 'full_day';
+    public string $miningApprovalDayPolicy = 'exclude_approval_day';
 
     /**
-     * DRAFT assumption — mining earning asset denomination until business confirms.
+     * Owner-approved rule: earning asset denomination is COIN (no compounding; mining wallet only).
      */
     public string $miningEarningAsset = 'COIN';
 

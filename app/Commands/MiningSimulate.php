@@ -29,7 +29,7 @@ class MiningSimulate extends BaseCommand
             return 2;
         }
 
-        $date  = CLI::getOption('date') ?: date('Y-m-d');
+        $date  = CLI::getOption('date') ?: service('miningEligibilityService')->businessDate();
         $limit = (int) (CLI::getOption('limit') ?: 500);
 
         CLI::write('Mining simulation starting (non-payable, non-posted).', 'yellow');

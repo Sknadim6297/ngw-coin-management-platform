@@ -235,4 +235,162 @@ class MiningProposalService
 
         return $out;
     }
+
+    /**
+     * Canonical versioned Financial Policy Hub payload capturing the business owner's explicitly
+     * approved mining parameters (3% monthly, calendar_days, no compounding, exclude_approval_day,
+     * next Asia/Kolkata business date, COIN, Asia/Kolkata). Does NOT mark anything approved or active.
+     *
+     * @return array<string, mixed>
+     */
+    public function ownerApprovedMiningPolicyPayload(
+        ?string $effectiveFrom = null,
+        string $rounding = MiningMath::ROUND_DOWN,
+        string $postMaturity = \App\Libraries\MiningCalculationPolicy::MATURITY_INCLUDE_ALL,
+        string $postSale = \App\Libraries\MiningCalculationPolicy::RESERVED_INCLUDE,
+        string $supplySource = 'reserve_inventory_tracked'
+    ): array {
+        if ($effectiveFrom !== null && $effectiveFrom !== '') {
+            if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $effectiveFrom)) {
+                throw new InvalidArgumentException('Effective date must be YYYY-MM-DD.');
+            }
+        } else {
+            $effectiveFrom = null;
+        }
+        if (! in_array($rounding, MiningMath::roundingModes(), true)) {
+            throw new InvalidArgumentException('Unsupported rounding mode: ' . $rounding);
+        }
+        $policy = new \App\Libraries\MiningCalculationPolicy(
+            \App\Libraries\MiningCalculationPolicy::APPROVAL_EXCLUDE_DAY,
+            MiningMath::DIVISOR_CALENDAR,
+            $rounding,
+            $postSale,
+            $postMaturity
+        );
+
+        return [
+            'monthly_percent'             => '3.00000000',
+            'rate_basis'                  => 'monthly',
+            'month_day_divisor_mode'      => MiningMath::DIVISOR_CALENDAR,
+            'earning_asset'               => 'COIN',
+            'approval_day_policy'         => \App\Libraries\MiningCalculationPolicy::APPROVAL_EXCLUDE_DAY,
+            'first_eligible_rule'         => 'FOLLOWING_BUSINESS_DATE',
+            'business_timezone'           => self::TZ,
+            'compounding_enabled'         => false,
+            'eligibility_policy'          => MiningEligibilityService::POLICY_TOTAL_OWNED_ACTIVE,
+            'locked_coins_included'       => true,
+            'post_maturity_eligibility'   => $policy->maturity,
+            'post_sale_eligibility'       => $policy->reserved,
+            'rounding_mode'               => $policy->rounding,
+            'residual_policy'             => 'none',
+            'supply_source'               => $supplySource,
+            'policy_version'              => $policy->version(),
+            'proposed_effective_from'     => $effectiveFrom,
+            'no_backdating_confirmed'     => true,
+            'owner_rules_confirmed'       => [
+                'monthly_rate_percent' => '3.00000000',
+                'day_divisor'          => 'actual_calendar_days',
+                'compounding'          => false,
+                'approval_day'         => 'exclude_approval_day',
+                'start_date_rule'      => 'next_asia_kolkata_business_date_after_purchase_approval',
+                'earning_asset'        => 'COIN',
+                'timezone'             => self::TZ,
+            ],
+            'approval_state'              => 'DRAFT_PENDING_DUAL_CONTROL_APPROVAL',
+        ];
+    }
+
+    /**
+     * Prepare (create ONLY as status=draft) a unified versioned mining policy draft in
+     * `financial_policy_versions` and, optionally, a draft `mining_rate_configs` row for the
+     * effective month. Never auto-submits, approves, activates, or flips any kill-switch.
+     *
+     * Guarded by ProductionSafetyGate (live DB requires --allow-production + exact confirm phrase).
+     *
+     * @return array{policy: array<string, mixed>, rate: ?array<string, mixed>, status: string}
+     */
+    public function prepareVersionedMiningDraft(
+        int $actorUserId,
+        ?string $effectiveFrom = null,
+        bool $createRateDraft = true,
+        ?string $group = null,
+        bool $allowProduction = false,
+        ?string $confirmPhrase = null,
+        ?FinancialPolicyService $hub = null,
+        ?MiningRateService $rates = null
+    ): array {
+        if ($actorUserId <= 0) {
+            throw new InvalidArgumentException('An authorized admin --actor user ID is required to persist a policy draft.');
+        }
+
+        (new ProductionSafetyGate())->assertMutationAllowed(
+            $allowProduction,
+            $confirmPhrase,
+            $group,
+            'mining policy draft preparation'
+        );
+
+        $hub     ??= new FinancialPolicyService();
+        $rates   ??= new MiningRateService();
+        $payload = $this->ownerApprovedMiningPolicyPayload($effectiveFrom);
+
+        $title = 'Mining Policy Draft (3% monthly, calendar_days, exclude_approval_day, COIN, Asia/Kolkata, no compounding)';
+        $notes = 'Prepared from owner-approved mining business rules. Status=draft; requires dual-control submit/approve/activate and explicit switch authorization before live posting.';
+
+        $previous = config('Database')->defaultGroup;
+        $switched = $group !== null && $group !== '' && $group !== $previous;
+
+        try {
+            if ($switched) {
+                config('Database')->defaultGroup = $group;
+                \Config\Database::connect($group, false);
+                db_connect($group, false);
+            }
+
+            $policyRow = $hub->createDraft(
+                FinancialPolicyService::DOMAIN_MINING,
+                $title,
+                $payload,
+                $actorUserId,
+                $payload['proposed_effective_from'],
+                $notes
+            );
+
+            $rateRow = null;
+            if ($createRateDraft) {
+                $tz    = new DateTimeZone(self::TZ);
+                $month = $payload['proposed_effective_from'] !== null
+                    ? substr((string) $payload['proposed_effective_from'], 0, 7)
+                    : (new DateTimeImmutable('now', $tz))->format('Y-m');
+
+                $existing = db_connect()->table('mining_rate_configs')
+                    ->where('effective_month', $month)
+                    ->whereIn('status', [MiningRateService::STATUS_DRAFT, MiningRateService::STATUS_APPROVED])
+                    ->where('rate_percent', '3.00000000')
+                    ->where('rate_basis', 'monthly')
+                    ->orderBy('id', 'DESC')
+                    ->get()
+                    ->getRowArray();
+
+                $rateRow = $existing ?: $rates->createDraft([
+                    'effective_month' => $month,
+                    'rate_percent'    => '3.00000000',
+                    'rate_basis'      => 'monthly',
+                    'notes'           => 'Draft 3% monthly COIN rate (actual calendar days, exclude_approval_day, no compounding). Dual-control approval required.',
+                ], $actorUserId);
+            }
+
+            return [
+                'status' => 'DRAFT_ONLY_NOT_ACTIVATED',
+                'policy' => $policyRow,
+                'rate'   => $rateRow,
+            ];
+        } finally {
+            if ($switched) {
+                config('Database')->defaultGroup = $previous;
+                \Config\Database::connect($previous, false);
+                db_connect($previous, false);
+            }
+        }
+    }
 }

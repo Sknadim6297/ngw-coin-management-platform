@@ -285,8 +285,10 @@ class FinancialSandboxService
 
         return [
             'miningPostingEnabled'              => (bool) $cfg->miningPostingEnabled,
+            'miningAutoPostEnabled'             => (bool) $cfg->miningAutoPostEnabled,
             'miningP2pEnabled'                  => (bool) $cfg->miningP2pEnabled,
             'commissionPostingEnabled'          => (bool) $cfg->commissionPostingEnabled,
+            'commissionAutoPostOnApprovalEnabled' => (bool) $cfg->commissionAutoPostOnApprovalEnabled,
             'commissionWithdrawalEnabled'       => (bool) $cfg->commissionWithdrawalEnabled,
             'commissionBlockchainPayoutEnabled' => (bool) $cfg->commissionBlockchainPayoutEnabled,
             'coinSellingEnabled'                => (bool) $cfg->coinSellingEnabled,

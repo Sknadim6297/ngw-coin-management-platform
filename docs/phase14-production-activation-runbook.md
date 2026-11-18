@@ -1,90 +1,278 @@
-# Phase 14 — NGW Production Activation Runbook (MINING & LEVEL INCOME)
+# NGW Production Activation Runbook (wwwzeont_ngw_test_db)
 
-**Status:** STAGING REHEARSAL PASSED — **PRODUCTION NOT ACTIVATED (STOPPED BEFORE LIVE EXECUTION)**
+**Status:** LOCAL CODE & TESTS READY — **PRODUCTION NOT ACTIVATED (STOPPED BEFORE LIVE EXECUTION)**
 **Website:** `https://ngw.zodianwealth.info`
-**Timezone:** `Asia/Kolkata`
+**Server Path:** `/home/wwwzeont/ngw.zodianwealth.info`
+**Production Database:** `wwwzeont_ngw_test_db` *(contains "test" in its name, classified **LIVE** & fail-closed by `ProductionSafetyGate`)*
+**Baseline Live Commit:** `9822372`
+**Business Timezone:** `Asia/Kolkata`
 
-Do **not** enable all financial switches simultaneously. Do **not** activate withdrawals (`commissionWithdrawalEnabled`), blockchain payouts (`commissionBlockchainPayoutEnabled`), P2P (`miningP2pEnabled`), or coin selling (`coinSellingEnabled`) as part of mining/commission recovery.
+**All 8 financial switches remain `false` in code until explicit phased authorization:**
+- `miningPostingEnabled`, `miningAutoPostEnabled`, `miningP2pEnabled`
+- `commissionPostingEnabled`, `commissionAutoPostOnApprovalEnabled`, `commissionWithdrawalEnabled`, `commissionBlockchainPayoutEnabled`, `coinSellingEnabled`
 
----
-
-## Preconditions (MANDATORY BEFORE ANY PRODUCTION STEP)
-
-1. **Real Production Access & Deployment Hardening (Phase 1):**
-   - Apply `deploy/production.env.example` values to live `.env` on `209.42.20.174`:
-     - `CI_ENVIRONMENT = production` (disables CodeIgniter Debugbar & error display; reinforced by `app/Config/Filters.php`).
-     - `app.baseURL = 'https://ngw.zodianwealth.info/'` (fixes current `https://ngw.in.net/` mismatch).
-     - `app.forceGlobalSecureRequests = true`.
-     - `platform.liveDatabase = ng_database` (or actual production DB name).
-     - Keep **all 8 financial switches = `false`**.
-   - Deploy updated codebase (including `ProductionSafetyGate`, `FinancialSandboxService`, `CommissionPurchaseEngineService`, `CommissionPostingRunnerService`, `MiningRecoveryService`, migration `995001`, and `Filters.php`).
-2. **Fresh Production Backup & Verified Restore (Phase 2):**
-   - Take fresh `mysqldump --single-transaction --routines --triggers` directly from the live production host DB, verify SHA-256 + completion marker + restore test, store outside `public/`.
-3. **Database Migrations (Maintenance Window):**
-   - Apply pending migrations (`2026-11-17-993001`, `2026-11-18-994001`, `2026-11-18-995001`). Additive tables only.
-4. **Dual-Control Second Admin Account:**
-   - Currently `ng_database` has only `user_id = 1` (`ROOT0001`). Create/designate a **second real `finance_approver` account** so creator != approver != activator.
-5. **Alert Destination & Scheduler Time:**
-   - Owner/ops must specify a monitored email/alert destination and scheduler run window (suggested: `01:30 Asia/Kolkata` daily).
-6. **Business Policy Approvals (Phase 3 — Dual Control via Hub + Rate/Plan tables):**
-   - **Mining Hub Policy (`financial_policy_versions`):** 3% monthly (`3.00000000`), `calendar_days`, `COIN`, `exclude_approval_day` (following IST business date), `down` rounding, `none` residual, `include` locked, `include_all` post-maturity, `include` reserved, `reserve_inventory_tracked` supply (Note: if `coin_inventory` reserve debiting on mining credits is required in DB rather than cap-tracking, complete that migration before go-live!), `compounding_enabled = false`, `effective_from = 2026-11-18`.
-   - **Mining Rate (`mining_rate_configs`):** Create draft `2026-11` @ `3.00000000` (`monthly`) and dual-approve by 2nd admin.
-   - **Commission Hub Policy (`financial_policy_versions`):** L1 `10%`, L2 `5%`, L3 `3%`, `approved_purchase_total_usdt`, truncate 8dp, `active_sponsors_only`, `root_eligible = true` (owner confirmed), `effective_from = 2026-11-17`.
-   - **Commission Plan (`commission_plans`):** Do **NOT** approve draft `CPL-20261118-D5EEC007` (which has L3 = `2%`). Disable it and create + dual-approve a new **`10% / 5% / 3%`** plan (`effective_from = 2026-11-17`).
-   - **Platform Config Flags (`app/Config/Platform.php` or `.env`):** Set all mining/commission policy status flags to `'approved'` ONLY after Hub & rate/plan approvals are recorded.
+Do **not** enable withdrawals, P2P, coin selling, or blockchain payouts during mining/commission activation.
 
 ---
 
-## Stage 1 — Historical Recovery Authorization (SEPARATE EXPLICIT APPROVAL)
+## Owner-Approved Mining Formula & Policy Baseline
 
-### 1A. Level Commission Recovery (`$11.15000000` USDT across 8 approved purchases)
-1. Preview superseding revisions (read-only):
-   - `php spark commissions:recover-plan --plan <APPROVED_10_5_3_REF>`
-2. Generate append-only revisions (only after explicit approval; preserves immutable `NO_APPROVED_PLAN` rows):
-   - Requires explicit authorization before persisting revisions (`--persist` in `CommissionsRecoverPlan` currently blocks live DBs; add/approve a live-authorized maintenance command or dual-approved run).
-3. Dry-run commission recovery:
-   - `php spark commissions:post --plan <APPROVED_10_5_3_REF> --dry-run --strict-exit`
-4. Enable **ONLY** `platform.commissionPostingEnabled = true` (keep `commissionAutoPostOnApprovalEnabled = false` until Stage 2).
-5. Execute recovery batch:
-   - `php spark commissions:post --plan <APPROVED_10_5_3_REF> --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --batch-size 50 --strict-exit`
-6. Verify `php spark commissions:reconcile` → `0` mismatches, wallet sum == ledger sum == `$11.15000000` USDT.
-
-### 1B. Mining Historical Recovery (`2026-11-18` IST = `0.70000000` COIN; `2026-11-17` IST = `0.00000000` COIN)
-1. Read-only assessment:
-   - `php spark mining:recover --date 2026-11-17 --effective-from 2026-11-18` (must confirm 0 owed)
-   - `php spark mining:recover --date 2026-11-18 --effective-from 2026-11-18` (must show 6 members / 700 coins / `0.70000000` COIN)
-2. Create & dual-approve recovery proposal:
-   - Proposer: `php spark mining:recover --date 2026-11-18 --effective-from 2026-11-18 --propose --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --actor <PROPOSER_UID>`
-   - Approver (different user): `php spark mining:recover --approve <MRP_REF> --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --actor <APPROVER_UID>`
-3. Enable **ONLY** `platform.miningPostingEnabled = true` (keep `miningAutoPostEnabled = false`).
-4. Dry-run & execute approved recovery proposal via Phase 13B engine:
-   - `php spark mining:post --date 2026-11-18 --dry-run --strict-exit`
-   - `php spark mining:recover --execute <MRP_REF> --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --actor <APPROVER_UID>`
-5. Re-run `php spark mining:post-health --date 2026-11-18` → exit `0`.
+| Rule | Owner-Approved Value | Engine Enum / Config | Status on Live DB |
+|---|---|---|---|
+| Monthly mining rate | `3%` (`3.00000000`) | `mining_rate_configs` (`rate_basis = monthly`) | **PENDING** (create draft & dual-approve) |
+| Daily divisor | Actual calendar days (`28/29/30/31`) | `calendar_days` (`Platform::$miningMonthDayDivisorMode`) | Config default aligned; Hub record **PENDING** |
+| Compounding | None (`false`) | Mining Wallet only; principal comes strictly from `member_coin_ownership_transactions` | Enforced by architecture; Hub record **PENDING** |
+| Approval-day rule | Approval day excluded (`exclude_approval_day`) | `exclude_approval_day` (`Platform::$miningApprovalDayPolicy`) | Config default aligned; Hub record **PENDING** |
+| First eligible mining date | Next `Asia/Kolkata` business date after approval | `MiningEligibleOwnershipSnapshotService` (`start_of_day`) & `MiningEligibilityService` | Enforced across engine, sim, dry-run, recovery, scheduler |
+| Earning asset | `COIN` | `Platform::$miningEarningAsset = 'COIN'` | Config default aligned; Hub record **PENDING** |
+| Business timezone | `Asia/Kolkata` | `Platform::$miningBusinessTimezone = 'Asia/Kolkata'` | Config default aligned |
+| Mandatory `LOCK1000` coins | Included in eligible total owned | `total_owned_active` / `locked_coins = include` | Pending formal Hub record |
+| Rounding / supply / maturity / post-sale | `down` (8 dp once), `reserve_inventory_tracked`, `include_all`, `include` | `MiningCalculationPolicy` (`MPOL-897706167700`) | Default in `Platform`; confirm & approve via Hub |
 
 ---
 
-## Stage 2 — Commission Purchase-Event Posting Authorization (SEPARATE EXPLICIT APPROVAL)
+## Remaining Blockers Before Live Activation
 
-1. Confirm Stage 1A reconciliation is clean (`0` mismatches).
-2. Enable `platform.commissionAutoPostOnApprovalEnabled = true` (or keep `false` and schedule `commissions:post` event worker if batch-only posting is preferred).
-3. Approve one controlled live purchase and confirm `commission_purchase_calculations` (`CALCULATED_NOT_POSTED` → `POSTED`) and `commission_wallet_ledger_entries` match.
+1. **Code deployment:** Push approved local commit (on top of `9822372`) to GitHub `main` and `git pull --ff-only origin main` on live server.
+2. **Production `.env` verification (server-only, never commit credentials):** Ensure `CI_ENVIRONMENT = production`, `app.baseURL = 'https://ngw.zodianwealth.info/'`, `app.forceGlobalSecureRequests = true`, `database.default.database = wwwzeont_ngw_test_db`, `platform.liveDatabase = wwwzeont_ngw_test_db`, and all 8 financial switches = `false`.
+3. **Verified live DB restore point:** Take fresh `mysqldump --single-transaction --routines --triggers` directly from `wwwzeont_ngw_test_db` before migrations and verify completion marker + SHA-256 + test restore into a temporary/non-live verification schema.
+4. **3 pending migrations:** Apply `2026-11-17-993001` (Phase 12E), `2026-11-18-994001` (Phase 13B), and `2026-11-18-995001` (Phase 14) — adds 9 additive tables without altering balances.
+5. **Second real `finance_approver` account:** Dual-control requires `creator != approver != activator` (currently only `user_id = 1` / `ROOT0001` exists as admin).
+6. **Mandatory `LOCK1000` remediation:** Purchase `PUR-10D7174B7FF83054` (`NGW000001`, `5.00000000 COIN`, approved `2026-11-17 06:45:44 UTC`) + any other approved purchases missing mandatory locks must be previewed and remediated.
+7. **Formal dual-control policy & rate/plan approvals:**
+   - Mining versioned Hub policy (`financial_policy_versions`), `3%` monthly rate (`mining_rate_configs`), and `Platform` policy status flags (`approved`).
+   - Commission Hub policy + new `10% / 5% / 3%` `commission_plans` row (effective date explicitly confirmed, e.g. `2026-11-17`; disable any draft `10/5/2` plan).
+   - Confirm rounding (`down`), post-maturity (`include_all`), post-sale (`include`), reward supply source (`reserve_inventory_tracked`), and `ROOT0001` commission eligibility.
+8. **Alert destination & verified server PHP CLI binary:** Confirm exact cPanel PHP CLI binary path (e.g. `/usr/local/bin/php`) and monitored alert recipient/channel.
 
 ---
 
-## Stage 3 — Daily Mining Posting Authorization (SEPARATE EXPLICIT APPROVAL)
+## Step 1 — LOCAL PC Commands (Review, Commit & Push Only After Approval)
 
-1. Confirm Stage 1B manual day runs complete cleanly (`COMPLETED`, exit `0`).
-2. Run manual end-of-day dry-run & single-day post for yesterday IST (`2026-11-19` IST once `2026-11-18` ends at `18:30 UTC`):
-   - `php spark mining:post --date yesterday --dry-run --strict-exit`
-   - `php spark mining:post --date yesterday --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --strict-exit`
+```powershell
+cd C:\xampp\htdocs\coin-platform
+git status
+git diff --stat
+# Run PHP lint & focused automated safety/policy tests locally:
+C:\xampp\php\php.exe vendor/bin/phpunit tests/unit/ProductionSafetyGateClassificationTest.php tests/feature/ApprovedMiningPolicyTest.php tests/feature/Phase14RecoveryAndAutomationTest.php tests/feature/Phase13C1MiningProposalTest.php tests/feature/Phase13CMiningPolicyReadinessTest.php --no-coverage
+
+# ONLY after explicit approval:
+git add -A
+git commit -m "Implement approved exclude_approval_day mining policy, policy draft tooling, and live recovery guards"
+git push origin main
+```
 
 ---
 
-## Stage 4 — Scheduler Activation Authorization (SEPARATE EXPLICIT APPROVAL)
+## Step 2 — LIVE SERVER SSH Commands: Pre-Check & Code-Only Pull (Checkpoint 0)
 
-1. Enable `platform.miningAutoPostEnabled = true`.
-2. Install production cron job (after verified PHP CLI path on server, e.g. `01:30 IST` = `20:00 UTC` previous day):
-   - Daily posting: `/usr/bin/php /path/to/app/spark mining:post --scheduled --strict-exit --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE`
-   - Missed-run watchdog (e.g. `02:15 IST`): `/usr/bin/php /path/to/app/spark mining:post-health --date yesterday`
-3. Emergency stop procedure: set `platform.miningAutoPostEnabled = false`, `platform.miningPostingEnabled = false`, `platform.commissionPostingEnabled = false`, `platform.commissionAutoPostOnApprovalEnabled = false` in `.env` immediately.
+```bash
+cd /home/wwwzeont/ngw.zodianwealth.info
+git status
+git log --oneline -3
+git fetch origin
+git log --oneline HEAD..origin/main
+
+# ONLY after verifying clean tree & explicit approval:
+git pull --ff-only origin main
+
+# Read-only verification (touches no DB rows):
+php -r 'define("ENVIRONMENT","production"); require "vendor/autoload.php"; echo App\Services\ProductionSafetyGate::classify("wwwzeont_ngw_test_db"), PHP_EOL;'
+php spark mining:prepare-policy-draft --effective-from 2026-11-18
+```
+
+Verify `.env` on server manually (never commit `.env` or print passwords):
+- `CI_ENVIRONMENT = production`
+- `app.baseURL = 'https://ngw.zodianwealth.info/'`
+- `app.forceGlobalSecureRequests = true`
+- `database.default.database = wwwzeont_ngw_test_db`
+- `platform.liveDatabase = wwwzeont_ngw_test_db`
+- Keep **all 8 financial switches `false`**.
+
+---
+
+## Step 3 — PHASE A: Verified Backup & 3 Pending Migrations (Checkpoint 1)
+
+1. **Take & verify production backup outside `public/` (must complete BEFORE any migration):**
+```bash
+mkdir -p /home/wwwzeont/ngw_backups
+BACKUP_FILE="/home/wwwzeont/ngw_backups/wwwzeont_ngw_test_db-$(date -u +%Y%m%d-%H%M%S).sql"
+mysqldump --single-transaction --routines --triggers -u <DB_USER> -p wwwzeont_ngw_test_db > "$BACKUP_FILE"
+tail -n 5 "$BACKUP_FILE"          # Must contain "-- Dump completed on ..."
+sha256sum "$BACKUP_FILE" > "$BACKUP_FILE.sha256"
+```
+Verify test restore into a separate scratch database on server/local before proceeding.
+
+2. **Check migration status (read-only) & apply pending 3 migrations (ONLY after backup + Checkpoint 1 approval):**
+```bash
+cd /home/wwwzeont/ngw.zodianwealth.info
+php spark migrate:status
+# Expected pending:
+#   2026-11-17-993001  Phase12EFinancialPolicyVersions   (financial_policy_versions, financial_policy_events)
+#   2026-11-18-994001  Phase13BMiningPostBatchTables     (mining_post_day_runs, mining_post_members)
+#   2026-11-18-995001  Phase14RecoveryAndAutomationTables (commission_calculation_revisions, commission_post_batches, commission_post_items, mining_recovery_proposals, mining_recovery_proposal_items)
+
+php spark migrate
+php spark migrate:status
+```
+Confirm zero balance/ledger tables modified (all 9 tables are strictly additive).
+
+---
+
+## Step 4 — PHASE B: Mandatory `LOCK1000` Remediation (Checkpoint 2)
+
+1. **Read-only discovery of all approved purchases missing mandatory locks (`PUR-10D7174B7FF83054`, etc.):**
+```bash
+php -r '
+require "app/Config/Paths.php";
+$db = \Config\Database::connect("default");
+$rows = $db->query("SELECT p.purchase_ref, p.member_user_id, p.member_id, p.coin_quantity, p.total_usdt, p.reviewed_at FROM coin_purchase_requests p LEFT JOIN member_coin_locks l ON l.purchase_ref = p.purchase_ref AND l.lock_kind = \"mandatory_purchase\" WHERE p.status = \"approved\" AND l.id IS NULL ORDER BY p.id ASC")->getResultArray();
+echo json_encode($rows, JSON_PRETTY_PRINT), PHP_EOL;
+'
+php spark locking:remediate-mandatory --purchase PUR-10D7174B7FF83054 --dry-run
+```
+Verify for `PUR-10D7174B7FF83054` (`NGW000001`):
+- `available_balance`: `5.00000000` -> `0.00000000`
+- `locked_balance`: `0.00000000` -> `5.00000000`
+- `balance` (total owned): `5.00000000` -> `5.00000000` (unchanged)
+- Plan: `LOCK1000`, `duration_days`: `1000`, `locked_at`: `2026-11-17 06:45:44`
+
+2. **Execute lock remediation (ONLY after Checkpoint 2 approval, for each verified missing purchase):**
+```bash
+php spark locking:remediate-mandatory --purchase PUR-10D7174B7FF83054 --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --actor <ADMIN_UID>
+# Re-run with --dry-run to confirm SAFE NO-OP / 0 missing locks remaining.
+```
+
+---
+
+## Step 5 — PHASES C & D: Dual-Control Policy & Rate/Plan Approvals (Checkpoint 3)
+
+1. **Create second real `finance_approver` account** (Admin UI -> Roles/Users, distinct from `user_id = 1`).
+2. **Prepare versioned Mining policy draft (`status = draft`) & 3% Nov 2026 rate draft (`status = draft`):**
+```bash
+php spark mining:prepare-policy-draft --effective-from <APPROVED_EFFECTIVE_DATE> --persist --actor <ADMIN_1_UID> --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE
+```
+3. **Dual-control Mining approvals (Admin Panel, all switches STILL `false`):**
+   - Admin 1 (`<ADMIN_1_UID>`) submits the mining Hub draft (`financial_policy_versions`).
+   - Admin 2 (`<ADMIN_2_UID> != <ADMIN_1_UID>`) approves the mining Hub policy AND approves the `2026-11` `3.00000000%` monthly `mining_rate_configs` row.
+   - Activator (`<ADMIN_1_UID> != <ADMIN_2_UID>`) marks the Hub policy `active` (records documentation readiness only; does NOT flip kill-switches).
+4. **Dual-control Commission approvals (Admin Panel):**
+   - Disable any draft `10/5/2` plan if present.
+   - Admin 1 creates + submits `10% / 5% / 3%` `commission_plans` row (`effective_from = <APPROVED_COMMISSION_EFFECTIVE_DATE>`, `approved_verified_usdt`, `active_sponsors_only`) + `financial_policy_versions` commission draft (`approved_purchase_total_usdt`, truncate 8 dp, `root_eligible` per owner sign-off).
+   - Admin 2 approves the commission plan + Hub policy; Admin 1 activates Hub policy.
+5. **Update `.env` policy status flags on server to `'approved'` ONLY AFTER Step 5.3 & 5.4 succeed:**
+```ini
+platform.miningMonthlyPercentStatus = approved
+platform.miningDayDivisorStatus = approved
+platform.miningDenominationStatus = approved
+platform.miningApprovalDayPolicyStatus = approved
+platform.miningLockedCoinEligibilityStatus = approved
+platform.miningPostMaturityEligibilityStatus = approved
+platform.miningPostSaleEligibilityStatus = approved
+platform.miningRoundingPolicyStatus = approved
+platform.commissionBasePolicyStatus = approved
+platform.commissionRoundingPolicyStatus = approved
+platform.commissionRootEligibilityPolicyStatus = approved
+```
+*(Keep all 8 execution kill-switches `false`!)*
+
+---
+
+## Step 6 — PHASE E: Historical Recovery Previews & Authorized Execution (Checkpoint 4)
+
+### 6A. Level Commission Historical Recovery (`PUR-10D7174B7FF83054` & any `NO_APPROVED_PLAN` rows)
+1. **Preview append-only superseding revisions (read-only):**
+```bash
+php spark commissions:recover-plan --plan <APPROVED_10_5_3_PLAN_REF>
+# Add --exclude-root if ROOT0001 is excluded by owner sign-off.
+```
+For `PUR-10D7174B7FF83054` (`$5.00000000`, L1 = `ROOT0001`, L2/L3 missing): expected = `$0.50000000` (if root eligible) or `$0.00` (if root excluded); L2/L3 = `UNALLOCATED`.
+
+2. **Persist append-only revisions & dry-run batch (ONLY after Checkpoint 4 approval):**
+```bash
+php spark commissions:recover-plan --plan <APPROVED_10_5_3_PLAN_REF> --persist --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --actor <ADMIN_2_UID>
+php spark commissions:post --plan <APPROVED_10_5_3_PLAN_REF> --dry-run --strict-exit
+```
+
+3. **Enable ONLY `platform.commissionPostingEnabled = true` in `.env` (keep `commissionAutoPostOnApprovalEnabled = false`) and post recovery batch:**
+```bash
+php spark commissions:post --plan <APPROVED_10_5_3_PLAN_REF> --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --batch-size 50 --strict-exit --actor <ADMIN_2_UID>
+php spark commissions:reconcile
+```
+
+### 6B. Mining Historical Recovery (`exclude_approval_day`, starting no earlier than approved effective date)
+1. **Assess each IST business date from `<APPROVED_EFFECTIVE_DATE>` up to `yesterday` IST (read-only):**
+```bash
+# Example for 2026-11-17 (approval day for PUR-10D7174B7FF83054 -> must show 0 eligible) and 2026-11-18:
+php spark mining:recover --date 2026-11-17 --effective-from <APPROVED_EFFECTIVE_DATE>
+php spark mining:recover --date 2026-11-18 --effective-from <APPROVED_EFFECTIVE_DATE>
+# For PUR-10D7174B7FF83054 (5.00000000 COIN @ 3% / 30 days): 0.00500000 COIN/day starting 2026-11-18 IST.
+```
+
+2. **Create & dual-approve proposal per owed date (ONLY after Checkpoint 4 approval):**
+```bash
+php spark mining:recover --date <YYYY-MM-DD> --effective-from <APPROVED_EFFECTIVE_DATE> --propose --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --actor <ADMIN_1_UID>
+php spark mining:recover --approve <MRP_REF> --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --actor <ADMIN_2_UID>
+```
+
+3. **Enable ONLY `platform.miningPostingEnabled = true` in `.env` (keep `miningAutoPostEnabled = false`), dry-run, execute via Phase 13B, and verify:**
+```bash
+php spark mining:post --date <YYYY-MM-DD> --dry-run --strict-exit
+php spark mining:recover --execute <MRP_REF> --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE --actor <ADMIN_2_UID>
+php spark mining:post-health --date <YYYY-MM-DD>
+```
+
+---
+
+## Step 7 — PHASES F & G: Automation & Cron Scheduler Activation (Checkpoint 5)
+
+**Only after Stage 6 reconciliation shows `0` mismatches and Checkpoint 5 is explicitly approved:**
+
+1. Optionally enable `platform.commissionAutoPostOnApprovalEnabled = true` in `.env` (for future purchase approvals).
+2. Enable `platform.miningAutoPostEnabled = true` in `.env`.
+3. Verify exact PHP CLI binary on server (`which php` / `php -v` >= 8.2, `php -m` has `intl`, `bcmath`, `pdo_mysql`, `json`, `mbstring`, `openssl`).
+4. Install cPanel cron jobs (server runs UTC; `20:00 UTC` = `01:30 Asia/Kolkata` next IST day, `20:45 UTC` = `02:15 Asia/Kolkata`):
+
+```cron
+# Daily automated mining posting for previous completed Asia/Kolkata business date (01:30 IST = 20:00 UTC)
+0 20 * * * /usr/local/bin/php /home/wwwzeont/ngw.zodianwealth.info/spark mining:post --scheduled --strict-exit --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE >> /home/wwwzeont/ngw.zodianwealth.info/writable/logs/cron-mining-post.log 2>&1
+
+# Watchdog health check (02:15 IST = 20:45 UTC)
+45 20 * * * /usr/local/bin/php /home/wwwzeont/ngw.zodianwealth.info/spark mining:post-health --date yesterday >> /home/wwwzeont/ngw.zodianwealth.info/writable/logs/cron-mining-health.log 2>&1
+```
+*(Remember: CI4 `CliArgs` strictly requires space-separated `--opt value`; never use `--opt=value`.)*
+
+Keep disabled unless separately authorized:
+- `platform.miningP2pEnabled = false`
+- `platform.commissionWithdrawalEnabled = false`
+- `platform.commissionBlockchainPayoutEnabled = false`
+- `platform.coinSellingEnabled = false`
+
+---
+
+## Step 8 — Post-Activation Reconciliation Checklist
+
+Run read-only checks after every stage:
+- `php spark mining:post-health --date yesterday` -> exit `0`
+- `php spark commissions:reconcile` -> `0` mismatches
+- Verify SQL invariants on `wwwzeont_ngw_test_db`:
+  - `SUM(mining_wallets.available_balance) == SUM(mining_wallet_ledger credit - debit)`
+  - Zero duplicate `(member_user_id, business_date)` in `mining_wallet_ledger`
+  - `member_coin_balances.balance = available_balance + locked_balance + reserved_balance` (total owned untouched by mining)
+  - Zero duplicate `(idempotency_key)` in `commission_wallet_ledger_entries`
+  - `SUM(commission_wallet_accounts.available_balance) == SUM(commission_wallet_ledger_entries credit - debit)`
+
+---
+
+## Step 9 — Emergency Stop & Rollback Procedure
+
+1. **Immediate Emergency Stop (< 30 seconds):** Set in `/home/wwwzeont/ngw.zodianwealth.info/.env`:
+   ```ini
+   platform.miningAutoPostEnabled = false
+   platform.miningPostingEnabled = false
+   platform.commissionAutoPostOnApprovalEnabled = false
+   platform.commissionPostingEnabled = false
+   ```
+   and comment out/remove the two cPanel cron lines. All live mutation paths halt immediately.
+2. **Code Rollback:** `git checkout 9822372` (never roll back earlier than `9822372`, because `9822372` fixes `wwwzeont_ngw_test_db` live safety detection!).
+3. **Database Rollback (only before/without partial posted user activity or in maintenance window):** Restore the pre-migration verified backup `$BACKUP_FILE` taken in Step 3.

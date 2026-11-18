@@ -110,7 +110,8 @@ class MemberDashboardService
                 ->countAllResults();
 
             $team = service('referralTeamService')->countsForSponsor($memberUserId);
-            $miningPreview = service('miningSimulationService')->memberPreview($memberUserId, date('Y-m-d'));
+            $miningBizDate = service('miningEligibilityService')->businessDate();
+            $miningPreview = service('miningSimulationService')->memberPreview($memberUserId, $miningBizDate);
             $commissionSnap = service('commissionSimulationService')->memberSnapshot($memberUserId);
             $profileRow = model(\App\Models\MemberProfileModel::class)->findByUserId($memberUserId);
             if ($profileRow !== null) {

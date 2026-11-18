@@ -49,6 +49,10 @@ class Phase13CVerificationService
     /** @return array<string, mixed> */
     public function run(): array
     {
+        if (ENVIRONMENT === 'production') {
+            throw new RuntimeException('Refusing Phase 13C staging verifier under ENVIRONMENT=production.');
+        }
+
         $started = microtime(true);
         $this->out = [
             'phase'      => '13C',

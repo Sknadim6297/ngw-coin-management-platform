@@ -165,7 +165,7 @@ class CoinPlanAuditService
             'date'           => $dateYmd,
             'timezone'       => (string) ($engine['timezone'] ?? ''),
             'rate'           => $engine['rate'],
-            'formula_note'   => 'DRAFT dry-run: total owned × (monthly_rate/100) ÷ month_day_divisor. Unconfirmed: divisor mode, COIN vs USDT, approval-day proration, post-maturity eligibility.',
+            'formula_note'   => 'Dry-run using MiningCalculationPolicy (as-of owned × monthly_rate/100 ÷ month_day_divisor, exclude_approval_day, no compounding). Formal policy activation still required before live posting.',
             'rows'           => $rows,
             'posting_status' => (string) $engine['posting_status'],
             'assumptions'    => $engine['assumptions'] ?? [],
