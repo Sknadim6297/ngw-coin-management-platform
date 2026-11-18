@@ -134,6 +134,12 @@ class Platform extends BaseConfig
     /**
      * Phase 11A mining kill-switches — fail-closed OFF until separately authorized.
      */
+    /**
+     * Optional extra production database name(s), comma separated (env: platform.liveDatabase).
+     * Additive only: can never remove a database from the hard-coded production list.
+     */
+    public string $liveDatabase = '';
+
     public bool $miningPostingEnabled = false;
 
     public bool $miningP2pEnabled = false;

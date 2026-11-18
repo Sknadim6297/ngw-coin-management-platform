@@ -29,6 +29,7 @@ class FinancialSandboxService
     public const FORBIDDEN_DATABASES = [
         'coin_platform',
         'ng_database',
+        'wwwzeont_ngw_test_db',
         'coin_platform_phase13c_snapshot',
         'ng_database_phase14_snapshot',
     ];
@@ -65,10 +66,11 @@ class FinancialSandboxService
             'database'     => $database,
             'hostname'     => $hostname,
             'group'        => $group,
-            'is_allowed'   => in_array($database, self::ALLOWED_DATABASES, true),
+            // A production-classified database can never be a sandbox, even if also allowlisted.
+            'is_allowed'   => in_array($database, self::ALLOWED_DATABASES, true)
+                && ! ProductionSafetyGate::isLiveDatabase($database),
             'is_forbidden' => in_array($database, self::FORBIDDEN_DATABASES, true)
-                || in_array($database, ProductionSafetyGate::liveDatabases(), true)
-                || str_contains(strtolower($database), 'prod'),
+                || ProductionSafetyGate::isLiveDatabase($database),
         ];
     }
 

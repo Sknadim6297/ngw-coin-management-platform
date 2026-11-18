@@ -43,7 +43,7 @@ class StagingIsolationService
         ];
         $checks[] = [
             'name'   => 'production_db_forbidden_for_sandbox',
-            'ok'     => $prod['is_forbidden'] || $prod['database'] === 'coin_platform',
+            'ok'     => $prod['is_forbidden'] || \App\Services\ProductionSafetyGate::isLiveDatabase((string) $prod['database']),
             'detail' => 'default database="' . $prod['database'] . '" must remain untouched',
         ];
 

@@ -280,7 +280,7 @@ class Phase13CVerificationService
             'configured_default' => ['hostname' => $d['hostname'], 'port' => $d['port'] ?? 3306, 'database' => $d['database']],
             'server'             => ['hostname' => $this->one($admin, 'SELECT @@hostname'), 'version' => $this->one($admin, 'SELECT @@version'), 'port' => $this->one($admin, 'SELECT @@port')],
             'classification'     => 'LOCAL XAMPP OPERATIONAL COPY of the application database (' . $d['database'] . '). It is NOT proven to be the deployed production host: "localhost" is not treated as safe, so the live database is only ever read through a verified SELECT-only account.',
-            'default_group_is_live' => $d['database'] === self::LIVE_DB,
+            'default_group_is_live' => ProductionSafetyGate::isLiveDatabase((string) $d['database']),
             'sandbox_view'       => ['is_allowed_isolated' => $info['is_allowed'], 'is_forbidden' => $info['is_forbidden']],
             'environment'        => ENVIRONMENT,
             'mysql_client'       => $mysql,

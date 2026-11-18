@@ -70,7 +70,7 @@ class CommissionPostingRunnerService
             throw new RuntimeException('Database group "' . $group . '" has no database name.');
         }
 
-        if (in_array($db, ProductionSafetyGate::liveDatabases(), true) || str_contains(strtolower($db), 'prod')) {
+        if (ProductionSafetyGate::isLiveDatabase($db)) {
             return ['mode' => 'live', 'database' => $db, 'group' => $group];
         }
         if ($info['is_allowed']) {

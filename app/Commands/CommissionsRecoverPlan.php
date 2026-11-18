@@ -55,7 +55,7 @@ class CommissionsRecoverPlan extends BaseCommand
                 db_connect($group, false);
             }
 
-            if ($persist && in_array((string) db_connect()->getDatabase(), \App\Services\ProductionSafetyGate::liveDatabases(), true)) {
+            if ($persist && \App\Services\ProductionSafetyGate::requiresProductionProtection((string) db_connect()->getDatabase())) {
                 throw new \RuntimeException('Refusing --persist on live database without dedicated authorization workflow.');
             }
 

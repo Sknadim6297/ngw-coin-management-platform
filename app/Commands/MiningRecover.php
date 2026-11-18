@@ -65,9 +65,7 @@ class MiningRecover extends BaseCommand
             $actor = (int) ($opt['actor'] ?? 0);
 
             if (isset($opt['approve'])) {
-                if (in_array((string) db_connect()->getDatabase(), \App\Services\ProductionSafetyGate::liveDatabases(), true)) {
-                    (new \App\Services\ProductionSafetyGate())->assertMutationAllowed(isset($opt['allow-production']), $opt['confirm'] ?? null, $group, 'mining recovery approval');
-                }
+                (new \App\Services\ProductionSafetyGate())->assertMutationAllowed(isset($opt['allow-production']), $opt['confirm'] ?? null, $group, 'mining recovery approval');
                 $out = $svc->approveProposal((string) $opt['approve'], $actor);
                 CLI::write(json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
@@ -90,9 +88,7 @@ class MiningRecover extends BaseCommand
             $eff  = isset($opt['effective-from']) ? (string) $opt['effective-from'] : null;
 
             if (isset($opt['propose'])) {
-                if (in_array((string) db_connect()->getDatabase(), \App\Services\ProductionSafetyGate::liveDatabases(), true)) {
-                    (new \App\Services\ProductionSafetyGate())->assertMutationAllowed(isset($opt['allow-production']), $opt['confirm'] ?? null, $group, 'mining recovery proposal');
-                }
+                (new \App\Services\ProductionSafetyGate())->assertMutationAllowed(isset($opt['allow-production']), $opt['confirm'] ?? null, $group, 'mining recovery proposal');
                 $out = $svc->createProposal($date, $pol, $actor, 'reserve_inventory_tracked', $eff);
                 CLI::write(json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
