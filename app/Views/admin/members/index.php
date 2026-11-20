@@ -47,13 +47,15 @@ $canImpersonate = ! empty($canImpersonate);
                 <th>Sponsor</th>
                 <th>Status</th>
                 <th>Joined</th>
+                <th>Active Since</th>
+                <th>Activation Purchase ID</th>
                 <th>Purchased Coins</th>
                 <th class="text-nowrap">Actions</th>
             </tr>
             </thead>
             <tbody>
             <?php if ($members === []): ?>
-                <tr><td colspan="7" class="text-secondary">No members found.</td></tr>
+                <tr><td colspan="9" class="text-secondary">No members found.</td></tr>
             <?php else: ?>
                 <?php foreach ($members as $member): ?>
                     <?php
@@ -67,6 +69,8 @@ $canImpersonate = ! empty($canImpersonate);
                         <td><?= esc($sponsor) ?></td>
                         <td><span class="badge-status <?= esc($member->account_status) ?>"><?= esc(ucfirst($member->account_status)) ?></span></td>
                         <td class="text-nowrap"><?= ! empty($member->created_at) ? esc(date('d M Y, H:i', strtotime((string) $member->created_at))) : '—' ?></td>
+                        <td class="text-nowrap"><?= ! empty($member->activated_at) ? esc(date('d M Y, H:i', strtotime((string) $member->activated_at))) : '—' ?></td>
+                        <td><?= ! empty($member->activation_purchase_ref) ? '<code>' . esc($member->activation_purchase_ref) . '</code>' : '—' ?></td>
                         <td><?= esc($coins) ?></td>
                         <td class="text-nowrap">
                             <a class="btn btn-sm btn-outline-gold" href="<?= site_url('admin/members/' . $member->member_id) ?>">View</a>
