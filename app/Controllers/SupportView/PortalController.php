@@ -6,6 +6,7 @@ namespace App\Controllers\SupportView;
 
 use App\Controllers\BaseController;
 use App\Libraries\Dashboard\KpiCardFactory;
+use App\Libraries\Mining\MiningWalletPresenter;
 use App\Models\CoinPurchaseRequestModel;
 use App\Models\MemberProfileModel;
 use App\Models\MemberWalletChangeEventModel;
@@ -59,7 +60,7 @@ class PortalController extends BaseController
         );
 
         try {
-            $dashboard = service('memberDashboardService')->build($userId);
+            $dashboard = service('memberDashboardService')->build($userId, 'support-view');
         } catch (\RuntimeException $e) {
             return redirect()->to(site_url('support-view/ended'))->with('error', 'Member profile not found.');
         }
@@ -71,6 +72,7 @@ class PortalController extends BaseController
             'profile'         => $dashboard['profile'],
             'activation'      => $dashboard['activation'],
             'walletSummary'   => $dashboard['wallet_summary'],
+            'miningSummary'   => $dashboard['mining_summary'],
             'pendingPayments' => $dashboard['pending_payments'],
             'recentPurchases' => $dashboard['recent_purchases'],
             'referralSummary' => $dashboard['referral_summary'],
@@ -252,35 +254,45 @@ class PortalController extends BaseController
 
     public function mining()
     {
-        $userId = (int) $this->ctx()['target_user_id'];
-        $today  = service('miningEligibilityService')->businessDate();
-        $rate   = service('miningRateService')->approvedForDate($today);
-        $eval   = service('miningEligibilityService')->evaluate($userId, $today, $rate);
-        $expected = '0.00000000';
-        if ($rate !== null && ! empty($eval['eligible'])) {
-            $expected = service('miningRateService')->previewAmount((string) $eval['eligible_coins'], $rate, $today);
-        }
-        $wallet = service('miningWalletService')->balanceFor($userId);
+        $ctx    = $this->ctx();
+        $userId = (int) $ctx['target_user_id'];
+        $this->logPageView($ctx, 'mining_wallet');
 
-        $kpis = [
-            KpiCardFactory::ok('owned', 'Total Owned Coins', $eval['total_owned'], 'purple', 'bi-coin', 'coins'),
-            KpiCardFactory::ok('eligible', 'Eligible Mining Coins', $eval['eligible_coins'], 'cyan', 'bi-check2-circle', 'coins'),
-            KpiCardFactory::ok('rate', 'Approved Monthly Rate', $rate['rate_percent'] ?? 'Not configured', 'teal', 'bi-percent', 'rates'),
-            KpiCardFactory::ok('today_preview', 'Expected Daily Mining', $expected, 'indigo', 'bi-lightning-charge', 'coins'),
-            KpiCardFactory::unavailable('actual', 'Posting Status', 'gold', 'bi-safe', 'Mining Preview — Actual Credits Not Activated'),
-        ];
+        return $this->render('member/mining/index', array_merge(
+            ['title' => 'Mining Wallet', 'profile' => model(MemberProfileModel::class)->findByUserId($userId)],
+            MiningWalletPresenter::walletPage($userId, 'support-view')
+        ));
+    }
 
-        return $this->render('member/mining/index', [
-            'title'    => 'Mining',
-            'profile'  => model(MemberProfileModel::class)->findByUserId($userId),
-            'kpis'     => $kpis,
-            'eval'     => $eval,
-            'rate'     => $rate,
-            'today'    => $today,
-            'expected' => $expected,
-            'wallet'   => $wallet,
-            'ledger'   => [],
-        ]);
+    public function miningHistory()
+    {
+        $ctx    = $this->ctx();
+        $userId = (int) $ctx['target_user_id'];
+        $this->logPageView($ctx, 'mining_history');
+
+        return $this->render('member/mining/history', array_merge(
+            ['title' => 'Mining History', 'profile' => model(MemberProfileModel::class)->findByUserId($userId)],
+            MiningWalletPresenter::historyPage(
+                $userId,
+                'support-view',
+                (int) ($this->request->getGet('page') ?? 1),
+                (string) ($this->request->getGet('scope') ?? 'earnings')
+            )
+        ));
+    }
+
+    /**
+     * @param array<string, mixed> $ctx
+     */
+    private function logPageView(array $ctx, string $page): void
+    {
+        service('auditLogger')->log(
+            'admin.impersonation_member_viewed',
+            (int) $ctx['admin_user_id'],
+            'impersonation_session',
+            (string) $ctx['session_ref'],
+            ['target_member_id' => $ctx['target_member_id'], 'page' => $page]
+        );
     }
 
     public function commissions()

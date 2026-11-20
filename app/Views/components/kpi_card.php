@@ -9,9 +9,10 @@ $unit    = $kpi['unit'] ?? null;
 $href    = $kpi['href'] ?? null;
 $reason  = $kpi['reason'] ?? null;
 $isLive  = $status === 'ok';
+$note    = $kpi['note'] ?? null;
 
-// Compact coin/number display: trim trailing zeros on decimal strings.
-if ($isLive && is_numeric($display) && str_contains($display, '.')) {
+// Compact coin/number display: trim trailing zeros on decimal strings (exact cards keep full precision).
+if ($isLive && empty($kpi['exact']) && is_numeric($display) && str_contains($display, '.')) {
     $display = rtrim(rtrim($display, '0'), '.');
     if ($display === '' || $display === '-') {
         $display = '0';
@@ -34,4 +35,7 @@ if ($isLive && is_numeric($display) && str_contains($display, '.')) {
             <span class="kpi-unit"><?= esc($unit) ?></span>
         <?php endif; ?>
     </div>
+    <?php if ($note): ?>
+        <div class="kpi-note small text-secondary mt-1"><?= esc($note) ?></div>
+    <?php endif; ?>
 </article>

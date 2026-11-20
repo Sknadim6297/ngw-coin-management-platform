@@ -1,7 +1,11 @@
-MiningPolicyPayloadTest exit=2
-SingleAdminGovernanceTest exit=0
-Phase12EFinancialPolicyTest exit=0
-ApprovedMiningPolicyTest exit=0
-Phase13CMiningPolicyReadinessTest exit=0
-FinancialAutomationControlCenterTest exit=0
+MemberMiningIncomeVisibilityTest exit=1
+DashboardAnalyticsTest exit=2
+Phase9AProfileWalletDashboardTest exit=2
+Phase11AAutoLockMiningTest exit=0
+MiningSimulationTest exit=0
+PanelAuditSmokeTest exit=0
+Phase10DImpersonationTest exit=0
+InstantCommissionPostingTest exit=2
+CommissionSimulationTest exit=2
+CoinPurchaseTest exit=stopped(slow)
 DONE

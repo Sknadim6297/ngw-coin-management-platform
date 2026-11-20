@@ -142,11 +142,19 @@ final class DashboardAnalyticsTest extends CIUnitTestCase
             $this->assertNotSame(0, $kpi['value']);
         }
 
-        foreach (['my_today_mining', 'my_total_mining', 'my_today_level_commission', 'my_total_level_commission'] as $key) {
+        foreach (['my_today_level_commission', 'my_total_level_commission'] as $key) {
             $kpi = $this->kpiByKey($memberKpis, $key);
             $this->assertSame('unavailable', $kpi['status']);
             $this->assertNull($kpi['value']);
         }
+
+        // Actual mining is ledger-backed: no posted credit = exact zero with an explicit "No credit posted" status.
+        foreach (['my_today_mining', 'my_total_mining'] as $key) {
+            $kpi = $this->kpiByKey($memberKpis, $key);
+            $this->assertSame('ok', $kpi['status']);
+            $this->assertSame('0.00000000', $kpi['value']);
+        }
+        $this->assertStringContainsString('No credit posted', (string) $this->kpiByKey($memberKpis, 'my_today_mining')['note']);
     }
 
     public function testMemberKpisAreScopedAndRespectBalances(): void

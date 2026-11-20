@@ -365,7 +365,8 @@ final class Phase11AAutoLockMiningTest extends CIUnitTestCase
         $page = $this->withSession()->get('member/mining');
         $page->assertOK();
         $page->assertDontSee($a['member_id']);
-        $page->assertSee('Actual Credits Not Activated');
+        $page->assertSee('Mining Wallet');
+        $page->assertSee('ESTIMATE ONLY');
     }
 
     public function testReconcileDetectsUnexpectedCreditsWhilePostingOff(): void

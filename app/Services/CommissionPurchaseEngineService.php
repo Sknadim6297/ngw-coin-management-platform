@@ -187,6 +187,24 @@ class CommissionPurchaseEngineService
                 continue;
             }
 
+            // The approved plan's sponsor policy is binding (same rule the recovery revisions already apply).
+            $sponsorBlock = $this->sponsorPolicyBlock($plan, $beneficiaryUid);
+            if ($sponsorBlock !== null) {
+                $lineReasons[] = $sponsorBlock;
+                $lines[] = $this->lineSkeleton(
+                    $purchase,
+                    $level,
+                    self::STATUS_INELIGIBLE,
+                    $lineReasons,
+                    $percent,
+                    ['user_id' => $beneficiaryUid, 'member_id' => $beneficiaryMid],
+                    '0',
+                    $businessDate,
+                    $plan
+                );
+                continue;
+            }
+
             $expected = $this->simulation->previewAmount($base, $percent);
             $lineReasons[] = 'eligible';
             $lines[] = $this->lineSkeleton(
@@ -525,6 +543,32 @@ class CommissionPurchaseEngineService
             'total_posted'  => $totalPosted,
             'lines'         => $out,
         ];
+    }
+
+    /**
+     * Reason code when the plan's sponsor eligibility policy forbids paying this beneficiary, else null.
+     * Fail-closed: an unresolved/unknown policy never pays.
+     *
+     * @param array<string, mixed> $plan
+     */
+    private function sponsorPolicyBlock(array $plan, int $beneficiaryUserId): ?string
+    {
+        $policy = strtolower(trim((string) ($plan['sponsor_eligibility_policy'] ?? '')));
+
+        if ($policy === 'any_registered') {
+            return null;
+        }
+        if ($policy !== 'active_sponsors_only') {
+            return 'sponsor_eligibility_unresolved';
+        }
+
+        $prof = db_connect()->table('member_profiles')
+            ->select('account_status')
+            ->where('user_id', $beneficiaryUserId)
+            ->get()
+            ->getRowArray();
+
+        return ($prof !== null && ($prof['account_status'] ?? '') === 'active') ? null : 'sponsor_not_active';
     }
 
     /**

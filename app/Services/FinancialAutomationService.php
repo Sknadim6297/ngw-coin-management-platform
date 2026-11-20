@@ -32,7 +32,15 @@ class FinancialAutomationService
     public const CONTROL_COMMISSION = 'level_commission';
     public const CONTROL_SCHEDULER  = 'scheduler';
 
-    public const CONTROLS = [self::CONTROL_MINING, self::CONTROL_COMMISSION, self::CONTROL_SCHEDULER];
+    /**
+     * Instant commission posting: posts L1-L3 commission right after a valid purchase approval/activation, through
+     * the SAME CommissionPostingRunnerService. It is deliberately NOT part of CONTROLS: "Start All" never turns it
+     * on (it needs its own explicit authorization), while "Stop All" always turns it off.
+     */
+    public const CONTROL_INSTANT = 'instant_commission';
+
+    public const CONTROLS     = [self::CONTROL_MINING, self::CONTROL_COMMISSION, self::CONTROL_SCHEDULER];
+    public const ALL_CONTROLS = [self::CONTROL_MINING, self::CONTROL_COMMISSION, self::CONTROL_SCHEDULER, self::CONTROL_INSTANT];
 
     public const JOB_MINING     = 'mining';
     public const JOB_COMMISSION = 'commission';
@@ -47,7 +55,15 @@ class FinancialAutomationService
         self::CONTROL_MINING     => 'automation_daily_mining',
         self::CONTROL_COMMISSION => 'automation_level_commission',
         self::CONTROL_SCHEDULER  => 'automation_scheduler',
+        self::CONTROL_INSTANT    => 'automation_instant_commission',
     ];
+
+    /**
+     * Moment instant posting was FIRST authorized (server time, same format as coin_purchase_requests.reviewed_at).
+     * Recovery/scheduler posting never touches purchases approved before it, so no history is re-posted.
+     * Set once and never moved: re-enabling later cannot widen the window.
+     */
+    private const KEY_INSTANT_SINCE = 'automation_instant_commission_since';
 
     private const KEY_AUTH_BY   = 'automation_authorized_by';
     private const KEY_AUTH_AT   = 'automation_authorized_at';
@@ -58,6 +74,7 @@ class FinancialAutomationService
         self::CONTROL_MINING     => 'Daily Coin Mining',
         self::CONTROL_COMMISSION => 'Level Commission',
         self::CONTROL_SCHEDULER  => 'Automatic Scheduler',
+        self::CONTROL_INSTANT    => 'Instant Commission Posting',
     ];
 
     /** @var list<string> */
@@ -102,6 +119,53 @@ class FinancialAutomationService
         $this->assertControl($control);
 
         return $this->rawEnabled($control) && $this->authorizationValid();
+    }
+
+    /**
+     * @return array{key: string, label: string, enabled: bool, active: bool, since: ?string}
+     */
+    public function instantControl(): array
+    {
+        $enabled = $this->rawEnabled(self::CONTROL_INSTANT);
+
+        return [
+            'key'     => self::CONTROL_INSTANT,
+            'label'   => self::LABELS[self::CONTROL_INSTANT],
+            'enabled' => $enabled,
+            'active'  => $enabled && $this->authorizationValid(),
+            'since'   => $this->instantSince(),
+        ];
+    }
+
+    /** Cutoff recorded when instant posting was first authorized (null = never authorized). */
+    public function instantSince(): ?string
+    {
+        $v = $this->setting(self::KEY_INSTANT_SINCE);
+
+        return $v === null || trim($v) === '' ? null : trim($v);
+    }
+
+    /**
+     * Blockers re-evaluated at purchase-approval time. Same checks as activation minus the cron heartbeat: a
+     * stopped cron must not delay an otherwise valid instant commission (the scheduler is only the recovery path).
+     *
+     * @return list<string>
+     */
+    public function instantRuntimeBlockers(?DateTimeImmutable $now = null): array
+    {
+        $blockers = [];
+        foreach ([
+            $this->checkDatabase(),
+            $this->checkCommissionPolicy(),
+            $this->checkCommissionPlan($now),
+            $this->checkMandatoryLocks(),
+        ] as $c) {
+            if (! $c['ok']) {
+                $blockers[] = $c['label'] . ' — ' . $c['detail'];
+            }
+        }
+
+        return $blockers;
     }
 
     /** @return array{by: ?int, at: ?string, database: ?string} */
@@ -168,6 +232,10 @@ class FinancialAutomationService
             $this->putSetting(self::SETTING[$control], $on ? '1' : '0', $actorUserId, true);
             if ($on) {
                 $this->recordAuthorization($actorUserId);
+                if ($control === self::CONTROL_INSTANT && $this->instantSince() === null) {
+                    // First-ever authorization fixes the no-retroactive-posting cutoff; it is never moved afterwards.
+                    $this->putSetting(self::KEY_INSTANT_SINCE, date('Y-m-d H:i:s'), $actorUserId, true);
+                }
             }
             if ($db->transStatus() === false) {
                 throw new RuntimeException('Unable to persist automation switch.');
@@ -230,6 +298,11 @@ class FinancialAutomationService
                 }
                 $this->putSetting(self::SETTING[$control], $on ? '1' : '0', $actorUserId, true);
             }
+            if (! $on && $this->rawEnabled(self::CONTROL_INSTANT)) {
+                // Stop All is the emergency stop: instant posting goes OFF too. Start All never turns it ON.
+                $changedControls[] = self::CONTROL_INSTANT;
+                $this->putSetting(self::SETTING[self::CONTROL_INSTANT], '0', $actorUserId, true);
+            }
             if ($on) {
                 $this->recordAuthorization($actorUserId);
             }
@@ -275,7 +348,7 @@ class FinancialAutomationService
             $checks[] = $mining;
             $checks[] = $this->checkMiningRate($date);
             $checks[] = $this->checkMandatoryLocks();
-        } elseif ($control === self::CONTROL_COMMISSION) {
+        } elseif ($control === self::CONTROL_COMMISSION || $control === self::CONTROL_INSTANT) {
             $checks[] = $this->checkCommissionPolicy();
             $checks[] = $this->checkCommissionPlan($now);
             $checks[] = $this->checkMandatoryLocks();
@@ -346,6 +419,7 @@ class FinancialAutomationService
             'all_on'        => $allOn,
             'any_on'        => $anyOn,
             'all_ready'     => $readiness[self::CONTROL_MINING]['ready'] && $readiness[self::CONTROL_COMMISSION]['ready'] && $readiness[self::CONTROL_SCHEDULER]['ready'],
+            'instant'       => $this->instantControl() + ['readiness' => $this->readiness(self::CONTROL_INSTANT)],
             'authorization' => $this->authorization(),
             'confirm_phrase' => $this->confirmPhrase(),
             'database'      => $this->databaseName(),
@@ -645,7 +719,8 @@ class FinancialAutomationService
     public function commissionPreview(): array
     {
         try {
-            $p = service('commissionPostingRunnerService')->preview(null, null, true);
+            // Same window the scheduler uses: once instant posting was authorized, history before it is excluded.
+            $p = service('commissionPostingRunnerService')->preview(null, null, true, $this->instantSince());
             unset($p['items']);
 
             return $p + ['error' => null];
@@ -959,7 +1034,7 @@ class FinancialAutomationService
 
     private function assertControl(string $control): void
     {
-        if (! in_array($control, self::CONTROLS, true)) {
+        if (! in_array($control, self::ALL_CONTROLS, true)) {
             throw new InvalidArgumentException('Unknown automation control.');
         }
     }

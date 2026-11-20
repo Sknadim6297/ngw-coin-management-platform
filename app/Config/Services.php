@@ -15,6 +15,7 @@ use App\Services\EvidenceUploadService;
 use App\Services\MemberAuthService;
 use App\Services\MemberCoinOwnershipService;
 use App\Services\MemberIdGenerator;
+use App\Services\MemberMiningIncomeService;
 use App\Services\PasswordResetService;
 use App\Services\RegistrationService;
 use App\Services\SponsorValidator;
@@ -65,6 +66,7 @@ use App\Services\FinancialNotificationService;
 use App\Services\FinancialRemediationService;
 use App\Services\FinancialAutomationRunnerService;
 use App\Services\FinancialAutomationService;
+use App\Services\InstantCommissionService;
 use App\Services\FinancialGovernanceService;
 use App\Services\FinancialPolicyService;
 use App\Services\FinancialSandboxService;
@@ -418,6 +420,15 @@ class Services extends BaseService
         return new FinancialAutomationRunnerService();
     }
 
+    public static function instantCommissionService(bool $getShared = true): InstantCommissionService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('instantCommissionService');
+        }
+
+        return new InstantCommissionService();
+    }
+
     public static function financialGovernanceService(bool $getShared = true): FinancialGovernanceService
     {
         if ($getShared) {
@@ -515,6 +526,15 @@ class Services extends BaseService
         }
 
         return new MiningWalletService();
+    }
+
+    public static function memberMiningIncomeService(bool $getShared = true): MemberMiningIncomeService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('memberMiningIncomeService');
+        }
+
+        return new MemberMiningIncomeService();
     }
 
     public static function miningDailyEngineService(bool $getShared = true): MiningDailyEngineService

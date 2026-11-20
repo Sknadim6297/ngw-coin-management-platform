@@ -51,6 +51,27 @@ final class KpiCardFactory
     }
 
     /**
+     * Ledger-backed financial amount shown with full precision (no trailing-zero trimming) plus a status note.
+     *
+     * @return KpiCard
+     */
+    public static function exact(
+        string $key,
+        string $label,
+        string|int $value,
+        string $accent,
+        string $icon,
+        ?string $unit = null,
+        ?string $href = null,
+        ?string $note = null
+    ): array {
+        return self::ok($key, $label, $value, $accent, $icon, $unit, $href) + [
+            'exact' => true,
+            'note'  => $note,
+        ];
+    }
+
+    /**
      * Metric exists in the product roadmap but has no ledger/service yet.
      *
      * @return KpiCard

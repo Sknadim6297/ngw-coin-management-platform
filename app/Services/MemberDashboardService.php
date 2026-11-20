@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Libraries\Dashboard\KpiCardFactory;
+use App\Libraries\Mining\MiningWalletPresenter;
 use App\Libraries\MoneyMath;
 use App\Models\MemberProfileModel;
 use App\Models\SponsorRelationshipModel;
@@ -15,7 +16,7 @@ use Throwable;
  */
 class MemberDashboardService
 {
-    private const MINING_REASON     = 'Mining module is not implemented.';
+    private const MINING_REASON     = 'Mining ledger is temporarily unavailable.';
     private const COMMISSION_REASON = 'Actual Commission: Not Activated';
 
     /**
@@ -38,7 +39,7 @@ class MemberDashboardService
      *   generated_at: string
      * }
      */
-    public function build(int $memberUserId): array
+    public function build(int $memberUserId, string $panelBase = 'member'): array
     {
         $profile = model(MemberProfileModel::class)->findByUserId($memberUserId);
         if ($profile === null) {
@@ -46,6 +47,7 @@ class MemberDashboardService
         }
 
         [$todayStart, $todayEnd] = $this->todayBounds();
+        $miningSummary           = service('memberMiningIncomeService')->summary($memberUserId);
         $relationship            = model(SponsorRelationshipModel::class)->findByMemberUserId($memberUserId);
         $locking                 = service('coinLockingService')->memberDashboardSnapshot($memberUserId);
         $walletOverview          = service('memberWalletService')->overview($memberUserId);
@@ -55,8 +57,9 @@ class MemberDashboardService
         $team                    = service('referralTeamService')->countsForSponsor($memberUserId);
 
         return [
-            'kpis'              => $this->kpis($memberUserId, $locking),
+            'kpis'              => $this->kpis($memberUserId, $locking, $panelBase, $miningSummary),
             'charts'            => $this->charts($memberUserId, $locking['summary']),
+            'mining_summary'    => $miningSummary,
             'profile'           => $profile,
             'relationship'      => $relationship,
             'activation'        => $activation,
@@ -84,8 +87,13 @@ class MemberDashboardService
      *
      * @return list<array<string, mixed>>
      */
-    public function kpis(int $memberUserId, ?array $lockingSnapshot = null): array
+    public function kpis(int $memberUserId, ?array $lockingSnapshot = null, string $panelBase = 'member', ?array $miningSummary = null): array
     {
+        $miningCards = $this->actualMiningKpis(
+            $miningSummary ?? service('memberMiningIncomeService')->summary($memberUserId),
+            $panelBase
+        );
+
         try {
             $db      = db_connect();
             $locking = $lockingSnapshot ?? service('coinLockingService')->memberDashboardSnapshot($memberUserId);
@@ -133,8 +141,7 @@ class MemberDashboardService
                 KpiCardFactory::ok('my_pending_payments', 'Pending Payments', $pendingPayments, 'red', 'bi-shield-exclamation', 'payments', site_url('member/buy-coins')),
                 KpiCardFactory::ok('my_pending_purchases', 'Pending Purchases', $pendingPurchases, 'red', 'bi-hourglass-split', 'requests', site_url('member/buy-coins')),
                 KpiCardFactory::ok('my_approved_purchases', 'Approved Purchases', $approvedPurchases, 'green', 'bi-check2-circle', 'requests', site_url('member/buy-coins')),
-                KpiCardFactory::unavailable('my_today_mining', "Today's Mining (Actual)", 'cyan', 'bi-lightning-charge-fill', 'Actual Mining: Not Activated', site_url('member/mining')),
-                KpiCardFactory::unavailable('my_total_mining', 'Total Mining (Actual)', 'amber', 'bi-lightning-fill', 'Actual Mining: Not Activated', site_url('member/mining')),
+                ...$miningCards,
                 KpiCardFactory::ok('my_today_mining_preview', "Today's Mining Simulation", $miningPreview['preview_amount'], 'cyan', 'bi-lightning-charge', 'sim', site_url('member/mining')),
                 KpiCardFactory::ok('my_total_mining_preview', 'Total Mining Simulation', service('miningSimulationService')->memberPreviewTotal($memberUserId), 'teal', 'bi-graph-up', 'sim', site_url('member/mining')),
                 KpiCardFactory::unavailable('my_today_level_commission', "Today's Commission (Actual)", 'indigo', 'bi-diagram-3-fill', self::COMMISSION_REASON, site_url('member/commissions')),
@@ -153,6 +160,44 @@ class MemberDashboardService
 
             return $this->errorKpiSet();
         }
+    }
+
+    /**
+     * Actual posted mining (ledger-backed). A business date without a posted credit shows 0.00000000 with
+     * "No credit posted"; an unreadable ledger shows an error card — never a fabricated zero.
+     *
+     * @param array<string, mixed> $s MemberMiningIncomeService::summary()
+     * @return list<array<string, mixed>>
+     */
+    private function actualMiningKpis(array $s, string $panelBase): array
+    {
+        $wallet  = site_url($panelBase . '/mining');
+        $history = site_url($panelBase . '/mining/history');
+        $defs    = [
+            ['my_today_mining', "Today's Mining (Actual)", 'cyan', 'bi-lightning-charge-fill'],
+            ['my_yesterday_mining', "Yesterday's Mining (Actual)", 'indigo', 'bi-calendar-check'],
+            ['my_total_mining', 'Total Mining Earned (Actual)', 'amber', 'bi-lightning-fill'],
+            ['my_mining_balance', 'Mining Wallet Balance', 'green', 'bi-wallet2'],
+        ];
+
+        if (empty($s['available'])) {
+            $reason = 'Mining earnings unavailable: ' . (string) ($s['error'] ?? 'ledger could not be read');
+            $out    = [];
+            foreach ($defs as [$key, $label, $accent, $icon]) {
+                $out[] = KpiCardFactory::error($key, $label, $accent, $icon, $reason) + ['note' => 'Unavailable — not zero'];
+            }
+
+            return $out;
+        }
+
+        $unit = (string) $s['asset'];
+
+        return [
+            KpiCardFactory::exact('my_today_mining', $defs[0][1], (string) $s['today'], 'cyan', $defs[0][3], $unit, $history, MiningWalletPresenter::dayNote((string) $s['today_date'], (bool) $s['today_posted'])),
+            KpiCardFactory::exact('my_yesterday_mining', $defs[1][1], (string) $s['yesterday'], 'indigo', $defs[1][3], $unit, $history, MiningWalletPresenter::dayNote((string) $s['yesterday_date'], (bool) $s['yesterday_posted'])),
+            KpiCardFactory::exact('my_total_mining', $defs[2][1], (string) $s['total_earned'], 'amber', $defs[2][3], $unit, $history, (int) $s['credit_count'] . ' posted credits'),
+            KpiCardFactory::exact('my_mining_balance', $defs[3][1], (string) $s['balance'], 'green', $defs[3][3], $unit, $wallet, 'Available balance'),
+        ];
     }
 
     /**
@@ -180,12 +225,7 @@ class MemberDashboardService
                     'labels'    => $teamTrend['labels'],
                     'values'    => $teamTrend['values'],
                 ],
-                'mining_history' => [
-                    'available' => false,
-                    'reason'    => self::MINING_REASON,
-                    'labels'    => [],
-                    'values'    => [],
-                ],
+                'mining_history' => service('memberMiningIncomeService')->trend($memberUserId, 14),
                 'commission_history' => service('commissionSimulationService')->previewTrend(14, $memberUserId),
             ];
         } catch (Throwable $e) {
@@ -343,7 +383,9 @@ class MemberDashboardService
             ['my_pending_purchases', 'Pending Purchases', 'red', 'bi-hourglass-split'],
             ['my_approved_purchases', 'Approved Purchases', 'green', 'bi-check2-circle'],
             ['my_today_mining', "Today's Mining (Actual)", 'cyan', 'bi-lightning-charge-fill'],
-            ['my_total_mining', 'Total Mining (Actual)', 'amber', 'bi-lightning-fill'],
+            ['my_yesterday_mining', "Yesterday's Mining (Actual)", 'indigo', 'bi-calendar-check'],
+            ['my_total_mining', 'Total Mining Earned (Actual)', 'amber', 'bi-lightning-fill'],
+            ['my_mining_balance', 'Mining Wallet Balance', 'green', 'bi-wallet2'],
             ['my_today_mining_preview', "Today's Mining Simulation", 'cyan', 'bi-lightning-charge'],
             ['my_total_mining_preview', 'Total Mining Simulation', 'teal', 'bi-graph-up'],
             ['my_today_level_commission', "Today's Commission (Actual)", 'indigo', 'bi-diagram-3-fill'],

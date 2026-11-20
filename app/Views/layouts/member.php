@@ -66,6 +66,12 @@ $sv = $supportViewContext ?? null;
         <a class="side-link <?= $is($panelBase . '/wallet') ? 'active' : '' ?>" href="<?= $panelUrl('wallet') ?>">
             <i class="bi bi-coin"></i><span class="nav-label">My Wallet</span>
         </a>
+        <a class="side-link ps-4 <?= $uri === $panelBase . '/mining' ? 'active' : '' ?>" href="<?= $panelUrl('mining') ?>">
+            <i class="bi bi-cpu"></i><span class="nav-label">Mining Wallet</span>
+        </a>
+        <a class="side-link ps-4 <?= $is($panelBase . '/mining/history') ? 'active' : '' ?>" href="<?= $panelUrl('mining/history') ?>">
+            <i class="bi bi-journal-text"></i><span class="nav-label">Mining History</span>
+        </a>
         <a class="side-link <?= $is($panelBase . '/locking') ? 'active' : '' ?>" href="<?= $panelUrl('locking') ?>">
             <i class="bi bi-lock"></i><span class="nav-label">Coin Locking</span>
         </a>
@@ -83,10 +89,7 @@ $sv = $supportViewContext ?? null;
             <i class="bi bi-diagram-3"></i><span class="nav-label">Genealogy</span>
         </a>
 
-        <div class="nav-section-title">Earnings (Preview)</div>
-        <a class="side-link <?= $is($panelBase . '/mining') ? 'active' : '' ?>" href="<?= $panelUrl('mining') ?>">
-            <i class="bi bi-cpu"></i><span class="nav-label">Mining Simulation</span>
-        </a>
+        <div class="nav-section-title">Earnings</div>
         <a class="side-link <?= $is($panelBase . '/commissions') ? 'active' : '' ?>" href="<?= $panelUrl('commissions') ?>">
             <i class="bi bi-layers"></i><span class="nav-label">Commission Simulation</span>
         </a>

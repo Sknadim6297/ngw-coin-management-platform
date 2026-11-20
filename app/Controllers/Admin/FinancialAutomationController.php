@@ -70,7 +70,7 @@ class FinancialAutomationController extends BaseController
         if (! $this->canControl()) {
             return redirect()->to(site_url('admin/financial-automation'))->with('error', 'Permission denied.');
         }
-        if (! in_array($control, FinancialAutomationService::CONTROLS, true)) {
+        if (! in_array($control, FinancialAutomationService::ALL_CONTROLS, true)) {
             return redirect()->to(site_url('admin/financial-automation'))->with('error', 'Unknown control.');
         }
 

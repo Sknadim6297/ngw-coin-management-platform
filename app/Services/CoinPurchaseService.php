@@ -497,7 +497,20 @@ class CoinPurchaseService
             // AND all commission policy approval flags are explicitly approved.
             $commissionPost = null;
             $cfgPlatform    = $this->config ?? config('Platform');
-            if ((bool) $cfgPlatform->commissionPostingEnabled && (bool) $cfgPlatform->commissionAutoPostOnApprovalEnabled) {
+
+            // Instant commission posting (DB-backed "Instant Commission Posting" control, default OFF). Runs only
+            // after this approval/activation committed, through the same runner; returns null while OFF. It never
+            // throws and never undoes the approval — failures are audited/alerted and recovered by the scheduler.
+            try {
+                $commissionPost = service('instantCommissionService')->postApprovedPurchase($purchaseRef, $adminUserId);
+            } catch (\Throwable $instantErr) {
+                log_message('error', 'Instant commission posting failed for {ref}: {msg}', [
+                    'ref' => $purchaseRef,
+                    'msg' => $instantErr->getMessage(),
+                ]);
+            }
+
+            if ($commissionPost === null && (bool) $cfgPlatform->commissionPostingEnabled && (bool) $cfgPlatform->commissionAutoPostOnApprovalEnabled) {
                 try {
                     $commissionPost = (new CommissionPostingRunnerService(null, null, null, null, $cfgPlatform))
                         ->postApprovedPurchaseEvent($purchaseRef, $adminUserId);

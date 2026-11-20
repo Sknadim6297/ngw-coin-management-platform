@@ -92,11 +92,24 @@ $referralSummary = $referralSummary ?? ['direct' => 0, 'total' => 0, 'active' =>
         </div>
     </div>
     <div class="col-lg-4">
+        <?php $mBase = site_url(($panelBase ?? 'member') . '/mining'); $ms = $miningSummary ?? null; ?>
         <div class="card-premium h-100">
-            <h2 class="h6 mb-3">Previews</h2>
-            <div class="text-secondary small mb-2">Mining &amp; commission amounts below are simulations only — not wallet balances.</div>
-            <a class="btn btn-sm btn-outline-gold d-block mb-2" href="<?= site_url('member/mining') ?>">Mining Preview</a>
-            <a class="btn btn-sm btn-outline-gold d-block" href="<?= site_url('member/commissions') ?>">Commission Preview</a>
+            <h2 class="h6 mb-3">Actual Mining</h2>
+            <?php if ($ms === null || empty($ms['available'])): ?>
+                <div class="text-danger small mb-2" data-mining-state="unavailable">Mining earnings unavailable<?= $ms !== null ? ': ' . esc((string) $ms['error']) : '' ?></div>
+            <?php else: ?>
+                <div class="d-flex justify-content-between mb-2"><span class="text-secondary">Today (<?= esc($ms['today_date']) ?>)</span><strong><?= esc($ms['today']) ?></strong></div>
+                <div class="d-flex justify-content-between mb-2"><span class="text-secondary">Yesterday (<?= esc($ms['yesterday_date']) ?>)</span><strong><?= esc($ms['yesterday']) ?></strong></div>
+                <div class="d-flex justify-content-between mb-2"><span class="text-secondary">Total earned</span><strong><?= esc($ms['total_earned']) ?></strong></div>
+                <div class="d-flex justify-content-between"><span class="text-secondary">Wallet balance</span><strong><?= esc($ms['balance']) ?> <?= esc($ms['asset']) ?></strong></div>
+                <div class="small text-secondary mt-2">Posted ledger credits only · IST business dates</div>
+            <?php endif; ?>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <a class="btn btn-sm btn-outline-gold" href="<?= esc($mBase) ?>">Mining Wallet</a>
+                <a class="btn btn-sm btn-outline-gold" href="<?= esc($mBase . '/history') ?>">Mining History</a>
+            </div>
+            <div class="text-secondary small mt-3">Cards labelled "Simulation" are simulations only — not wallet balances.
+                <a href="<?= site_url(($panelBase ?? 'member') . '/commissions') ?>">Commission Preview</a></div>
         </div>
     </div>
 </div>
@@ -118,6 +131,16 @@ $referralSummary = $referralSummary ?? ['direct' => 0, 'total' => 0, 'active' =>
             'dataset' => $charts['purchase_activity'],
         ]) ?>
     </div>
+    <?php if (isset($charts['mining_history'])): ?>
+        <div class="col-12">
+            <?= view('components/dashboard_chart', [
+                'id'      => 'chartMiningPosted',
+                'title'   => 'Posted Mining Credits (14 business days, IST)',
+                'type'    => 'bar',
+                'dataset' => $charts['mining_history'],
+            ]) ?>
+        </div>
+    <?php endif; ?>
 </div>
 
 <div class="card-premium mb-4">

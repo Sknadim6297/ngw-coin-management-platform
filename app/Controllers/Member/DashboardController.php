@@ -25,6 +25,7 @@ class DashboardController extends BaseController
             'profile'          => $dashboard['profile'],
             'activation'       => $dashboard['activation'],
             'walletSummary'    => $dashboard['wallet_summary'],
+            'miningSummary'    => $dashboard['mining_summary'],
             'pendingPayments'  => $dashboard['pending_payments'],
             'recentPurchases'  => $dashboard['recent_purchases'],
             'referralSummary'  => $dashboard['referral_summary'],

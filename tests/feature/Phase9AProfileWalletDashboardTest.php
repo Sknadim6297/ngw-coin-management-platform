@@ -424,10 +424,17 @@ final class Phase9AProfileWalletDashboardTest extends CIUnitTestCase
             $this->assertNull($kpi['value']);
         }
 
-        foreach (['my_today_mining', 'my_total_mining', 'my_today_level_commission', 'my_total_level_commission'] as $key) {
+        foreach (['my_today_level_commission', 'my_total_level_commission'] as $key) {
             $kpi = $this->kpiByKey($memberKpis, $key);
             $this->assertSame('unavailable', $kpi['status']);
             $this->assertNull($kpi['value']);
+        }
+
+        // Actual mining reflects posted ledger only: with no credits it is an explicit 0, never a simulated value.
+        foreach (['my_today_mining', 'my_total_mining'] as $key) {
+            $kpi = $this->kpiByKey($memberKpis, $key);
+            $this->assertSame('0.00000000', $kpi['value']);
+            $this->assertStringNotContainsString('Simulation', $kpi['label']);
         }
 
         $this->assertStringContainsString('Simulation', $this->kpiByKey($adminKpis, 'today_mining_preview')['label']);

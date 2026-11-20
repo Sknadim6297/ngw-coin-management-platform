@@ -267,6 +267,9 @@ class FinancialAutomationRunnerService
             'allow_production' => true,
             'confirm'          => $this->confirmFor($ctx['mode']),
             'include_root'     => true,
+            // Recovery only: once instant posting was ever authorized, the scheduler never posts purchases approved
+            // before that moment (no retroactive posting; older rows need the explicit reconciliation command).
+            'approved_since'   => $this->ctl()->instantSince(),
             'batch_size'       => 50,
             'max_runtime'      => 1800,
             'actor'            => 0,

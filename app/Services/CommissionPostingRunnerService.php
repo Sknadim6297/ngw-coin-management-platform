@@ -109,7 +109,8 @@ class CommissionPostingRunnerService
         bool $persist = true,
         bool $includeRoot = true,
         ?int $actorUserId = null,
-        ?string $onlyPurchaseRef = null
+        ?string $onlyPurchaseRef = null,
+        ?string $approvedSince = null
     ): array {
         $db    = db_connect();
         $plans = $this->plans ?? new CommissionPlanService();
@@ -137,6 +138,10 @@ class CommissionPostingRunnerService
             ->orderBy('id', 'ASC');
         if ($onlyPurchaseRef !== null && trim($onlyPurchaseRef) !== '') {
             $builder->where('purchase_ref', trim($onlyPurchaseRef));
+        }
+        if ($approvedSince !== null && trim($approvedSince) !== '') {
+            // Instant-posting cutoff: older purchases are never swept up by the scheduler.
+            $builder->where('reviewed_at >=', trim($approvedSince));
         }
         $purchases = $builder->get()->getResultArray();
 
@@ -408,6 +413,7 @@ class CommissionPostingRunnerService
      *   max_batches?: ?int,
      *   max_runtime?: ?int,
      *   resume_batch_ref?: ?string,
+     *   approved_since?: ?string,
      *   actor?: ?int
      * } $opts
      * @return array<string, mixed>
@@ -430,6 +436,7 @@ class CommissionPostingRunnerService
         $resumeRef   = isset($opts['resume_batch_ref']) && trim((string) $opts['resume_batch_ref']) !== '' ? trim((string) $opts['resume_batch_ref']) : null;
         $actor       = (int) ($opts['actor'] ?? 0);
         $actor       = $actor > 0 ? $actor : null;
+        $since       = isset($opts['approved_since']) && trim((string) $opts['approved_since']) !== '' ? trim((string) $opts['approved_since']) : null;
         $startedAt   = microtime(true);
 
         $ctx = $this->classify($group);
@@ -444,12 +451,13 @@ class CommissionPostingRunnerService
             'purchase'      => $onlyPurchase,
             'plan_ref'      => $planRef,
             'include_root'  => $includeRoot,
+            'approved_since' => $since,
             'kill_switches' => service('financialSandboxService')->productionSwitchSnapshot(),
         ];
 
         // --------------------------------------------------------------- dry-run (read-only)
         if (! $execute) {
-            $preview = $this->preview($onlyPurchase, $planRef, $includeRoot);
+            $preview = $this->preview($onlyPurchase, $planRef, $includeRoot, $since);
             $out     = $base + $preview + [
                 'status'  => 'dry_run',
                 'message' => 'DRY-RUN only — no commission wallet was credited.',
@@ -492,10 +500,13 @@ class CommissionPostingRunnerService
             try {
                 // Ensure append-only superseding revisions exist if original rows were NO_APPROVED_PLAN
                 if (! $eventMode) {
-                    $this->generateSupersedingRevisions($planRef, true, $includeRoot, $actor, $onlyPurchase);
+                    if ($since !== null) {
+                        $this->ensureCalculations($since, $actor, $onlyPurchase);
+                    }
+                    $this->generateSupersedingRevisions($planRef, true, $includeRoot, $actor, $onlyPurchase, $since);
                 }
 
-                $batch    = $this->prepareBatch($runMode, $planRef, $includeRoot, $batchSize, $onlyPurchase, $resumeRef, $actor);
+                $batch    = $this->prepareBatch($runMode, $planRef, $includeRoot, $batchSize, $onlyPurchase, $resumeRef, $actor, $since);
                 $batchRef = (string) $batch['batch_ref'];
 
                 $result = $this->processBatch($batch, $maxBatches, $maxRuntime, $startedAt, $actor);
@@ -534,9 +545,9 @@ class CommissionPostingRunnerService
      *
      * @return array<string, mixed>
      */
-    public function preview(?string $onlyPurchaseRef = null, ?string $planRef = null, bool $includeRoot = true): array
+    public function preview(?string $onlyPurchaseRef = null, ?string $planRef = null, bool $includeRoot = true, ?string $approvedSince = null): array
     {
-        $items = $this->collectPayableItems($onlyPurchaseRef, $planRef, $includeRoot);
+        $items = $this->collectPayableItems($onlyPurchaseRef, $planRef, $includeRoot, $approvedSince);
         $scale = $this->scale();
         $db    = db_connect();
 
@@ -591,12 +602,19 @@ class CommissionPostingRunnerService
      *
      * @return list<array<string, mixed>>
      */
-    private function collectPayableItems(?string $onlyPurchaseRef, ?string $planRef, bool $includeRoot): array
+    private function collectPayableItems(?string $onlyPurchaseRef, ?string $planRef, bool $includeRoot, ?string $approvedSince = null): array
     {
         $db    = db_connect();
         $scale = $this->scale();
         $out   = [];
         $seen  = [];
+
+        // Instant-posting cutoff: only purchases approved at/after $approvedSince are ever collected.
+        $sinceFilter = $approvedSince === null
+            ? null
+            : static function (\CodeIgniter\Database\BaseBuilder $sub) use ($approvedSince): \CodeIgniter\Database\BaseBuilder {
+                return $sub->select('purchase_ref')->from('coin_purchase_requests')->where('reviewed_at >=', $approvedSince);
+            };
 
         if ($db->tableExists('commission_purchase_calculations')) {
             $b = $db->table('commission_purchase_calculations')
@@ -604,6 +622,9 @@ class CommissionPostingRunnerService
                 ->orderBy('id', 'ASC');
             if ($onlyPurchaseRef !== null) {
                 $b->where('purchase_ref', $onlyPurchaseRef);
+            }
+            if ($sinceFilter !== null) {
+                $b->whereIn('purchase_ref', $sinceFilter);
             }
             foreach ($b->get()->getResultArray() as $c) {
                 if (! $includeRoot && (string) ($c['beneficiary_member_id'] ?? '') === 'ROOT0001') {
@@ -640,6 +661,9 @@ class CommissionPostingRunnerService
             if ($onlyPurchaseRef !== null) {
                 $b->where('purchase_ref', $onlyPurchaseRef);
             }
+            if ($sinceFilter !== null) {
+                $b->whereIn('purchase_ref', $sinceFilter);
+            }
             if ($planRef !== null) {
                 $b->where('plan_ref', $planRef);
             }
@@ -669,7 +693,7 @@ class CommissionPostingRunnerService
 
         // Dry-run fallback: if no persisted revisions yet and explicit plan passed (or approved plan exists), evaluate in-memory
         if ($out === [] && $planRef !== null) {
-            $sim = $this->generateSupersedingRevisions($planRef, false, $includeRoot, null, $onlyPurchaseRef);
+            $sim = $this->generateSupersedingRevisions($planRef, false, $includeRoot, null, $onlyPurchaseRef, $approvedSince);
             foreach ($sim['lines'] as $l) {
                 if (($l['status'] ?? '') !== 'CALCULATED_SUPERSEDING') {
                     continue;
@@ -701,7 +725,8 @@ class CommissionPostingRunnerService
         int $batchSize,
         ?string $onlyPurchaseRef,
         ?string $resumeRef,
-        ?int $actorUserId
+        ?int $actorUserId,
+        ?string $approvedSince = null
     ): array {
         $db  = db_connect();
         $now = date('Y-m-d H:i:s');
@@ -732,6 +757,10 @@ class CommissionPostingRunnerService
             if ($planRef !== null) {
                 $openB->where('plan_ref', $planRef);
             }
+            if ($approvedSince !== null) {
+                // A batch frozen before the instant-posting cutoff may hold historical items: never resume it here.
+                $openB->where('created_at >=', $approvedSince);
+            }
             $open = $openB->orderBy('id', 'DESC')->get()->getRowArray();
             if ($open !== null) {
                 $db->table('commission_post_batches')->where('id', (int) $open['id'])->update([
@@ -744,7 +773,7 @@ class CommissionPostingRunnerService
             }
         }
 
-        $items    = $this->collectPayableItems($onlyPurchaseRef, $planRef, $includeRoot);
+        $items    = $this->collectPayableItems($onlyPurchaseRef, $planRef, $includeRoot, $approvedSince);
         $batchRef = 'CPB-' . date('YmdHis') . '-' . strtoupper(bin2hex(random_bytes(3)));
 
         $db->transBegin();
@@ -866,6 +895,32 @@ class CommissionPostingRunnerService
                 }
 
                 $batchesRun++;
+
+                // Instant (purchase-event) posting: every level of the purchase is credited in ONE transaction.
+                if (($batch['run_mode'] ?? '') === 'purchase_event') {
+                    $byPurchase = [];
+                    foreach ($rows as $item) {
+                        $cursor = max($cursor, (int) $item['id']);
+                        $byPurchase[(string) $item['purchase_ref']][] = $item;
+                    }
+                    foreach ($byPurchase as $group) {
+                        $g = $this->postEventGroupAtomically($batch, $group, $wallets, $actorUserId, $maxAttempts, $retryDelay, $scale);
+                        $postedNow  += $g['posted'];
+                        $dupesNow   += $g['duplicates'];
+                        $skippedNow += $g['skipped'];
+                        foreach ($g['errors'] as $err) {
+                            $errors[] = $err;
+                        }
+                    }
+                    $db->table('commission_post_batches')->where('batch_ref', $batchRef)->update([
+                        'last_item_id' => $cursor,
+                        'batches_done' => (int) $batch['batches_done'] + $batchesRun,
+                        'updated_at'   => date('Y-m-d H:i:s'),
+                    ]);
+
+                    // One atomic attempt per event batch: failures stay FAILED for the scheduler to recover.
+                    break;
+                }
 
                 foreach ($rows as $item) {
                     $itemId = (int) $item['id'];
@@ -1032,6 +1087,168 @@ class CommissionPostingRunnerService
             'item_mismatches'  => $itemMismatches,
             'errors'           => $errors,
         ];
+    }
+
+    /**
+     * Recovery for purchases (approved at/after the instant-posting cutoff) whose post-commit calculation failed or
+     * was interrupted. Calculation is idempotent and only INSERTS missing rows; existing rows are never touched.
+     * It posts nothing by itself — posting happens afterwards through the normal batch.
+     */
+    private function ensureCalculations(string $approvedSince, ?int $actorUserId, ?string $onlyPurchaseRef): int
+    {
+        $db = db_connect();
+        if (! $db->tableExists('commission_purchase_calculations')) {
+            return 0;
+        }
+
+        $b = $db->table('coin_purchase_requests')
+            ->select('coin_purchase_requests.purchase_ref')
+            ->join('commission_purchase_calculations c', 'c.purchase_ref = coin_purchase_requests.purchase_ref', 'left')
+            ->where('coin_purchase_requests.status', 'approved')
+            ->where('coin_purchase_requests.reviewed_at >=', $approvedSince)
+            ->groupBy('coin_purchase_requests.purchase_ref')
+            ->having('COUNT(c.id) < 3', null, false);
+        if ($onlyPurchaseRef !== null) {
+            $b->where('coin_purchase_requests.purchase_ref', $onlyPurchaseRef);
+        }
+
+        $engine = service('commissionPurchaseEngineService');
+        $n      = 0;
+        foreach ($b->get()->getResultArray() as $r) {
+            $engine->calculateForPurchase((string) $r['purchase_ref'], true, $actorUserId);
+            $n++;
+        }
+
+        return $n;
+    }
+
+    /**
+     * Credit every payable level of ONE purchase inside a single database transaction.
+     *
+     * All-or-nothing: if any level fails the ledger rows, wallet balances, item statuses and calculation status
+     * of every level are rolled back together, then the items are marked FAILED. The calculation rows stay
+     * CALCULATED_NOT_POSTED, so the scheduler (recovery run) can still pick the purchase up later. Idempotency is
+     * unchanged (`comm-post:{purchase_ref}:L{level}`), so a retry never duplicates a level that already exists.
+     *
+     * @param array<string, mixed>       $batch
+     * @param list<array<string, mixed>> $items
+     * @return array{posted: int, duplicates: int, skipped: int, errors: list<array<string, mixed>>}
+     */
+    private function postEventGroupAtomically(
+        array $batch,
+        array $items,
+        CommissionWalletService $wallets,
+        ?int $actorUserId,
+        int $maxAttempts,
+        int $retryDelay,
+        int $scale
+    ): array {
+        $db       = db_connect();
+        $batchRef = (string) $batch['batch_ref'];
+        $attempt  = 0;
+
+        while (true) {
+            $attempt++;
+            $posted = 0;
+            $dupes  = 0;
+            $skipped = 0;
+
+            $db->transBegin();
+
+            try {
+                foreach ($items as $item) {
+                    $itemId = (int) $item['id'];
+                    $amt    = MoneyMath::normalize((string) $item['expected_amount_usdt'], $scale);
+                    $uid    = (int) ($item['beneficiary_user_id'] ?? 0);
+                    $mid    = (string) ($item['beneficiary_member_id'] ?? '');
+                    $idem   = (string) $item['idempotency_key'];
+                    $now    = date('Y-m-d H:i:s');
+
+                    if ($uid <= 0 || $mid === '' || ! MoneyMath::isPositive($amt, $scale)) {
+                        $db->table('commission_post_items')->where('id', $itemId)->update([
+                            'status'       => 'SKIPPED',
+                            'reason'       => 'zero_or_missing_beneficiary',
+                            'processed_at' => $now,
+                            'updated_at'   => $now,
+                        ]);
+                        $skipped++;
+
+                        continue;
+                    }
+
+                    $before = $db->table('commission_wallet_ledger_entries')->where('idempotency_key', $idem)->get()->getRowArray();
+
+                    $entry = $wallets->creditCommission($uid, $mid, [
+                        'amount'          => $amt,
+                        'reference_type'  => 'commission_purchase',
+                        'reference_id'    => (string) $item['purchase_ref'] . ':L' . (int) $item['sponsor_level'],
+                        'idempotency_key' => $idem,
+                        'created_by'      => $actorUserId,
+                        'notes'           => 'Commission purchase event ' . $batchRef,
+                    ]);
+
+                    $wasDup = $before !== null ? 1 : 0;
+                    $wasDup ? $dupes++ : $posted++;
+
+                    $db->table('commission_post_items')->where('id', $itemId)->update([
+                        'status'             => 'POSTED',
+                        'posted_amount_usdt' => MoneyMath::normalize((string) ($entry['amount'] ?? $amt), $scale),
+                        'ledger_entry_ref'   => $entry['entry_ref'] ?? null,
+                        'was_duplicate'      => $wasDup,
+                        'attempts'           => (int) $item['attempts'] + $attempt,
+                        'last_error'         => null,
+                        'processed_at'       => $now,
+                        'updated_at'         => $now,
+                    ]);
+
+                    // Advance CALCULATED_NOT_POSTED only; NEVER mutate historical NO_APPROVED_PLAN rows.
+                    $db->table('commission_purchase_calculations')
+                        ->where('purchase_ref', (string) $item['purchase_ref'])
+                        ->where('sponsor_level', (int) $item['sponsor_level'])
+                        ->where('status', CommissionPurchaseEngineService::STATUS_CALCULATED)
+                        ->update([
+                            'posted_amount_usdt' => $amt,
+                            'status'             => 'POSTED',
+                            'updated_at'         => $now,
+                        ]);
+                }
+
+                if ($db->transStatus() === false) {
+                    throw new RuntimeException('Atomic commission post could not be completed; rolled back.');
+                }
+                $db->transCommit();
+
+                return ['posted' => $posted, 'duplicates' => $dupes, 'skipped' => $skipped, 'errors' => []];
+            } catch (Throwable $e) {
+                while ($db->transDepth > 0) {
+                    $db->transRollback();
+                }
+
+                if ($this->isTransientMessage($e->getMessage()) && $attempt < $maxAttempts) {
+                    $this->pause($retryDelay * $attempt);
+
+                    continue;
+                }
+
+                // Everything above is rolled back. Record the failure outside the (now closed) transaction.
+                $errors = [];
+                foreach ($items as $item) {
+                    $db->table('commission_post_items')->where('id', (int) $item['id'])->update([
+                        'status'     => 'FAILED',
+                        'attempts'   => (int) $item['attempts'] + $attempt,
+                        'last_error' => substr($e->getMessage(), 0, 255),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                    $errors[] = [
+                        'purchase_ref' => $item['purchase_ref'],
+                        'level'        => (int) $item['sponsor_level'],
+                        'message'      => $e->getMessage(),
+                    ];
+                }
+
+                return ['posted' => 0, 'duplicates' => 0, 'skipped' => 0, 'errors' => $errors];
+            }
+        }
     }
 
     /**

@@ -175,6 +175,57 @@ $blurbs = [
         <?php endforeach; ?>
     </div>
 
+    <!-- Instant commission posting (separate control: Start All never turns it on, Stop All always turns it off) -->
+    <?php
+    $inst      = $s['instant'];
+    $instR     = $inst['readiness'];
+    $instOn    = (bool) $inst['enabled'];
+    $instPill  = $instOn && $inst['active'] ? ['on', 'ON'] : ($instOn ? ['bad', 'ON — authorization invalid'] : ['off', 'OFF']);
+    ?>
+    <div class="card-premium fa-card mb-3">
+        <div class="fa-head">
+            <h3><i class="bi bi-lightning-charge fa-ico"></i><?= esc($inst['label']) ?></h3>
+            <span class="fa-pill <?= esc($instPill[0]) ?>"><?= esc($instPill[1]) ?></span>
+        </div>
+        <p class="fa-note mb-2">
+            Posts the same Level 1/2/3 commission the moment a member's purchase is approved (and the member becomes active),
+            using the same approved plan and the same engine as the daily run. It adds no extra approval step.
+            The Level Commission scheduler stays as the recovery path for anything that did not post instantly and never posts a commission twice.
+            <?php if ($inst['since'] !== null): ?>
+                Only purchases approved on or after <strong><?= esc((string) $inst['since']) ?></strong> (server time) are ever posted automatically; older history is never re-posted.
+            <?php else: ?>
+                Turning this ON records the cutoff: only purchases approved from that moment on are posted automatically.
+            <?php endif; ?>
+        </p>
+        <div class="fa-state mb-2">
+            <span class="fa-dot <?= $instR['ready'] ? 'on' : 'bad' ?>"></span>
+            <span class="small"><?= $instR['ready'] ? 'All checks passed' : count($instR['blockers']) . ' check(s) failing' ?></span>
+        </div>
+        <?php if (! empty($canControl)): ?>
+            <div class="fa-actions">
+                <?php if (! $instOn): ?>
+                    <button type="button" class="btn btn-gold btn-sm"
+                            data-fa-open="<?= esc(site_url('admin/financial-automation/instant_commission/on'), 'attr') ?>"
+                            data-fa-title="Turn ON — <?= esc($inst['label'], 'attr') ?>"
+                            <?= $instR['ready'] ? '' : 'disabled' ?>>Turn ON</button>
+                <?php else: ?>
+                    <form method="post" action="<?= site_url('admin/financial-automation/instant_commission/off') ?>" onsubmit="return confirm('Turn OFF Instant Commission Posting? Already posted commissions are kept; the scheduler will recover new ones.');">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-gold btn-sm btn-fa-stop">Turn OFF</button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+        <ul class="fa-checks">
+            <?php foreach ($instR['checks'] as $chk): ?>
+                <li>
+                    <i class="bi <?= $chk['ok'] ? 'bi-check-circle-fill ok' : 'bi-x-circle-fill no' ?>"></i>
+                    <span><?= esc($chk['label']) ?><small><?= esc($chk['detail']) ?></small></span>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+
     <!-- Business rules -->
     <div class="fa-grid cols-2 mb-3">
         <div class="card-premium">

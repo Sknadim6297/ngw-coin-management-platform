@@ -52,6 +52,7 @@ $routes->group('support-view', ['filter' => 'supportView'], static function (Rou
     $routes->get('referrals', 'SupportView\PortalController::referrals');
     $routes->get('genealogy', 'SupportView\PortalController::genealogy');
     $routes->get('mining', 'SupportView\PortalController::mining');
+    $routes->get('mining/history', 'SupportView\PortalController::miningHistory');
     $routes->get('commissions', 'SupportView\PortalController::commissions');
     $routes->get('support', 'SupportView\PortalController::support');
     $routes->post('support', 'SupportView\PortalController::blocked');
@@ -379,7 +380,7 @@ $routes->group('member', ['filter' => 'member'], static function (RouteCollectio
     $routes->get('genealogy', 'Member\ReferralController::genealogy');
     $routes->get('genealogy/children', 'Member\ReferralController::children');
 
-    // Phase 7B mining simulation (read-only preview)
+    // Mining Wallet (actual posted credits, read-only) + Mining Earnings History
     $routes->get('mining', 'Member\MiningController::index');
     $routes->get('mining/history', 'Member\MiningController::history');
 
