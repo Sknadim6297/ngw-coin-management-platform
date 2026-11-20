@@ -30,6 +30,7 @@ class FinancialSandboxService
         'coin_platform',
         'ng_database',
         'wwwzeont_ngw_test_db',
+        'wwwzeont_ngw_live_db',
         'coin_platform_phase13c_snapshot',
         'ng_database_phase14_snapshot',
     ];

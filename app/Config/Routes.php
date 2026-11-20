@@ -299,6 +299,7 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->post('financial-policies', 'Admin\FinancialPoliciesController::store');
     $routes->get('financial-policies/(:segment)', 'Admin\FinancialPoliciesController::show/$1');
     $routes->post('financial-policies/(:segment)/submit', 'Admin\FinancialPoliciesController::submit/$1');
+    $routes->post('financial-policies/(:segment)/revise', 'Admin\FinancialPoliciesController::revise/$1');
     $routes->post('financial-policies/(:segment)/approve', 'Admin\FinancialPoliciesController::approve/$1');
     $routes->post('financial-policies/(:segment)/activate', 'Admin\FinancialPoliciesController::activate/$1');
     $routes->post('financial-policies/(:segment)/reject', 'Admin\FinancialPoliciesController::reject/$1');

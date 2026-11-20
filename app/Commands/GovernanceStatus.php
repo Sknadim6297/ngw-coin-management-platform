@@ -77,6 +77,7 @@ class GovernanceStatus extends BaseCommand
                     'submitted_by'  => $terms['submitted_by'],
                     'approved_by'   => $terms['approved_by'],
                     'terms'         => $terms['terms'],
+                    'requirements'  => $terms['requirements'],
                     'terms_hash'    => $terms['terms_hash'],
                     'rule_problems' => $terms['rule_problems'],
                     'single_admin_eligible' => $terms['rule_problems'] === [],

@@ -24,6 +24,28 @@ $canAct = $status['ready'] && $terms['rule_problems'] === [];
     <div class="alert alert-danger small mb-2">Not eligible for single-admin <?= esc($verb) ?>: <?= esc($p) ?></div>
 <?php endforeach; ?>
 
+<?php if (! empty($terms['requirements'])): ?>
+<div class="card-premium mb-3">
+    <h2 class="h6">Mandatory financial terms</h2>
+    <div class="table-responsive">
+        <table class="table-premium">
+            <thead><tr><th>Term</th><th>Field</th><th>Required</th><th>Found</th><th>Status</th></tr></thead>
+            <tbody>
+            <?php foreach ($terms['requirements'] as $r): ?>
+                <tr>
+                    <td><?= esc($r['label']) ?></td>
+                    <td><code><?= esc($r['key']) ?></code></td>
+                    <td><?= esc($r['required']) ?></td>
+                    <td><?= esc($r['actual']) ?></td>
+                    <td><?= $r['ok'] ? '<span class="text-success">OK</span>' : '<span class="text-danger">' . esc($r['actual'] === 'missing' ? 'MISSING' : 'MISMATCH') . '</span>' ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="card-premium mb-3">
     <h2 class="h6">Terms under review (version <?= esc($terms['version']) ?>)</h2>
     <div class="table-responsive">

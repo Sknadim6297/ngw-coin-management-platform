@@ -107,15 +107,67 @@ The policy is **not** approved automatically and its history is not rewritten. A
 2. If `single_admin_eligible` is `true` (terms match the rules, including `policy_version`), the owner — logged in
    as the designated admin — opens the policy page, uses *Review & approve as single administrator*, confirms, then
    repeats the review/confirmation for *activate*. The existing `submitted` event and all prior history stay intact.
-3. If it is **not** eligible (e.g. created before `policy_version`/`business_timezone` were part of the draft, or the
-   engine configuration changed), do not edit it. Reject it on the policy page with the reason shown by
-   `governance:status`, then create a fresh draft:
-   `php spark mining:prepare-policy-draft --effective-from <APPROVED_DATE> --persist --actor <ADMIN_UID> --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE`
-   submit it, and run the single-admin review/confirmation on the new version.
+3. If it is **not** eligible (expected: it was saved by the old Create Policy Draft form, see section 8), it is never
+   edited. On the policy page use **Corrected revision** (section 9): this creates a NEW draft version with the
+   canonical payload, links it to the original (with the original's fingerprint) and closes the original with your
+   reason. Then submit the new draft, check the *Mandatory financial terms* table shows only OK, and run the
+   single-admin review → confirmation (approve), then review → confirmation (activate) on the **new** version.
+   If the revision is refused (for example the rate is not 3 %), reject the policy with a reason and create a fresh
+   draft instead (form or `php spark mining:prepare-policy-draft --effective-from <APPROVED_DATE> --persist --actor <ADMIN_UID> --allow-production --confirm I_AUTHORIZE_PRODUCTION_CHANGE`).
 4. Approve the 3 % monthly rate for the current month and the 10/5/3 commission plan the same way.
 5. Leave Financial Automation OFF until the separate activation checkpoint.
 
+## 8. Canonical Mining policy payload (single source: `App\Libraries\MiningPolicyPayload`)
+
+**Root cause of the mismatch.** The Create Policy Draft form posted `day_divisor_mode` and a free-text
+`rounding_mode`, and `FinancialPolicyService::normalizePayload()` stored exactly what was posted. The approval validator
+(`FinancialGovernanceService`) and Financial Automation readiness require `month_day_divisor_mode`,
+`compounding_enabled = false`, `business_timezone = Asia/Kolkata` and the engine `policy_version`, none of which the
+form ever produced. Drafts saved from the form could therefore never become eligible.
+
+**Fix.** Every create/edit path (UI form, service, CLI) goes through `normalizePayload()`, which now calls
+`MiningPolicyPayload::canonicalize()`:
+
+| Behaviour | Detail |
+|---|---|
+| Field mapping | legacy `day_divisor_mode` is renamed to `month_day_divisor_mode` (a conflicting pair is rejected); the legacy name is never stored |
+| Explicit engine terms | `compounding_enabled = false`, `business_timezone` (platform value), `rate_basis = monthly` are written when absent |
+| Policy version | always derived from `MiningCalculationPolicy::fromPlatform()->version()`; input values are ignored; never hard-coded |
+| Rounding | the form offers *Round down / Half up* (validated); `down` is stored as `down`; anything else is rejected; blank stays blank (and blocks eligibility) |
+| Business values | rate, divisor, approval day, asset are stored as entered; nothing is invented |
+
+The validator, the review screen and readiness use the same class (`requirements()` / `problems()`), so the saved
+fields and the checked fields cannot drift apart again. Eligibility stays strict and rejects, with the exact field named:
+missing terms (`<field> is missing`), legacy field names, wrong values (fixed-30 divisor, compounding on, other timezone,
+other rate / asset / approval-day policy), a `policy_version` different from the engine's, a rounding mode different
+from the engine's, optional `post_maturity_eligibility` / `post_sale_eligibility` values that disagree with the engine
+(blank stays allowed), and platform-configuration drift. Financial Automation readiness (`checkMiningPolicy`) calls the
+same `MiningPolicyPayload::problems()`, so a policy that passes approval can never fail readiness for a different
+reason. The review and policy pages show a *Mandatory financial terms*
+table (required / found / OK-MISSING-MISMATCH) and the confirmation form lists every mandatory term even when absent.
+
+## 9. Revising an existing pending policy (audited, original untouched)
+
+`FinancialPolicyService::revisePending()` (policy page → *Corrected revision*; needs the draft permission, the admin
+password, a reason of at least 10 characters; refused for non-pending, non-mining or already-canonical policies):
+
+- the original keeps its `payload_json`, therefore its fingerprint, its events and any governance records; only its
+  status changes to `rejected` with the reason "Superseded by corrected revision <ref>";
+- a new draft version (next `version_no`, new `policy_ref`) is created with the canonical payload plus
+  `_revision_of`, `_revision_of_fingerprint` and `_revision_reason`;
+- `financial_policy_events` get `superseded_by_revision` (original) and `revision_created` (new) with both fingerprints
+  and the list of changed fields; `audit_logs` gets `financial_policy.revised`;
+- nothing is submitted, approved or activated, no switch changes, no ledger or wallet row is touched. The new draft
+  must be submitted and approved through governance. A blank `rounding_mode` must be chosen explicitly in the form; an
+  existing rounding mode can never be swapped by a revision.
+
 ## 7. Deployment procedure (only after explicit approval; each step is a checkpoint)
+
+The live database is `wwwzeont_ngw_live_db` (listed in `ProductionSafetyGate::LIVE_DATABASES` and in the sandbox
+forbidden list; set `platform.liveDatabase = wwwzeont_ngw_live_db` in the server `.env`). No test, seed or posting
+command may be run against it; every test uses `coin_platform_test`.
+
+This release has no new migration beyond 2026-11-20-997001 (if it is not applied yet) and no data change: code only.
 
 LOCAL PC
 ```powershell
@@ -132,7 +184,8 @@ git pull --ff-only origin main
 # verified backup first (runbook Step 3), then:
 php spark migrate:status          # pending: 2026-11-20-997001 CreateFinancialGovernanceActions
 php spark migrate
-php spark governance:status       # mode=dual_control (nothing changed yet)
+php spark governance:status       # mode=dual_control (nothing changed yet; read-only)
+php spark governance:status --type financial_policy --ref FPV-MIN-20261118-6611BC   # read-only: shows every mandatory term + problems
 ```
 Then edit `.env` (never commit it):
 ```ini

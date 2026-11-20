@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Libraries\MiningCalculationPolicy;
+use App\Libraries\MiningPolicyPayload;
 use App\Libraries\MoneyMath;
 use CodeIgniter\Shield\Models\UserModel;
 use Config\Platform;
 use InvalidArgumentException;
 use RuntimeException;
-use Throwable;
 
 /**
  * Financial governance (Config\Platform::$financialGovernanceMode).
@@ -138,7 +137,14 @@ class FinancialGovernanceService
                     $terms['payload.' . $k] = $this->str($v);
                 }
             }
-            $problems = $this->policyRuleProblems((string) $row['domain'], $payload);
+            if ((string) $row['domain'] === FinancialPolicyService::DOMAIN_MINING) {
+                // Mandatory terms are always listed (and must be confirmed), even when the payload lacks them.
+                foreach (MiningPolicyPayload::mandatoryKeys() as $k) {
+                    $terms['payload.' . $k] ??= 'null';
+                }
+            }
+            $requirements = $this->policyRequirements((string) $row['domain'], $payload);
+            $problems     = $this->policyRuleProblems((string) $row['domain'], $payload);
             $out      = [
                 'status' => (string) $row['status'], 'version' => (string) $row['lock_version'],
                 'created_by' => (int) $row['created_by'], 'submitted_by' => (int) ($row['submitted_by'] ?? 0),
@@ -161,6 +167,11 @@ class FinancialGovernanceService
             if ($terms['rate_basis'] !== 'monthly' || MoneyMath::compare($terms['rate_percent'], '3', 8) !== 0) {
                 $problems[] = 'Mining rate must be exactly 3% monthly (found ' . $terms['rate_percent'] . '% ' . $terms['rate_basis'] . ').';
             }
+            $requirements = [
+                $this->req('rate_percent', 'Monthly rate (%)', '3', $terms['rate_percent'], MoneyMath::compare($terms['rate_percent'], '3', 8) === 0),
+                $this->req('rate_basis', 'Rate basis', 'monthly', $terms['rate_basis'], $terms['rate_basis'] === 'monthly'),
+                $this->req('reward_asset', 'Reward asset', 'COIN', 'COIN', true),
+            ];
             $out = [
                 'status' => (string) $row['status'], 'version' => (string) $row['updated_at'],
                 'created_by' => (int) $row['created_by'], 'submitted_by' => 0,
@@ -198,6 +209,12 @@ class FinancialGovernanceService
             if ($terms['commission_currency'] !== 'USDT') {
                 $problems[] = 'Commission currency must be USDT.';
             }
+            $requirements = [$this->req('level_count', 'Levels', '3', $terms['level_count'], (int) $row['level_count'] === 3 && count($levels) === 3)];
+            foreach ($expected as $level => $pct) {
+                $found          = $levels[$level] ?? null;
+                $requirements[] = $this->req('level_' . $level . '_percent', 'Level ' . $level . ' (% of approved USDT purchase)', $pct, $found ?? 'missing', $found !== null && MoneyMath::compare($found, $pct, 8) === 0);
+            }
+            $requirements[] = $this->req('commission_currency', 'Commission currency', 'USDT', $terms['commission_currency'], $terms['commission_currency'] === 'USDT');
             $out = [
                 'status' => (string) $row['status'], 'version' => (string) $row['updated_at'],
                 'created_by' => (int) $row['created_by'], 'submitted_by' => 0,
@@ -213,6 +230,7 @@ class FinancialGovernanceService
             'terms'         => $terms,
             'terms_hash'    => hash('sha256', json_encode([$type, $ref, $terms], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)),
             'rule_problems' => $problems,
+            'requirements'  => $requirements,
         ];
     }
 
@@ -419,43 +437,8 @@ class FinancialGovernanceService
     {
         $bad = [];
         if ($domain === FinancialPolicyService::DOMAIN_MINING) {
-            $eq = static fn (string $k, mixed $v): bool => ($p[$k] ?? null) === $v;
-            if (MoneyMath::compare(MoneyMath::normalize((string) ($p['monthly_percent'] ?? '0'), 8), '3', 8) !== 0) {
-                $bad[] = 'monthly_percent must be 3.';
-            }
-            if (isset($p['rate_basis']) && $p['rate_basis'] !== 'monthly') {
-                $bad[] = 'rate_basis must be monthly.';
-            }
-            if (! $eq('month_day_divisor_mode', 'calendar_days')) {
-                $bad[] = 'Day divisor must be the actual calendar days of the month.';
-            }
-            if (! $eq('approval_day_policy', MiningCalculationPolicy::APPROVAL_EXCLUDE_DAY)) {
-                $bad[] = 'Approval day must be excluded.';
-            }
-            if (! $eq('earning_asset', 'COIN')) {
-                $bad[] = 'Reward asset must be COIN.';
-            }
-            if (! $eq('compounding_enabled', false)) {
-                $bad[] = 'Compounding must be disabled.';
-            }
-            if (! $eq('business_timezone', 'Asia/Kolkata')) {
-                $bad[] = 'Business timezone must be Asia/Kolkata.';
-            }
-            $cfg = $this->cfg();
-            if ($cfg->miningMonthDayDivisorMode !== 'calendar_days' || $cfg->miningApprovalDayPolicy !== MiningCalculationPolicy::APPROVAL_EXCLUDE_DAY
-                || $cfg->miningEarningAsset !== 'COIN' || $cfg->miningBusinessTimezone !== 'Asia/Kolkata') {
-                $bad[] = 'Platform mining configuration does not match the owner-approved rules.';
-            }
-            try {
-                $runtime = MiningCalculationPolicy::fromPlatform($cfg)->version();
-                if ((string) ($p['policy_version'] ?? '') !== $runtime) {
-                    $bad[] = 'policy_version must match the engine configuration (' . $runtime . ').';
-                }
-            } catch (Throwable $e) {
-                $bad[] = 'Engine configuration invalid: ' . $e->getMessage();
-            }
-
-            return $bad;
+            // Same rules, same field names as the draft form / FinancialPolicyService::normalizePayload().
+            return MiningPolicyPayload::problems($p, $this->cfg());
         }
         if ($domain === FinancialPolicyService::DOMAIN_COMMISSION) {
             foreach ([['l1', 'level1_percent', '10'], ['l2', 'level2_percent', '5'], ['l3', 'level3_percent', '3']] as [$a, $b, $want]) {
@@ -472,6 +455,37 @@ class FinancialGovernanceService
         }
 
         return ['Single-admin approval covers only Mining and Commission policies (' . $domain . ' needs dual-control).'];
+    }
+
+    /**
+     * Mandatory terms with required / found / status, for the review screen.
+     *
+     * @param array<string, mixed> $p
+     * @return list<array{key: string, label: string, required: string, actual: string, ok: bool, problem: ?string}>
+     */
+    private function policyRequirements(string $domain, array $p): array
+    {
+        if ($domain === FinancialPolicyService::DOMAIN_MINING) {
+            return MiningPolicyPayload::requirements($p, $this->cfg());
+        }
+        if ($domain !== FinancialPolicyService::DOMAIN_COMMISSION) {
+            return [];
+        }
+        $rows = [];
+        foreach ([['l1', 'level1_percent', '10', 'Level 1'], ['l2', 'level2_percent', '5', 'Level 2'], ['l3', 'level3_percent', '3', 'Level 3']] as [$a, $b, $want, $label]) {
+            $v      = (string) ($p[$a] ?? $p[$b] ?? '');
+            $rows[] = $this->req($a . '/' . $b, $label . ' (% of approved USDT purchase)', $want, $v === '' ? 'missing' : $v, $v !== '' && is_numeric($v) && MoneyMath::compare(MoneyMath::normalize($v, 8), $want, 8) === 0);
+        }
+        $base   = (string) ($p['base'] ?? $p['calculation_base'] ?? '');
+        $rows[] = $this->req('base', 'Calculation base', 'approved_usdt_purchase_amount', $base === '' ? 'missing' : $base, in_array($base, self::COMMISSION_BASES, true));
+
+        return $rows;
+    }
+
+    /** @return array{key: string, label: string, required: string, actual: string, ok: bool, problem: ?string} */
+    private function req(string $key, string $label, string $required, string $actual, bool $ok): array
+    {
+        return ['key' => $key, 'label' => $label, 'required' => $required, 'actual' => $actual, 'ok' => $ok, 'problem' => $ok ? null : $label . ' must be ' . $required . ' (found ' . $actual . ').'];
     }
 
     private function assertSingleAdminActor(string $type, int $actorUserId): void

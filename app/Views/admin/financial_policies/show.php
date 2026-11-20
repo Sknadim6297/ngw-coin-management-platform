@@ -42,6 +42,70 @@ $govUrl = site_url('admin/financial-governance/financial_policy/' . rawurlencode
     </div>
 </div>
 
+<?php if (! empty($governance['requirements'])): ?>
+<div class="card-premium mt-3">
+    <h3 class="h6">Mandatory financial terms</h3>
+    <div class="table-responsive">
+        <table class="table-premium">
+            <thead><tr><th>Term</th><th>Field</th><th>Required</th><th>Found</th><th>Status</th></tr></thead>
+            <tbody>
+            <?php foreach ($governance['requirements'] as $r): ?>
+                <tr>
+                    <td><?= esc($r['label']) ?></td>
+                    <td><code><?= esc($r['key']) ?></code></td>
+                    <td><?= esc($r['required']) ?></td>
+                    <td><?= esc($r['actual']) ?></td>
+                    <td><?= $r['ok'] ? '<span class="text-success">OK</span>' : '<span class="text-danger">' . esc($r['actual'] === 'missing' ? 'MISSING' : 'MISMATCH') . '</span>' ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php foreach ($governance['rule_problems'] as $p): ?>
+        <div class="small text-danger">• <?= esc($p) ?></div>
+    <?php endforeach; ?>
+    <?php if ($governance['rule_problems'] === []): ?>
+        <div class="small text-success mt-1">All mandatory terms are present and valid (eligible for approval).</div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
+<?php if ($status === 'pending_approval' && ($policy['domain'] ?? '') === 'mining' && ! empty($canDraft) && ! empty($governance['rule_problems'])): ?>
+<div class="card-premium mt-3 border border-warning">
+    <h3 class="h6">Corrected revision</h3>
+    <p class="small text-secondary mb-2">
+        This submitted policy cannot be approved as saved. It is never edited: a new draft version is created with the canonical field names and the
+        engine-derived terms (compounding, timezone, policy version), the original is closed with your reason, and both keep their audit history.
+        You then submit and approve the new draft. No business value is invented.
+        <?php if (empty($policy['payload']['rounding_mode'])): ?>
+            The original has no rounding mode: choose it explicitly below.
+        <?php endif; ?>
+    </p>
+    <form method="post" action="<?= site_url('admin/financial-policies/' . rawurlencode((string) $policy['policy_ref']) . '/revise') ?>" class="row g-2">
+        <?= csrf_field() ?>
+        <div class="col-md-6">
+            <label class="form-label small">Reason (min 10 characters)</label>
+            <input class="form-control form-control-sm" name="reason" required minlength="10" maxlength="400" value="Canonical field names and mandatory mining terms">
+        </div>
+        <?php if (empty($policy['payload']['rounding_mode'])): ?>
+        <div class="col-md-3">
+            <label class="form-label small">Rounding mode</label>
+            <select class="form-select form-select-sm" name="rounding_mode" required>
+                <option value="">— choose —</option>
+                <option value="down">Round down</option>
+                <option value="half_up">Half up</option>
+            </select>
+        </div>
+        <?php endif; ?>
+        <div class="col-md-3">
+            <label class="form-label small">Password reauthentication</label>
+            <input class="form-control form-control-sm" type="password" name="password" required autocomplete="current-password">
+        </div>
+        <div class="col-12"><button class="btn btn-outline-gold btn-sm" type="submit">Create corrected revision</button></div>
+    </form>
+</div>
+<?php endif; ?>
+
 <div class="card-premium mt-3">
     <h3 class="h6">Actions</h3>
     <div class="d-flex flex-wrap gap-3">

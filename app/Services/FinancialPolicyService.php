@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Libraries\MiningMath;
+use App\Libraries\MiningPolicyPayload;
 use App\Libraries\MoneyMath;
 use Config\Platform;
 use InvalidArgumentException;
@@ -307,6 +308,130 @@ class FinancialPolicyService
         $this->audit->log('financial_policy.submitted', $actorUserId, 'financial_policy', $policyRef, []);
 
         return $this->findByRef($policyRef) ?? $row;
+    }
+
+    /** sha256 of the stored payload exactly as submitted (the policy's immutable fingerprint). */
+    public function payloadFingerprint(array $row): string
+    {
+        return hash('sha256', (string) ($row['payload_json'] ?? ''));
+    }
+
+    /**
+     * Explicit, audited revision of a PENDING Mining policy whose stored payload does not use the canonical field
+     * names / mandatory terms (e.g. saved by the old Create Policy Draft form).
+     *
+     * The submitted policy is never edited: its payload_json (and therefore its fingerprint), its events and any
+     * governance records stay byte-for-byte. A NEW draft version is created with the canonical payload, linked to the
+     * original (_revision_of + the original's fingerprint), and the original is closed as rejected with the reason.
+     * The new version still has to be submitted, reviewed and approved through normal governance; nothing is approved,
+     * activated or switched on here, and no business value is invented (only alias renaming + engine-derived fields;
+     * rounding_mode may be supplied explicitly through $overrides when the original left it blank).
+     *
+     * @param array{rounding_mode?: string|null} $overrides
+     * @return array<string, mixed> the new draft
+     */
+    public function revisePending(string $policyRef, int $actorUserId, string $password, string $reason, array $overrides = []): array
+    {
+        $this->assertNotSupportView();
+        $this->gate->assertKillSwitchesOff();
+        $this->assertPassword($actorUserId, $password);
+        $reason = trim($reason);
+        if (mb_strlen($reason) < 10) {
+            throw new InvalidArgumentException('A revision reason of at least 10 characters is required.');
+        }
+        $row = $this->require($policyRef);
+        if (($row['status'] ?? '') !== self::STATUS_PENDING_APPROVAL) {
+            throw new InvalidArgumentException('Only pending_approval policies can be revised. Drafts can be edited directly.');
+        }
+        if (($row['domain'] ?? '') !== self::DOMAIN_MINING) {
+            throw new InvalidArgumentException('Revision is only supported for Mining policies.');
+        }
+        foreach (array_keys($overrides) as $k) {
+            if ($k !== 'rounding_mode') {
+                throw new InvalidArgumentException('Only rounding_mode can be supplied as an override.');
+            }
+        }
+
+        $old = [];
+        foreach ((array) $row['payload'] as $k => $v) {
+            if (is_string($k) && ! str_starts_with($k, '_')) {
+                $old[$k] = $v;
+            }
+        }
+        $new = $old;
+        if (($overrides['rounding_mode'] ?? null) !== null && trim((string) $overrides['rounding_mode']) !== '') {
+            if (($old['rounding_mode'] ?? null) !== null && (string) $old['rounding_mode'] !== strtolower(trim((string) $overrides['rounding_mode']))) {
+                throw new InvalidArgumentException('rounding_mode was already set to ' . (string) $old['rounding_mode'] . ' and cannot be changed by a revision; reject the policy and draft a new one instead.');
+            }
+            $new['rounding_mode'] = $overrides['rounding_mode'];
+        }
+        $new = MiningPolicyPayload::canonicalize($new, $this->config ?? config('Platform'));
+
+        $changes = [];
+        foreach (array_unique(array_merge(array_keys($old), array_keys($new))) as $k) {
+            $from = $old[$k] ?? null;
+            $to   = $new[$k] ?? null;
+            if ($from !== $to) {
+                $changes[] = ['field' => $k, 'from' => $from, 'to' => $to];
+            }
+        }
+        if ($changes === []) {
+            throw new InvalidArgumentException('The payload already uses the canonical fields; nothing to revise. Reject it with a reason if its terms are wrong.');
+        }
+
+        $oldFingerprint = $this->payloadFingerprint($row);
+        $new['_revision_of']             = $policyRef;
+        $new['_revision_of_fingerprint'] = $oldFingerprint;
+        $new['_revision_reason']         = $reason;
+
+        $db = db_connect();
+        $db->transStart();
+        $draft = $this->createDraft(
+            self::DOMAIN_MINING,
+            mb_substr((string) $row['title'] . ' (corrected revision)', 0, 160),
+            $new,
+            $actorUserId,
+            $row['effective_from'] ?? null,
+            mb_substr('Corrected revision of ' . $policyRef . ': ' . $reason, 0, 500)
+        );
+        $newRef         = (string) $draft['policy_ref'];
+        $newFingerprint = $this->payloadFingerprint($draft);
+
+        $now = date('Y-m-d H:i:s');
+        $db->table('financial_policy_versions')
+            ->where('policy_ref', $policyRef)
+            ->where('status', self::STATUS_PENDING_APPROVAL)
+            ->where('lock_version', (int) $row['lock_version'])
+            ->update([
+                'status'           => self::STATUS_REJECTED,
+                'rejected_by'      => $actorUserId,
+                'rejected_at'      => $now,
+                'rejection_reason' => mb_substr('Superseded by corrected revision ' . $newRef . ': ' . $reason, 0, 500),
+                'lock_version'     => (int) $row['lock_version'] + 1,
+                'updated_at'       => $now,
+            ]);
+        if ($db->affectedRows() !== 1) {
+            $db->transRollback();
+            throw new RuntimeException('Revision failed: the policy changed while revising (reload and retry).');
+        }
+        $meta = [
+            'original_policy_ref'  => $policyRef,
+            'revised_policy_ref'   => $newRef,
+            'original_fingerprint' => $oldFingerprint,
+            'revised_fingerprint'  => $newFingerprint,
+            'reason'               => $reason,
+            'changes'              => $changes,
+        ];
+        $this->recordEvent($policyRef, 'superseded_by_revision', $actorUserId, self::STATUS_PENDING_APPROVAL, self::STATUS_REJECTED, $meta);
+        $this->recordEvent($newRef, 'revision_created', $actorUserId, null, self::STATUS_DRAFT, $meta);
+        $db->transComplete();
+        if (! $db->transStatus()) {
+            throw new RuntimeException('Revision transaction failed. Nothing was changed.');
+        }
+
+        $this->audit->log('financial_policy.revised', $actorUserId, 'financial_policy', $policyRef, $meta + ['kill_switches_unchanged' => true]);
+
+        return $this->findByRef($newRef) ?? $draft;
     }
 
     /**
@@ -672,6 +797,10 @@ class FinancialPolicyService
             } else {
                 $clean[$key] = $v;
             }
+        }
+        if ($domain === self::DOMAIN_MINING) {
+            // One canonical field mapping for every create/edit path (UI form, CLI, service calls).
+            $clean = MiningPolicyPayload::canonicalize($clean, $this->config ?? config('Platform'));
         }
         $clean['_domain'] = $domain;
         $clean['_phase'] = '12E';

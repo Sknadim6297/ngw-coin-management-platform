@@ -712,34 +712,8 @@ class FinancialAutomationService
             return $this->check('mining_policy', $label, false, $row['policy_ref'] . ': ' . $why);
         }
 
-        $p   = $this->payload($row);
-        $bad = [];
-        if (MoneyMath::compare(MoneyMath::normalize((string) ($p['monthly_percent'] ?? '0'), 8), '3', 8) !== 0) {
-            $bad[] = 'monthly_percent is not 3';
-        }
-        if (($p['month_day_divisor_mode'] ?? null) !== 'calendar_days') {
-            $bad[] = 'day divisor is not actual calendar days';
-        }
-        if (($p['approval_day_policy'] ?? null) !== 'exclude_approval_day') {
-            $bad[] = 'approval day is not excluded';
-        }
-        if (($p['earning_asset'] ?? null) !== 'COIN') {
-            $bad[] = 'reward asset is not COIN';
-        }
-        if (($p['compounding_enabled'] ?? null) !== false) {
-            $bad[] = 'compounding is not disabled';
-        }
-        try {
-            $runtime = MiningCalculationPolicy::fromPlatform($cfg)->version();
-            if ((string) ($p['policy_version'] ?? '') !== $runtime) {
-                $bad[] = 'policy_version ' . (string) ($p['policy_version'] ?? 'missing') . ' does not match the engine configuration (' . $runtime . ')';
-            }
-        } catch (Throwable $e) {
-            $bad[] = 'engine configuration invalid: ' . $e->getMessage();
-        }
-        if ($cfg->miningMonthDayDivisorMode !== 'calendar_days' || $cfg->miningApprovalDayPolicy !== 'exclude_approval_day' || $cfg->miningEarningAsset !== 'COIN') {
-            $bad[] = 'platform configuration does not match the approved rules';
-        }
+        // One validator for saving, review, approval and readiness: App\Libraries\MiningPolicyPayload.
+        $bad = \App\Libraries\MiningPolicyPayload::problems($this->payload($row), $cfg);
         if ($bad !== []) {
             return $this->check('mining_policy', $label, false, $row['policy_ref'] . ': ' . implode('; ', $bad) . '.');
         }

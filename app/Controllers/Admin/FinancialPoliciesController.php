@@ -49,9 +49,19 @@ class FinancialPoliciesController extends BaseController
             return redirect()->to(site_url('admin/financial-policies'))->with('error', 'Policy not found.');
         }
 
+        $governance = null;
+        if (in_array((string) $row['domain'], [FinancialPolicyService::DOMAIN_MINING, FinancialPolicyService::DOMAIN_COMMISSION], true)) {
+            try {
+                $governance = service('financialGovernanceService')->terms('financial_policy', $ref);
+            } catch (\Throwable) {
+                $governance = null;
+            }
+        }
+
         return view('admin/financial_policies/show', [
             'title'      => 'Policy ' . $ref,
             'policy'     => $row,
+            'governance' => $governance,
             'canDraft'   => $this->canDraft(),
             'canApprove' => $this->canApprove(),
         ]);
@@ -125,6 +135,29 @@ class FinancialPoliciesController extends BaseController
 
         return redirect()->to(site_url('admin/financial-policies/' . rawurlencode($ref)))
             ->with('success', 'Submitted for approval.');
+    }
+
+    /** Audited corrected revision of a pending Mining policy saved with legacy/missing mandatory terms. */
+    public function revise(string $ref)
+    {
+        if (! $this->canDraft()) {
+            return redirect()->to(site_url('admin/financial-policies'))->with('error', 'Permission denied.');
+        }
+
+        try {
+            $new = service('financialPolicyService')->revisePending(
+                $ref,
+                (int) auth()->id(),
+                (string) $this->request->getPost('password'),
+                (string) $this->request->getPost('reason'),
+                trim((string) $this->request->getPost('rounding_mode')) !== '' ? ['rounding_mode' => (string) $this->request->getPost('rounding_mode')] : []
+            );
+        } catch (InvalidArgumentException | \RuntimeException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->to(site_url('admin/financial-policies/' . rawurlencode((string) $new['policy_ref'])))
+            ->with('success', 'Corrected revision ' . $new['policy_ref'] . ' created as a draft. ' . $ref . ' was closed (its payload is unchanged). Submit and approve the new draft through governance; nothing was approved or switched on.');
     }
 
     public function approve(string $ref)

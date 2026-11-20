@@ -49,6 +49,16 @@ final class ProductionSafetyGateClassificationTest extends CIUnitTestCase
         $this->assertSame(self::REAL_PROD, $info['database']);
     }
 
+    public function testCurrentLiveDatabaseNameIsExplicitlyLiveAndForbiddenForSandboxWrites(): void
+    {
+        $db = 'wwwzeont_ngw_live_db';
+        $this->assertSame('live', ProductionSafetyGate::classify($db));
+        $this->assertContains($db, ProductionSafetyGate::LIVE_DATABASES, 'listed explicitly, not only by the fail-closed fallback');
+        $this->assertContains($db, FinancialSandboxService::FORBIDDEN_DATABASES);
+        $this->assertSame('live', ProductionSafetyGate::classify(strtoupper($db)));
+        $this->assertTrue((new ProductionSafetyGate())->inspect($this->probeGroup($db))['is_live']);
+    }
+
     public function testKnownProductionDatabasesRemainLive(): void
     {
         foreach (['coin_platform', 'ng_database'] as $db) {

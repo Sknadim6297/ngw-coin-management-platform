@@ -36,10 +36,10 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Day divisor mode</label>
-                    <select class="form-select form-select-sm" name="payload[day_divisor_mode]">
+                    <select class="form-select form-select-sm" name="payload[month_day_divisor_mode]">
                         <option value="">— unresolved —</option>
                         <option value="fixed_30">Fixed 30 days</option>
-                        <option value="calendar_days">Calendar days</option>
+                        <option value="calendar_days">Calendar days (actual days of the month)</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -62,16 +62,16 @@
                     <label class="form-label">Post-maturity mining</label>
                     <select class="form-select form-select-sm" name="payload[post_maturity_eligibility]">
                         <option value="">— unresolved —</option>
-                        <option value="eligible">Eligible</option>
-                        <option value="not_eligible">Not eligible</option>
+                        <option value="include_all">Eligible (include matured coins)</option>
+                        <option value="exclude_matured_locked">Not eligible (exclude matured locked coins)</option>
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Post-sale mining</label>
                     <select class="form-select form-select-sm" name="payload[post_sale_eligibility]">
                         <option value="">— unresolved —</option>
-                        <option value="eligible">Eligible</option>
-                        <option value="not_eligible">Not eligible</option>
+                        <option value="include">Eligible (include reserved coins)</option>
+                        <option value="exclude">Not eligible (exclude reserved coins)</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -80,7 +80,23 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Rounding mode</label>
-                    <input class="form-control form-control-sm" name="payload[rounding_mode]" placeholder="unresolved">
+                    <select class="form-select form-select-sm" name="payload[rounding_mode]">
+                        <option value="">— unresolved —</option>
+                        <option value="down">Round down</option>
+                        <option value="half_up">Half up</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <div class="small text-secondary border border-secondary rounded p-2">
+                        Added automatically when the draft is saved (not editable here):
+                        <code>compounding_enabled = false</code>,
+                        <code>business_timezone = <?= esc((string) config('Platform')->miningBusinessTimezone) ?></code>,
+                        <code>rate_basis = monthly</code> and
+                        <code>policy_version = <?= esc((string) (\App\Libraries\MiningPolicyPayload::runtimeVersion() ?? 'unavailable')) ?></code>
+                        (derived from the mining engine configuration).
+                        Single-admin approval needs: 3 %, calendar days, approval day excluded, COIN, and a rounding mode equal to the engine's
+                        (<code><?= esc((string) config('Platform')->miningRoundingMode) ?></code>).
+                    </div>
                 </div>
             <?php elseif ($domain === 'commission'): ?>
                 <div class="col-12"><hr class="border-secondary"><strong>Commission fields</strong></div>

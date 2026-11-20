@@ -31,6 +31,7 @@ class ProductionSafetyGate
         'coin_platform',
         'ng_database',
         'wwwzeont_ngw_test_db',
+        'wwwzeont_ngw_live_db',
     ];
 
     /**

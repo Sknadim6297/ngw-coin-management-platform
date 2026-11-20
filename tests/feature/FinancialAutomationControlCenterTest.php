@@ -166,7 +166,7 @@ final class FinancialAutomationControlCenterTest extends CIUnitTestCase
 
         $r = service('financialAutomationService')->readiness(FinancialAutomationService::CONTROL_MINING);
         $this->assertFalse($r['ready']);
-        $this->assertStringContainsString('monthly_percent is not 3', implode(' | ', $r['blockers']));
+        $this->assertStringContainsString('monthly_percent must be 3', implode(' | ', $r['blockers']));
     }
 
     public function testMissingMandatoryLockAndStaleCronBlock(): void
