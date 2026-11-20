@@ -74,9 +74,14 @@ class MiningRateService
     }
 
     /**
+     * Self-approval is refused under dual_control. Under single_admin governance the designated administrator may
+     * approve their own 3% monthly rate with $singleAdmin (password + review_ref, terms_hash, confirm,
+     * confirmed_terms, acknowledge) validated by FinancialGovernanceService.
+     *
+     * @param array<string, mixed>|null $singleAdmin
      * @return array<string, mixed>
      */
-    public function approve(string $rateRef, int $approverUserId): array
+    public function approve(string $rateRef, int $approverUserId, ?array $singleAdmin = null): array
     {
         $db = db_connect();
         $db->transBegin();
@@ -92,9 +97,16 @@ class MiningRateService
             if (($row['status'] ?? '') !== self::STATUS_DRAFT) {
                 throw new InvalidArgumentException('Only draft rates can be approved.');
             }
+            $governance = service('financialGovernanceService');
+            $auth       = null;
             if ((int) $row['created_by'] === $approverUserId) {
-                throw new InvalidArgumentException('Self-approval of mining rates is not allowed.');
+                if (! $governance->isSingleAdmin()) {
+                    throw new InvalidArgumentException('Self-approval of mining rates is not allowed.');
+                }
+                $governance->assertKillSwitchesOff();
+                $auth = $governance->authorize(FinancialGovernanceService::SUBJECT_RATE, $rateRef, FinancialGovernanceService::INTENT_APPROVE, $approverUserId, (string) ($singleAdmin['password'] ?? ''), $singleAdmin ?? []);
             }
+            $mode = $auth !== null ? FinancialGovernanceService::MODE_SINGLE_ADMIN : FinancialGovernanceService::MODE_DUAL_CONTROL;
 
             $overlap = $db->table('mining_rate_configs')
                 ->where('status', self::STATUS_APPROVED)
@@ -106,16 +118,26 @@ class MiningRateService
             }
 
             $now = date('Y-m-d H:i:s');
-            $db->table('mining_rate_configs')->where('rate_ref', $rateRef)->update([
+            $db->table('mining_rate_configs')->where('rate_ref', $rateRef)->where('status', self::STATUS_DRAFT)->update([
                 'status'      => self::STATUS_APPROVED,
                 'approved_by' => $approverUserId,
                 'approved_at' => $now,
                 'updated_at'  => $now,
             ]);
+            if ($db->affectedRows() !== 1) {
+                throw new RuntimeException('Rate approval failed (race or invalid state).');
+            }
 
-            $this->recordEvent($rateRef, 'rate.approved', $approverUserId, self::STATUS_DRAFT, self::STATUS_APPROVED);
+            $this->recordEvent($rateRef, 'rate.approved', $approverUserId, self::STATUS_DRAFT, self::STATUS_APPROVED, [
+                'governance_mode' => $mode,
+                'review_ref'      => $auth['review_ref'] ?? null,
+            ]);
+            $governance->record(FinancialGovernanceService::SUBJECT_RATE, $rateRef, FinancialGovernanceService::INTENT_APPROVE, $approverUserId, $auth);
             $this->audit->log('mining.rate_approved', $approverUserId, 'mining_rate', $rateRef, [
                 'effective_month' => $row['effective_month'],
+                'rate_percent'    => $row['rate_percent'],
+                'governance_mode' => $mode,
+                'review_ref'      => $auth['review_ref'] ?? null,
             ]);
 
             $db->transCommit();

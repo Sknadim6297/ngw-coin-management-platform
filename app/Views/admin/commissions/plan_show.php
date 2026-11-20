@@ -15,6 +15,10 @@
                     <?= csrf_field() ?>
                     <button class="btn btn-gold btn-sm" type="submit">Approve</button>
                 </form>
+                <?php $gov = service('financialGovernanceService'); ?>
+                <?php if ($gov->isSingleAdmin() && (int) auth()->id() === $gov->singleAdminUserId()): ?>
+                    <a class="btn btn-outline-gold btn-sm" href="<?= site_url('admin/financial-governance/commission_plan/' . rawurlencode($plan['plan_ref']) . '/approve') ?>">Review &amp; approve as single administrator</a>
+                <?php endif; ?>
             <?php endif; ?>
             <?php if ($plan['status'] === 'approved' && $canApprove): ?>
                 <form method="post" action="<?= site_url('admin/commissions/plans/' . rawurlencode($plan['plan_ref']) . '/disable') ?>">

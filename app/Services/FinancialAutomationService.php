@@ -703,7 +703,7 @@ class FinancialAutomationService
         if ($row === null) {
             return $this->check('mining_policy', $label, false, 'No approved/active Mining policy in Financial Policies (Advanced). Draft and dual-control approve it first.');
         }
-        $why = $this->independenceProblem($row);
+        $why = $this->governance()->approvalProblem(FinancialGovernanceService::SUBJECT_POLICY, $row);
         if ($why !== null) {
             return $this->check('mining_policy', $label, false, $row['policy_ref'] . ': ' . $why);
         }
@@ -744,7 +744,7 @@ class FinancialAutomationService
             return $this->check('mining_policy', $label, false, $row['policy_ref'] . ': ' . implode('; ', $bad) . '.');
         }
 
-        return $this->check('mining_policy', $label, true, $row['policy_ref'] . ' (' . $row['status'] . '), independently approved by user #' . (int) $row['approved_by'] . '.');
+        return $this->check('mining_policy', $label, true, $row['policy_ref'] . ' (' . $row['status'] . '), ' . $this->governance()->approvalLabel(FinancialGovernanceService::SUBJECT_POLICY, $row) . '.');
     }
 
     /** @return array{key: string, label: string, ok: bool, detail: string} */
@@ -758,14 +758,15 @@ class FinancialAutomationService
         if ($rate === null) {
             return $this->check('mining_rate', $label, false, 'No approved mining rate for ' . substr($businessDate, 0, 7) . ' (next business date ' . $businessDate . ').');
         }
-        if ((int) ($rate['approved_by'] ?? 0) <= 0 || (int) $rate['approved_by'] === (int) $rate['created_by']) {
-            return $this->check('mining_rate', $label, false, $rate['rate_ref'] . ' was not independently approved (creator and approver must differ).');
+        $why = $this->governance()->approvalProblem(FinancialGovernanceService::SUBJECT_RATE, $rate);
+        if ($why !== null) {
+            return $this->check('mining_rate', $label, false, $rate['rate_ref'] . ': ' . $why);
         }
         if (($rate['rate_basis'] ?? '') !== 'monthly' || MoneyMath::compare(MoneyMath::normalize((string) $rate['rate_percent'], 8), '3', 8) !== 0) {
             return $this->check('mining_rate', $label, false, $rate['rate_ref'] . ' is ' . $rate['rate_percent'] . '% ' . $rate['rate_basis'] . ' — the approved business rule is 3% monthly.');
         }
 
-        return $this->check('mining_rate', $label, true, $rate['rate_ref'] . ' — 3% monthly for ' . $rate['effective_month'] . ', independently approved.');
+        return $this->check('mining_rate', $label, true, $rate['rate_ref'] . ' — 3% monthly for ' . $rate['effective_month'] . ', ' . $this->governance()->approvalLabel(FinancialGovernanceService::SUBJECT_RATE, $rate) . '.');
     }
 
     /** @return array{key: string, label: string, ok: bool, detail: string} */
@@ -776,13 +777,13 @@ class FinancialAutomationService
         if ($row === null) {
             return $this->check('commission_policy', $label, false, 'No approved/active Commission policy in Financial Policies (Advanced). Draft and dual-control approve it first.');
         }
-        foreach ([$this->independenceProblem($row), $this->effectiveProblem($row)] as $why) {
+        foreach ([$this->governance()->approvalProblem(FinancialGovernanceService::SUBJECT_POLICY, $row), $this->effectiveProblem($row)] as $why) {
             if ($why !== null) {
                 return $this->check('commission_policy', $label, false, $row['policy_ref'] . ': ' . $why);
             }
         }
 
-        return $this->check('commission_policy', $label, true, $row['policy_ref'] . ' (' . $row['status'] . '), independently approved by user #' . (int) $row['approved_by'] . '.');
+        return $this->check('commission_policy', $label, true, $row['policy_ref'] . ' (' . $row['status'] . '), ' . $this->governance()->approvalLabel(FinancialGovernanceService::SUBJECT_POLICY, $row) . '.');
     }
 
     /** @return array{key: string, label: string, ok: bool, detail: string} */
@@ -796,8 +797,9 @@ class FinancialAutomationService
         if ($plan === null) {
             return $this->check('commission_plan', $label, false, 'No approved commission plan is effective today.');
         }
-        if ((int) ($plan['approved_by'] ?? 0) <= 0 || (int) $plan['approved_by'] === (int) $plan['created_by']) {
-            return $this->check('commission_plan', $label, false, $plan['plan_ref'] . ' was not independently approved (creator and approver must differ).');
+        $why = $this->governance()->approvalProblem(FinancialGovernanceService::SUBJECT_PLAN, $plan);
+        if ($why !== null) {
+            return $this->check('commission_plan', $label, false, $plan['plan_ref'] . ': ' . $why);
         }
         $levels = (array) $plan['levels'];
         foreach ([1 => '10', 2 => '5', 3 => '3'] as $level => $expected) {
@@ -812,7 +814,7 @@ class FinancialAutomationService
             return $this->check('commission_plan', $label, false, $plan['plan_ref'] . ' pays in ' . $plan['commission_currency'] . ', expected USDT.');
         }
 
-        return $this->check('commission_plan', $label, true, $plan['plan_ref'] . ' — 10% / 5% / 3% of the approved USDT purchase amount, independently approved.');
+        return $this->check('commission_plan', $label, true, $plan['plan_ref'] . ' — 10% / 5% / 3% of the approved USDT purchase amount, ' . $this->governance()->approvalLabel(FinancialGovernanceService::SUBJECT_PLAN, $plan) . '.');
     }
 
     /** @return array{key: string, label: string, ok: bool, detail: string} */
@@ -866,20 +868,9 @@ class FinancialAutomationService
             ->get()->getRowArray() ?: null;
     }
 
-    /**
-     * @param array<string, mixed> $row
-     */
-    private function independenceProblem(array $row): ?string
+    private function governance(): FinancialGovernanceService
     {
-        $approver = (int) ($row['approved_by'] ?? 0);
-        if ($approver <= 0) {
-            return 'no recorded approver.';
-        }
-        if ($approver === (int) ($row['created_by'] ?? 0) || $approver === (int) ($row['submitted_by'] ?? 0)) {
-            return 'approver is not independent of the author/submitter.';
-        }
-
-        return null;
+        return service('financialGovernanceService');
     }
 
     /**

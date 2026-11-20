@@ -181,24 +181,36 @@ class CommissionPlanService
     }
 
     /**
+     * Self-approval is refused under dual_control. Under single_admin governance the designated administrator may
+     * approve their own 10/5/3 USDT plan with $singleAdmin (password + review_ref, terms_hash, confirm,
+     * confirmed_terms, acknowledge) validated by FinancialGovernanceService.
+     *
+     * @param array<string, mixed>|null $singleAdmin
      * @return array<string, mixed>
      */
-    public function approve(string $planRef, int $actorUserId): array
+    public function approve(string $planRef, int $actorUserId, ?array $singleAdmin = null): array
     {
         $row = $this->requirePlan($planRef);
         if (($row['status'] ?? '') !== self::STATUS_DRAFT) {
             throw new InvalidArgumentException('Only draft plans can be approved.');
         }
+        $governance = service('financialGovernanceService');
+        $auth       = null;
         if ((int) ($row['created_by'] ?? 0) === $actorUserId) {
-            throw new InvalidArgumentException('Self-approval is not allowed. A different finance approver must approve.');
+            if (! $governance->isSingleAdmin()) {
+                throw new InvalidArgumentException('Self-approval is not allowed. A different finance approver must approve.');
+            }
+            $governance->assertKillSwitchesOff();
+            $auth = $governance->authorize(FinancialGovernanceService::SUBJECT_PLAN, $planRef, FinancialGovernanceService::INTENT_APPROVE, $actorUserId, (string) ($singleAdmin['password'] ?? ''), $singleAdmin ?? []);
         }
+        $mode = $auth !== null ? FinancialGovernanceService::MODE_SINGLE_ADMIN : FinancialGovernanceService::MODE_DUAL_CONTROL;
 
         $this->assertNoOverlap($row['effective_from'], $row['effective_to'] ?? null, $planRef);
 
         $now = date('Y-m-d H:i:s');
         $db  = db_connect();
         $db->transStart();
-        $db->table('commission_plans')->where('plan_ref', $planRef)->where('status', self::STATUS_DRAFT)->update([
+        $db->table('commission_plans')->where('plan_ref', $planRef)->where('status', self::STATUS_DRAFT)->where('updated_at', $row['updated_at'])->update([
             'status'      => self::STATUS_APPROVED,
             'approved_by' => $actorUserId,
             'approved_at' => $now,
@@ -208,14 +220,21 @@ class CommissionPlanService
             $db->transComplete();
             throw new RuntimeException('Commission plan approval failed (race or invalid state).');
         }
-        $this->recordEvent($planRef, 'approved', $actorUserId, self::STATUS_DRAFT, self::STATUS_APPROVED, null);
+        $this->recordEvent($planRef, 'approved', $actorUserId, self::STATUS_DRAFT, self::STATUS_APPROVED, [
+            'governance_mode' => $mode,
+            'review_ref'      => $auth['review_ref'] ?? null,
+        ]);
+        $governance->record(FinancialGovernanceService::SUBJECT_PLAN, $planRef, FinancialGovernanceService::INTENT_APPROVE, $actorUserId, $auth);
         $db->transComplete();
         if (! $db->transStatus()) {
             throw new RuntimeException('Commission plan approval transaction failed.');
         }
 
         $this->audit->log('commission.plan_approved', $actorUserId, 'commission_plan', $planRef, [
-            'effective_from' => $row['effective_from'],
+            'effective_from'  => $row['effective_from'],
+            'levels'          => $this->levelsFor($planRef),
+            'governance_mode' => $mode,
+            'review_ref'      => $auth['review_ref'] ?? null,
         ]);
 
         return $this->findByRef($planRef) ?? $row;

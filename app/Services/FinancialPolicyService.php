@@ -310,9 +310,14 @@ class FinancialPolicyService
     }
 
     /**
+     * Self-approval is refused under dual_control. Under single_admin governance the designated administrator may
+     * approve their own Mining/Commission policy only with $singleAdmin (review_ref, terms_hash, confirm,
+     * confirmed_terms, acknowledge) validated by FinancialGovernanceService.
+     *
+     * @param array<string, mixed>|null $singleAdmin
      * @return array<string, mixed>
      */
-    public function approve(string $policyRef, int $actorUserId, string $password): array
+    public function approve(string $policyRef, int $actorUserId, string $password, ?array $singleAdmin = null, ?int $expectedLock = null): array
     {
         $this->assertNotSupportView();
         $this->gate->assertKillSwitchesOff();
@@ -321,13 +326,20 @@ class FinancialPolicyService
         if (($row['status'] ?? '') !== self::STATUS_PENDING_APPROVAL) {
             throw new InvalidArgumentException('Only pending_approval policies can be approved.');
         }
+        $this->assertLock($row, $expectedLock);
+        $governance = service('financialGovernanceService');
+        $auth       = null;
         if ((int) ($row['created_by'] ?? 0) === $actorUserId || (int) ($row['submitted_by'] ?? 0) === $actorUserId) {
-            throw new InvalidArgumentException('Self-approval is not allowed for financial policies. A different authorized approver is required.');
+            if (! $governance->isSingleAdmin()) {
+                throw new InvalidArgumentException('Self-approval is not allowed for financial policies. A different authorized approver is required.');
+            }
+            $auth = $governance->authorize(FinancialGovernanceService::SUBJECT_POLICY, $policyRef, FinancialGovernanceService::INTENT_APPROVE, $actorUserId, $password, $singleAdmin ?? []);
         }
+        $mode = $auth !== null ? FinancialGovernanceService::MODE_SINGLE_ADMIN : FinancialGovernanceService::MODE_DUAL_CONTROL;
 
         $now = date('Y-m-d H:i:s');
         db_connect()->transStart();
-        db_connect()->table('financial_policy_versions')->where('policy_ref', $policyRef)->where('status', self::STATUS_PENDING_APPROVAL)->update([
+        db_connect()->table('financial_policy_versions')->where('policy_ref', $policyRef)->where('status', self::STATUS_PENDING_APPROVAL)->where('lock_version', (int) $row['lock_version'])->update([
             'status'       => self::STATUS_APPROVED,
             'approved_by'  => $actorUserId,
             'approved_at'  => $now,
@@ -339,8 +351,13 @@ class FinancialPolicyService
             throw new RuntimeException('Approval failed (race).');
         }
         $this->recordEvent($policyRef, 'approved', $actorUserId, self::STATUS_PENDING_APPROVAL, self::STATUS_APPROVED, [
-            'note' => 'Approved policy does NOT enable financial kill-switches.',
+            'note'            => 'Approved policy does NOT enable financial kill-switches.',
+            'governance_mode' => $mode,
+            'policy_version'  => (int) $row['version_no'],
+            'lock_version'    => (int) $row['lock_version'],
+            'review_ref'      => $auth['review_ref'] ?? null,
         ]);
+        $governance->record(FinancialGovernanceService::SUBJECT_POLICY, $policyRef, FinancialGovernanceService::INTENT_APPROVE, $actorUserId, $auth);
         db_connect()->transComplete();
         if (! db_connect()->transStatus()) {
             throw new RuntimeException('Approval transaction failed.');
@@ -348,6 +365,9 @@ class FinancialPolicyService
 
         $this->audit->log('financial_policy.approved', $actorUserId, 'financial_policy', $policyRef, [
             'kill_switches_unchanged' => true,
+            'governance_mode'         => $mode,
+            'policy_version'          => (int) $row['version_no'],
+            'review_ref'              => $auth['review_ref'] ?? null,
         ]);
 
         return $this->findByRef($policyRef) ?? $row;
@@ -356,9 +376,10 @@ class FinancialPolicyService
     /**
      * Mark approved policy ACTIVE for documentation — still does not enable kill-switches.
      *
+     * @param array<string, mixed>|null $singleAdmin see approve()
      * @return array<string, mixed>
      */
-    public function activate(string $policyRef, int $actorUserId, string $password): array
+    public function activate(string $policyRef, int $actorUserId, string $password, ?array $singleAdmin = null, ?int $expectedLock = null): array
     {
         $this->assertNotSupportView();
         $this->gate->assertKillSwitchesOff();
@@ -367,9 +388,16 @@ class FinancialPolicyService
         if (($row['status'] ?? '') !== self::STATUS_APPROVED) {
             throw new InvalidArgumentException('Only approved policies can be marked active.');
         }
+        $this->assertLock($row, $expectedLock);
+        $governance = service('financialGovernanceService');
+        $auth       = null;
         if ((int) ($row['approved_by'] ?? 0) === $actorUserId) {
-            throw new InvalidArgumentException('Activator must differ from approver (dual-control).');
+            if (! $governance->isSingleAdmin()) {
+                throw new InvalidArgumentException('Activator must differ from approver (dual-control).');
+            }
+            $auth = $governance->authorize(FinancialGovernanceService::SUBJECT_POLICY, $policyRef, FinancialGovernanceService::INTENT_ACTIVATE, $actorUserId, $password, $singleAdmin ?? []);
         }
+        $mode = $auth !== null ? FinancialGovernanceService::MODE_SINGLE_ADMIN : FinancialGovernanceService::MODE_DUAL_CONTROL;
 
         $domain = (string) $row['domain'];
         $effectiveFrom = $this->normalizeDateOrNull($row['effective_from'] ?? null) ?? date('Y-m-d');
@@ -393,7 +421,7 @@ class FinancialPolicyService
             ]);
         }
 
-        db_connect()->table('financial_policy_versions')->where('policy_ref', $policyRef)->where('status', self::STATUS_APPROVED)->update([
+        db_connect()->table('financial_policy_versions')->where('policy_ref', $policyRef)->where('status', self::STATUS_APPROVED)->where('lock_version', (int) $row['lock_version'])->update([
             'status'        => self::STATUS_ACTIVE,
             'activated_by'  => $actorUserId,
             'activated_at'  => $now,
@@ -401,16 +429,27 @@ class FinancialPolicyService
             'updated_at'    => $now,
         ]);
         if (db_connect()->affectedRows() !== 1) {
-            db_connect()->transComplete();
+            db_connect()->transRollback();
             throw new RuntimeException('Activation failed (race).');
         }
         $this->recordEvent($policyRef, 'activated', $actorUserId, self::STATUS_APPROVED, self::STATUS_ACTIVE, [
-            'note' => 'ACTIVE documents policy readiness only; kill-switches remain OFF.',
+            'note'            => 'ACTIVE documents policy readiness only; kill-switches remain OFF.',
+            'governance_mode' => $mode,
+            'policy_version'  => (int) $row['version_no'],
+            'lock_version'    => (int) $row['lock_version'],
+            'review_ref'      => $auth['review_ref'] ?? null,
         ]);
+        $governance->record(FinancialGovernanceService::SUBJECT_POLICY, $policyRef, FinancialGovernanceService::INTENT_ACTIVATE, $actorUserId, $auth);
         db_connect()->transComplete();
+        if (! db_connect()->transStatus()) {
+            throw new RuntimeException('Activation transaction failed.');
+        }
 
         $this->audit->log('financial_policy.activated', $actorUserId, 'financial_policy', $policyRef, [
             'kill_switches_unchanged' => true,
+            'governance_mode'         => $mode,
+            'policy_version'          => (int) $row['version_no'],
+            'review_ref'              => $auth['review_ref'] ?? null,
         ]);
 
         return $this->findByRef($policyRef) ?? $row;

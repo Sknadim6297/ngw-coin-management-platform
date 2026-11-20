@@ -251,6 +251,28 @@ class Platform extends BaseConfig
     public int $automationRetryBackoffSeconds = 900;
 
     /**
+     * Financial governance for Financial Policy / Mining Rate / Commission Plan approval and activation.
+     *
+     *   dual_control (default)  approver must differ from creator/submitter; activator must differ from approver.
+     *   single_admin            ONLY the user in financialSingleAdminUserId may approve/activate their own Mining and
+     *                           Commission items, and only through FinancialGovernanceService: a recorded review of the
+     *                           exact terms, fresh password, typed confirmation, confirmation of every term, and terms
+     *                           restricted to the owner-approved business rules (3% monthly / 10-5-3 USDT).
+     *
+     * Any other value behaves as dual_control. single_admin without a designated user ID is refused (fail-closed).
+     * Neither mode changes kill-switches, enables automation, or posts credits.
+     *
+     * .env: platform.financialGovernanceMode = single_admin
+     *       platform.financialSingleAdminUserId = <users.id of the one administrator>
+     */
+    public string $financialGovernanceMode = 'dual_control';
+
+    public int $financialSingleAdminUserId = 0;
+
+    /** A single-admin review must be confirmed within this window, otherwise it has to be repeated. */
+    public int $financialSingleAdminReviewTtlSeconds = 900;
+
+    /**
      * When true, purchase approval creates a mandatory 1000-day lock (Phase 11A).
      */
     public bool $mandatoryPurchaseLockEnabled = true;

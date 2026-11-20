@@ -303,6 +303,11 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->post('financial-policies/(:segment)/activate', 'Admin\FinancialPoliciesController::activate/$1');
     $routes->post('financial-policies/(:segment)/reject', 'Admin\FinancialPoliciesController::reject/$1');
 
+    // Single-admin financial governance (review → separate confirmation; only when platform.financialGovernanceMode = single_admin)
+    $routes->get('financial-governance/(:segment)/(:segment)/(:segment)', 'Admin\FinancialGovernanceController::show/$1/$2/$3');
+    $routes->post('financial-governance/(:segment)/(:segment)/(:segment)/review', 'Admin\FinancialGovernanceController::review/$1/$2/$3');
+    $routes->post('financial-governance/(:segment)/(:segment)/(:segment)/confirm', 'Admin\FinancialGovernanceController::confirm/$1/$2/$3');
+
     // Phase 9C platform settings
     $routes->get('settings', 'Admin\SettingsController::index');
     $routes->post('settings', 'Admin\SettingsController::update');

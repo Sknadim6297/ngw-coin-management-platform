@@ -1,6 +1,12 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
-<?php $status = (string) ($policy['status'] ?? ''); ?>
+<?php
+$status = (string) ($policy['status'] ?? '');
+$gov    = service('financialGovernanceService');
+$isSole = $gov->isSingleAdmin() && (int) auth()->id() === $gov->singleAdminUserId()
+    && in_array((string) $policy['domain'], ['mining', 'commission'], true);
+$govUrl = site_url('admin/financial-governance/financial_policy/' . rawurlencode((string) $policy['policy_ref']));
+?>
 <p class="page-subtitle">
     Policy <code><?= esc($policy['policy_ref']) ?></code> ·
     <?= esc($policy['domain']) ?> ·
@@ -56,6 +62,12 @@
                 <input class="form-control form-control-sm mb-2" type="password" name="password" required autocomplete="current-password">
                 <button class="btn btn-gold btn-sm" type="submit">Approve</button>
             </form>
+            <?php if ($isSole): ?>
+                <div class="border border-warning rounded p-2 small">
+                    Single-admin governance is enabled.<br>
+                    <a class="btn btn-outline-gold btn-sm mt-1" href="<?= $govUrl ?>/approve">Review &amp; approve as single administrator</a>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <?php if ($status === 'approved' && ! empty($canApprove)): ?>
@@ -66,6 +78,12 @@
                 <input class="form-control form-control-sm mb-2" type="password" name="password" required autocomplete="current-password">
                 <button class="btn btn-gold btn-sm" type="submit">Mark ACTIVE</button>
             </form>
+            <?php if ($isSole): ?>
+                <div class="border border-warning rounded p-2 small">
+                    Single-admin governance is enabled.<br>
+                    <a class="btn btn-outline-gold btn-sm mt-1" href="<?= $govUrl ?>/activate">Review &amp; activate as single administrator</a>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <?php if (in_array($status, ['draft', 'pending_approval'], true) && (! empty($canApprove) || ! empty($canDraft))): ?>

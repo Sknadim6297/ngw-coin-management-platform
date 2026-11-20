@@ -13,6 +13,10 @@
             <?= csrf_field() ?>
             <button class="btn btn-gold" type="submit">Approve (simulation only)</button>
         </form>
+        <?php $gov = service('financialGovernanceService'); ?>
+        <?php if ($gov->isSingleAdmin() && (int) auth()->id() === $gov->singleAdminUserId()): ?>
+            <a class="btn btn-outline-gold mt-2" href="<?= site_url('admin/financial-governance/mining_rate/' . rawurlencode($rate['rate_ref']) . '/approve') ?>">Review &amp; approve as single administrator</a>
+        <?php endif; ?>
     <?php endif; ?>
     <?php if ($canApprove && in_array($rate['status'], ['draft', 'approved'], true)): ?>
         <form class="mt-2" method="post" action="<?= site_url('admin/mining/rates/' . rawurlencode($rate['rate_ref']) . '/disable') ?>">

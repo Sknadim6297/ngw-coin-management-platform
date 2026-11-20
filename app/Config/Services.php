@@ -65,6 +65,7 @@ use App\Services\FinancialNotificationService;
 use App\Services\FinancialRemediationService;
 use App\Services\FinancialAutomationRunnerService;
 use App\Services\FinancialAutomationService;
+use App\Services\FinancialGovernanceService;
 use App\Services\FinancialPolicyService;
 use App\Services\FinancialSandboxService;
 use App\Services\FinancialTestWindowService;
@@ -415,6 +416,15 @@ class Services extends BaseService
         }
 
         return new FinancialAutomationRunnerService();
+    }
+
+    public static function financialGovernanceService(bool $getShared = true): FinancialGovernanceService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('financialGovernanceService');
+        }
+
+        return new FinancialGovernanceService();
     }
 
     public static function financialPolicyService(bool $getShared = true): FinancialPolicyService

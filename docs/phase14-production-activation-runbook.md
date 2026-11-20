@@ -147,6 +147,11 @@ php spark locking:remediate-mandatory --purchase PUR-10D7174B7FF83054 --allow-pr
 
 ## Step 5 — PHASES C & D: Dual-Control Policy & Rate/Plan Approvals (Checkpoint 3)
 
+> NGW has a single administrator: instead of creating a second approver you may configure
+> `platform.financialGovernanceMode = single_admin` and follow `docs/single-admin-financial-governance.md`
+> (review → separate confirmation, limited to the owner-approved 3 % / 10-5-3 rules). The steps below remain the
+> dual-control path.
+
 1. **Create second real `finance_approver` account** (Admin UI -> Roles/Users, distinct from `user_id = 1`).
 2. **Prepare versioned Mining policy draft (`status = draft`) & 3% Nov 2026 rate draft (`status = draft`):**
 ```bash
