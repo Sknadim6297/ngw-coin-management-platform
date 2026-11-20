@@ -234,6 +234,23 @@ class Platform extends BaseConfig
     public int $miningPostAlertRuntimeSeconds = 1800;
 
     /**
+     * Financial Automation Control Center (`automation:run`, cron every ~10 minutes).
+     * The ON/OFF switches are DB-backed (platform_settings); the env kill-switches above stay false.
+     *
+     * automationDailyRunTime:            HH:MM in miningBusinessTimezone after which the previous business date is due
+     * automationHeartbeatMaxAgeSeconds:  cron is "working" only when `automation:run` ran within this window
+     * automationMaxAttemptsPerDay:       attempts per job per business date before the job is left to an operator
+     * automationRetryBackoffSeconds:     minimum pause between failed attempts of the same job/date
+     */
+    public string $automationDailyRunTime = '01:30';
+
+    public int $automationHeartbeatMaxAgeSeconds = 1800;
+
+    public int $automationMaxAttemptsPerDay = 3;
+
+    public int $automationRetryBackoffSeconds = 900;
+
+    /**
      * When true, purchase approval creates a mandatory 1000-day lock (Phase 11A).
      */
     public bool $mandatoryPurchaseLockEnabled = true;

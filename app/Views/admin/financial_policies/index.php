@@ -1,7 +1,9 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
 <p class="page-subtitle">
-    Central financial business rules hub. Drafts and approvals prepare activation —
+    <strong>Advanced configuration &amp; approvals.</strong> Daily ON/OFF operations live in
+    <a href="<?= site_url('admin/financial-automation') ?>">Financial Automation</a>.
+    Drafts and approvals here prepare activation —
     they never enable kill-switches or change live balances.
 </p>
 

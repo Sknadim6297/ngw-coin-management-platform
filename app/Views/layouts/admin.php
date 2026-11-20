@@ -100,12 +100,17 @@ $isWallets = $is('admin/wallets') || $is('admin/withdrawals');
             <i class="bi bi-safe"></i><span class="nav-label">Wallets &amp; Withdrawals</span>
         </a>
 
+        <div class="nav-section-title">Automation</div>
+        <a class="side-link <?= str_starts_with($uri, 'admin/financial-automation') ? 'active' : '' ?>" href="<?= site_url('admin/financial-automation') ?>">
+            <i class="bi bi-lightning-charge"></i><span class="nav-label">Financial Automation</span>
+        </a>
+
         <div class="nav-section-title">System</div>
         <a class="side-link <?= str_contains($uri, 'admin/reports') || str_contains($uri, 'coming-soon/reports') ? 'active' : '' ?>" href="<?= site_url('admin/reports') ?>">
             <i class="bi bi-bar-chart"></i><span class="nav-label">Reports</span>
         </a>
         <a class="side-link <?= str_starts_with($uri, 'admin/financial-policies') ? 'active' : '' ?>" href="<?= site_url('admin/financial-policies') ?>">
-            <i class="bi bi-sliders"></i><span class="nav-label">Financial Policies</span>
+            <i class="bi bi-sliders"></i><span class="nav-label">Advanced: Financial Policies</span>
         </a>
         <a class="side-link <?= str_starts_with($uri, 'admin/settings') || str_contains($uri, 'coming-soon/settings') ? 'active' : '' ?>" href="<?= site_url('admin/settings') ?>">
             <i class="bi bi-gear"></i><span class="nav-label">Settings</span>

@@ -63,6 +63,8 @@ use App\Services\FinanceDashboardService;
 use App\Services\FinancialAlertService;
 use App\Services\FinancialNotificationService;
 use App\Services\FinancialRemediationService;
+use App\Services\FinancialAutomationRunnerService;
+use App\Services\FinancialAutomationService;
 use App\Services\FinancialPolicyService;
 use App\Services\FinancialSandboxService;
 use App\Services\FinancialTestWindowService;
@@ -395,6 +397,24 @@ class Services extends BaseService
         }
 
         return new \App\Services\MiningSchedulerReadinessService();
+    }
+
+    public static function financialAutomationService(bool $getShared = true): FinancialAutomationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('financialAutomationService');
+        }
+
+        return new FinancialAutomationService();
+    }
+
+    public static function financialAutomationRunnerService(bool $getShared = true): FinancialAutomationRunnerService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('financialAutomationRunnerService');
+        }
+
+        return new FinancialAutomationRunnerService();
     }
 
     public static function financialPolicyService(bool $getShared = true): FinancialPolicyService

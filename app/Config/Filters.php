@@ -124,6 +124,7 @@ class Filters extends BaseFilters
                 'admin/finance/remediations',
                 'admin/finance/remediations/*/approve',
                 'admin/finance/remediations/*/reject',
+                'admin/financial-automation/*',
             ],
         ],
     ];

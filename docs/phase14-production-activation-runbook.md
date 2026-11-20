@@ -276,3 +276,44 @@ Run read-only checks after every stage:
    and comment out/remove the two cPanel cron lines. All live mutation paths halt immediately.
 2. **Code Rollback:** `git checkout 9822372` (never roll back earlier than `9822372`, because `9822372` fixes `wwwzeont_ngw_test_db` live safety detection!).
 3. **Database Rollback (only before/without partial posted user activity or in maintenance window):** Restore the pre-migration verified backup `$BACKUP_FILE` taken in Step 3.
+
+---
+
+## Step 10 — Financial Automation Control Center (daily ON/OFF operations)
+
+`/admin/financial-automation` replaces hand-edited `.env` switches and the two cron lines of Step 7 for daily operations.
+Financial Policies stays as the **Advanced** approval page (drafts, dual-control approval, rates, plans).
+
+**How it is protected**
+- Switches (`Daily Coin Mining`, `Level Commission`, `Automatic Scheduler`) are stored server-side in `platform_settings` (`automation_*`). The `.env` kill-switches stay `false`.
+- ON is refused unless: database + all tables ready; cron heartbeat < 30 min old; approved & independently-approved Mining policy (3 % monthly, calendar days, approval day excluded, COIN, no compounding, `policy_version` equal to the engine configuration); approved independent 3 % monthly mining rate for the next business date; approved independent Commission policy; approved independent plan L1 10 / L2 5 / L3 3 (USDT); every approved purchase has its mandatory lock.
+- ON also needs the admin password and the typed phrase (`I_AUTHORIZE_PRODUCTION_CHANGE` on the live DB). Authorization is bound to the database name, so copying a DB dump to another server does not carry it over.
+- Toggling never approves a draft, never creates an approver, never posts. OFF only stops *future* posting; no wallet/ledger row is touched.
+- `automation:run` raises the needed kill-switch / policy-status flags **in memory for one job only** (after re-verifying readiness) and restores them in `finally`. Each job is idempotent per business date (`financial_automation_runs`) and the underlying runners are idempotent too. Failures are logged, audited and raised as `financial_alerts` (`automation_job_failed` / `automation_job_blocked`), with 3 attempts/day and a 15-minute back-off.
+- Never switched by this feature: P2P, withdrawals, coin selling, blockchain payouts, commission auto-post-on-approval.
+
+**LOCAL PC (review only)**
+```powershell
+cd C:\xampp\htdocs\coin-platform
+php -l app/Services/FinancialAutomationService.php
+php vendor/bin/phpunit tests/feature/FinancialAutomationControlCenterTest.php --no-coverage
+```
+
+**LIVE SERVER (only after explicit approval; each step is a checkpoint)**
+```bash
+cd /home/wwwzeont/ngw.zodianwealth.info
+git pull origin main                                   # code only
+# Backup first (same as Step 3), then the ONE new additive migration (creates financial_automation_runs):
+php spark migrate                                      # pending: 993001, 994001, 995001, 996001 (996001 = automation run log)
+php spark list | grep automation                       # automation:run must be listed
+```
+Install the single cron entry (server clock is UTC; the job itself decides the Asia/Kolkata 01:30 run time) and **remove** the two Step 7 `mining:post` / `mining:post-health` lines so nothing posts outside the control center:
+```cron
+*/10 * * * * /usr/local/bin/php /home/wwwzeont/ngw.zodianwealth.info/spark automation:run >> /home/wwwzeont/ngw.zodianwealth.info/writable/logs/automation-cron.log 2>&1
+```
+`automation:run` is harmless while everything is OFF: it only writes the heartbeat. Wait ~10 minutes, open `/admin/financial-automation`, and confirm “Server cron: working”.
+Then (with the Step 4–6 prerequisites done: LOCK1000 remediation, approved policies/rate/plan, historical recovery decisions) use **Start All Automation**.
+Before turning *Level Commission* ON use **Preview pending commissions**: the first run posts every eligible approved purchase that the approved plan covers and has no commission yet.
+
+**Emergency stop:** press **Stop All Automation** (immediate for the next cron tick; a job already running finishes its current safe batch). `.env` flags and cron removal from Step 9 remain the hard stop.
+Optional config (`.env`): `platform.automationDailyRunTime = 01:30` (business timezone), `platform.automationHeartbeatMaxAgeSeconds = 1800`, `platform.automationMaxAttemptsPerDay = 3`, `platform.automationRetryBackoffSeconds = 900`.

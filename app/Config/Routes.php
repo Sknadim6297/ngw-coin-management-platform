@@ -284,7 +284,14 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
         return redirect()->to(site_url('admin/reports'));
     });
 
-    // Phase 12E financial policies hub (configuration / approval only — no kill-switch enablement)
+    // Financial Automation Control Center (daily ON/OFF operations; flips DB-backed switches only)
+    $routes->get('financial-automation', 'Admin\FinancialAutomationController::index');
+    $routes->post('financial-automation/start-all', 'Admin\FinancialAutomationController::startAll');
+    $routes->post('financial-automation/stop-all', 'Admin\FinancialAutomationController::stopAll');
+    $routes->post('financial-automation/(:segment)/on', 'Admin\FinancialAutomationController::on/$1');
+    $routes->post('financial-automation/(:segment)/off', 'Admin\FinancialAutomationController::off/$1');
+
+    // Phase 12E financial policies hub (advanced configuration / approval only — no kill-switch enablement)
     $routes->get('financial-policies', 'Admin\FinancialPoliciesController::index');
     $routes->get('financial-policies/create', 'Admin\FinancialPoliciesController::create');
     $routes->get('financial-policies/preview', 'Admin\FinancialPoliciesController::preview');
