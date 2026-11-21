@@ -18,6 +18,12 @@ class GuestFilter implements FilterInterface
 
         $user = auth()->user();
 
+        if ($user !== null && (int) $user->active !== 1) {
+            auth()->logout();
+
+            return null;
+        }
+
         if ($user !== null && $user->inGroup('admin') && str_starts_with(uri_string(), 'admin')) {
             return redirect()->to(site_url('admin/dashboard'));
         }

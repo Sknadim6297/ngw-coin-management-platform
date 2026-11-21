@@ -21,6 +21,13 @@ class AdminFilter implements FilterInterface
             return redirect()->to(site_url('login'))->with('error', 'Administrator access required.');
         }
 
+        if ((int) $user->active !== 1) {
+            auth()->logout();
+
+            return redirect()->to(site_url('admin/login'))
+                ->with('error', 'This account is not active. Complete the required verification before continuing.');
+        }
+
         // Platform admins OR dedicated finance roles (Phase 4E least privilege).
         $allowed = $user->inGroup('admin')
             || $user->inGroup('finance_viewer', 'finance_operator', 'finance_approver', 'finance_auditor')

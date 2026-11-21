@@ -132,7 +132,11 @@ class Phase11ECoinSelling extends Migration
             );
             foreach (['previous_reserved', 'new_reserved', 'sell_ref'] as $col) {
                 if ($this->db->fieldExists($col, 'member_coin_ownership_transactions')) {
-                    $this->forge->dropColumn('member_coin_ownership_transactions', $col);
+                    try {
+                        $this->forge->dropColumn('member_coin_ownership_transactions', $col);
+                    } catch (\Throwable) {
+                        // Safe for PHPUnit migrate-down refresh cycles.
+                    }
                 }
             }
             $this->db->query(

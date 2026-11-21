@@ -27,6 +27,10 @@ $routes->group('', ['filter' => 'guest'], static function (RouteCollection $rout
     $routes->post('admin/login', 'Admin\AuthController::attempt');
 });
 
+$routes->get('verify-email/(:segment)', 'Auth\RegistrationEmailVerificationController::verify/$1');
+$routes->get('resend-verification', 'Auth\RegistrationEmailVerificationController::resendForm');
+$routes->post('resend-verification', 'Auth\RegistrationEmailVerificationController::resend');
+
 $routes->post('api/sponsor-lookup', 'Auth\SponsorLookupController::lookup');
 $routes->get('logout', 'Auth\LoginController::logout');
 $routes->post('logout', 'Auth\LoginController::logout');

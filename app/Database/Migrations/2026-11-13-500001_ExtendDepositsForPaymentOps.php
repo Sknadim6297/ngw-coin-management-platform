@@ -70,7 +70,7 @@ class ExtendDepositsForPaymentOps extends Migration
 
     public function down(): void
     {
-        $this->forge->dropColumn('usdt_deposit_requests', [
+        foreach ([
             'last_verification_status',
             'last_verification_message',
             'last_verification_at',
@@ -79,6 +79,13 @@ class ExtendDepositsForPaymentOps extends Migration
             'integrity_flag',
             'integrity_checked_at',
             'integrity_notes',
-        ]);
+        ] as $col) {
+            if ($this->db->tableExists('usdt_deposit_requests') && $this->db->fieldExists($col, 'usdt_deposit_requests')) {
+                try {
+                    $this->forge->dropColumn('usdt_deposit_requests', $col);
+                } catch (\Throwable) {
+                }
+            }
+        }
     }
 }

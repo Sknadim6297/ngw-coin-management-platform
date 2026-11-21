@@ -53,7 +53,7 @@ class CommissionController extends BaseController
             KpiCardFactory::ok('l2', 'Level 2 Estimated', $l2, 'blue', 'bi-2-circle', 'usdt'),
             KpiCardFactory::ok('l3', 'Level 3 Estimated', $l3, 'teal', 'bi-3-circle', 'usdt'),
             KpiCardFactory::ok('est_total', 'Estimated Commission', $estimatedTotal, 'cyan', 'bi-graph-up', 'usdt'),
-            KpiCardFactory::ok('actual', 'Actual Posted Commission', $wallet['available_balance'] ?? '0.00000000', 'green', 'bi-safe', 'usdt'),
+            KpiCardFactory::exact('actual', 'Actual Posted Commission', $wallet['available_balance'] ?? '0.00000000', 'green', 'bi-safe', 'usdt', null, 'Ledger-backed posted balance'),
             KpiCardFactory::unavailable('posting', 'Posting Status', 'gold', 'bi-slash-circle', 'OFF — estimates not withdrawable'),
             KpiCardFactory::ok('sim', 'Legacy Simulation Total', $snap['total_preview'], 'amber', 'bi-lightning', 'usdt'),
         ];

@@ -82,6 +82,7 @@ class Filters extends BaseFilters
             'before' => [
                 'login*',
                 'register*',
+                'resend-verification*',
                 'forgot-password*',
                 'reset-password*',
                 'confirm-email-change*',

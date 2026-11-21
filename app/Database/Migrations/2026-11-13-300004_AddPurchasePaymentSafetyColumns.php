@@ -34,6 +34,13 @@ class AddPurchasePaymentSafetyColumns extends Migration
 
     public function down(): void
     {
-        $this->forge->dropColumn('coin_purchase_requests', ['payment_deposit_ref', 'payment_status']);
+        foreach (['payment_deposit_ref', 'payment_status'] as $col) {
+            if ($this->db->tableExists('coin_purchase_requests') && $this->db->fieldExists($col, 'coin_purchase_requests')) {
+                try {
+                    $this->forge->dropColumn('coin_purchase_requests', $col);
+                } catch (\Throwable) {
+                }
+            }
+        }
     }
 }

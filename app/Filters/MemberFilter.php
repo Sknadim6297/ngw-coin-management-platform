@@ -22,6 +22,13 @@ class MemberFilter implements FilterInterface
             return redirect()->to(site_url('login'))->with('error', 'Member access required.');
         }
 
+        if ((int) $user->active !== 1) {
+            auth()->logout();
+
+            return redirect()->to(site_url('login'))
+                ->with('error', 'Email verification is required. Verify your email or request a new link before continuing.');
+        }
+
         return null;
     }
 

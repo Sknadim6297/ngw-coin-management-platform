@@ -18,6 +18,7 @@ use App\Services\MemberIdGenerator;
 use App\Services\MemberMiningIncomeService;
 use App\Services\PasswordResetService;
 use App\Services\RegistrationService;
+use App\Services\RegistrationEmailVerificationService;
 use App\Services\SponsorValidator;
 use App\Services\DeploymentPreflightService;
 use App\Services\CoinLockingService;
@@ -114,6 +115,15 @@ class Services extends BaseService
         }
 
         return new RegistrationService();
+    }
+
+    public static function registrationEmailVerificationService(bool $getShared = true): RegistrationEmailVerificationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('registrationEmailVerificationService');
+        }
+
+        return new RegistrationEmailVerificationService();
     }
 
     public static function passwordResetService(bool $getShared = true): PasswordResetService

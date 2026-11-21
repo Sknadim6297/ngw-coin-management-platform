@@ -54,6 +54,13 @@ class Platform extends BaseConfig
     public int $emailChangeMaxPerHour = 3;
 
     /**
+     * Registration verification token lifetime and resend limit.
+     */
+    public int $registrationEmailTtl = 3600;
+
+    public int $registrationEmailMaxPerHour = 3;
+
+    /**
      * Days before a changed USDT destination may be used for withdrawals (when enabled).
      * Stored on profile for future activation; withdrawals remain disabled in Phase 10A.
      */

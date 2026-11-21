@@ -42,6 +42,12 @@ class MemberAuthService
                 'message' => 'Invalid Member ID or password.',
             ];
         }
+        if ((int) $user->active !== 1) {
+            return [
+                'success' => false,
+                'message' => 'Invalid Member ID or password.',
+            ];
+        }
 
         /** @var Session $authenticator */
         $authenticator = auth('session')->getAuthenticator();

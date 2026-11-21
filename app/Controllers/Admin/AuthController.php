@@ -46,6 +46,11 @@ class AuthController extends BaseController
         }
 
         $user = $result->extraInfo();
+        if ((int) $user->active !== 1) {
+            auth()->logout();
+
+            return redirect()->back()->withInput()->with('error', 'Invalid email or password.');
+        }
 
         $financeAccess = $user->inGroup('finance_viewer', 'finance_operator', 'finance_approver', 'finance_auditor');
         if (! $user->inGroup('admin') && ! $financeAccess) {

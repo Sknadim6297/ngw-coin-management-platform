@@ -2,15 +2,17 @@
 <?= $this->section('content') ?>
 <p class="page-subtitle">Purchase-triggered commission estimates from your downline. Estimated ≠ Actual.</p>
 <div class="alert alert-warning">
-    Estimated Commission is preview only and is <strong>not</strong> withdrawable.
-    Actual Posted Commission remains <?= esc($wallet['available_balance'] ?? '0.00000000') ?> USDT while posting is OFF.
+    Estimates are preview only and are <strong>not</strong> withdrawable.
+    Actual posted, available commission is <?= esc($wallet['available_balance'] ?? '0.00000000') ?> USDT.
 </div>
 <?= view('components/kpi_grid', ['kpis' => $kpis]) ?>
 
 <div class="card-premium my-4">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <h2 class="h5 mb-0">Purchase Commission Estimates</h2>
-        <a class="btn btn-outline-gold btn-sm" href="<?= site_url('member/commissions/history') ?>">Full History</a>
+        <?php if (empty($supportViewMode)): ?>
+            <a class="btn btn-outline-gold btn-sm" href="<?= site_url('member/commissions/history') ?>">Full History</a>
+        <?php endif; ?>
     </div>
     <div class="table-responsive">
         <table class="table table-dark-premium table-sm mb-0">

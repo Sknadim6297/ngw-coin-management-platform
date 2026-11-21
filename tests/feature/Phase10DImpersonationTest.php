@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\MemberProfileModel;
+use App\Services\CommissionWalletService;
 use App\Services\ImpersonationService;
 use CodeIgniter\Shield\Entities\User;
 use CodeIgniter\Shield\Models\UserModel;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
 use CodeIgniter\Test\FeatureTestTrait;
+use Config\Services;
 use InvalidArgumentException;
 
 /**
@@ -58,6 +60,7 @@ final class Phase10DImpersonationTest extends CIUnitTestCase
 
     protected function tearDown(): void
     {
+        service('superglobals')->setCookieArray([]);
         if (auth()->loggedIn()) {
             auth()->logout();
         }
@@ -227,6 +230,45 @@ final class Phase10DImpersonationTest extends CIUnitTestCase
             ->get()
             ->getRowArray();
         $this->assertSame('ended', $row['status']);
+    }
+
+    public function testSupportViewShowsActualCommissionSeparatelyFromPostingStatus(): void
+    {
+        $member = $this->registerMember('commission-display');
+        $wallet = $this->createMock(CommissionWalletService::class);
+        $wallet->method('getAccount')->with($member['user_id'])->willReturn([
+            'member_user_id'    => $member['user_id'],
+            'currency'          => 'USDT',
+            'available_balance' => '0.50000000',
+            'reserved_balance'  => '0.00000000',
+            'total_balance'     => '0.50000000',
+        ]);
+        $wallet->method('postingEnabled')->willReturn(false);
+        Services::injectMock('commissionWalletService', $wallet);
+
+        $this->loginAdmin();
+        $grant   = service('impersonationService')->createGrant($this->adminUserId, $member['member_id'], $this->adminPassword);
+        $claimed = service('impersonationService')->claimGrant($grant['token'], $this->adminUserId);
+        service('impersonationService')->setActiveContext([
+            'admin_user_id'    => $this->adminUserId,
+            'target_user_id'   => $member['user_id'],
+            'target_member_id' => $member['member_id'],
+            'session_ref'      => $claimed['session']['session_ref'] ?? '',
+            'read_only'        => true,
+        ]);
+        service('superglobals')->setCookie(ImpersonationService::COOKIE_NAME, $claimed['raw_token']);
+
+        try {
+            $page = $this->withSession()->get('support-view/commissions');
+            $page->assertOK();
+            $body = $page->getBody();
+            $this->assertStringContainsString('Actual Posted Commission', (string) $body);
+            $this->assertStringContainsString('0.50000000', (string) $body);
+            $this->assertStringContainsString('Posting Status', (string) $body);
+            $this->assertStringContainsString('Not available', (string) $body);
+        } finally {
+            service('superglobals')->setCookieArray([]);
+        }
     }
 
     public function testAdminLogoutRevokesImpersonation(): void

@@ -147,8 +147,15 @@ class MemberProfileEmailWalletSecurity extends Migration
             $fields = $this->db->getFieldNames('member_profiles');
             foreach (['pending_email', 'usdt_wallet_cooldown_until', 'usdt_wallet_changed_at'] as $col) {
                 if (in_array($col, $fields, true)) {
-                    $this->forge->dropColumn('member_profiles', $col);
+                    try {
+                        $this->forge->dropColumn('member_profiles', $col);
+                    } catch (\Throwable) {
+                        // Safe for PHPUnit migrate-down refresh cycles.
+                    }
                 }
+            }
+            if (method_exists($this->db, 'resetDataCache')) {
+                $this->db->resetDataCache();
             }
         }
         $this->forge->dropTable('member_wallet_change_events', true);

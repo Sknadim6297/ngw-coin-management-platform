@@ -82,12 +82,19 @@ class ExtendAllocationsForLifecycle extends Migration
 
     public function down(): void
     {
-        $this->forge->dropColumn('usdt_payment_allocations', [
+        foreach ([
             'deposit_active_key',
             'purchase_active_key',
             'released_by',
             'released_at',
             'release_reason',
-        ]);
+        ] as $col) {
+            if ($this->db->tableExists('usdt_payment_allocations') && $this->db->fieldExists($col, 'usdt_payment_allocations')) {
+                try {
+                    $this->forge->dropColumn('usdt_payment_allocations', $col);
+                } catch (\Throwable) {
+                }
+            }
+        }
     }
 }

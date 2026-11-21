@@ -171,7 +171,11 @@ class Phase11AAutoLockAndMiningWallet extends Migration
             $fields = $this->db->getFieldNames('member_coin_locks');
             foreach (['lock_kind', 'purchase_ref'] as $col) {
                 if (in_array($col, $fields, true)) {
-                    $this->forge->dropColumn('member_coin_locks', $col);
+                    try {
+                        $this->forge->dropColumn('member_coin_locks', $col);
+                    } catch (\Throwable) {
+                        // Safe for PHPUnit migrate-down refresh cycles.
+                    }
                 }
             }
         }

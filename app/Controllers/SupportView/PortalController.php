@@ -300,13 +300,23 @@ class PortalController extends BaseController
         $userId  = (int) $this->ctx()['target_user_id'];
         $profile = model(MemberProfileModel::class)->findByUserId($userId);
         $snap    = service('commissionSimulationService')->memberSnapshot($userId);
+        $commissionWallet = service('commissionWalletService');
+        $wallet           = $commissionWallet->getAccount($userId);
+        $calcs            = service('commissionPurchaseEngineService')->calculationsForBeneficiary($userId, 50);
         $team    = service('referralTeamService')->countsForSponsor($userId);
         $kpis    = [
             KpiCardFactory::ok('direct', 'My Direct Referrals', $team['direct'], 'purple', 'bi-person-plus', 'members'),
             KpiCardFactory::ok('l1', 'Level 1 Commission Preview', $snap['level1_preview'], 'indigo', 'bi-cash', 'usdt'),
             KpiCardFactory::ok('l2', 'Level 2 Commission Preview', $snap['level2_preview'], 'blue', 'bi-cash', 'usdt'),
             KpiCardFactory::ok('l3', 'Level 3 Commission Preview', $snap['level3_preview'], 'teal', 'bi-cash', 'usdt'),
-            KpiCardFactory::unavailable('actual', 'Actual Commission', 'gold', 'bi-safe', $snap['actual_status']),
+            KpiCardFactory::exact('actual', 'Actual Posted Commission', $wallet['available_balance'] ?? '0.00000000', 'green', 'bi-safe', 'usdt', null, 'Ledger-backed posted balance'),
+            KpiCardFactory::unavailable(
+                'posting',
+                'Posting Status',
+                'gold',
+                'bi-slash-circle',
+                $commissionWallet->postingEnabled() ? 'ON — posting remains subject to approvals' : 'OFF — estimates are not withdrawable'
+            ),
         ];
 
         return $this->render('member/commissions/index', [
@@ -314,6 +324,8 @@ class PortalController extends BaseController
             'profile' => $profile,
             'kpis'    => $kpis,
             'snap'    => $snap,
+            'wallet'  => $wallet,
+            'calcs'   => $calcs,
             'team'    => $team,
             'recent'  => service('commissionSimulationService')->historyForBeneficiary($userId, 15),
         ]);

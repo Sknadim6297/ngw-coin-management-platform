@@ -324,20 +324,6 @@ class CoinSellingService
                     'sell-unlock:' . $idem,
                     false
                 );
-                $lockRemaining = MoneyMath::sub((string) $lock['quantity'], $preview['quantity'], $scale);
-                $lockUpdate = [
-                    'quantity'   => $lockRemaining,
-                    'updated_at' => date('Y-m-d H:i:s'),
-                ];
-                if (MoneyMath::compare($lockRemaining, '0', $scale) <= 0) {
-                    $lockUpdate['quantity']    = MoneyMath::normalize('0', $scale);
-                    $lockUpdate['status']      = CoinLockingService::STATUS_UNLOCKED;
-                    $lockUpdate['unlocked_at'] = date('Y-m-d H:i:s');
-                } elseif ((string) $lock['status'] === CoinLockingService::STATUS_ACTIVE && $lot['is_matured']) {
-                    $lockUpdate['status']     = CoinLockingService::STATUS_MATURED;
-                    $lockUpdate['matured_at'] = $lock['matured_at'] ?? date('Y-m-d H:i:s');
-                }
-                $db->table('member_coin_locks')->where('id', (int) $lock['id'])->update($lockUpdate);
             }
 
             $sellRef = 'CSL-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
@@ -722,6 +708,13 @@ class CoinSellingService
         $sold = MoneyMath::normalize('0', $scale);
         $reserved = MoneyMath::normalize('0', $scale);
 
+        if ($purchaseRef !== '') {
+            $purchase = model(\App\Models\CoinPurchaseRequestModel::class)->findByRef($purchaseRef);
+            if ($purchase !== null) {
+                $qty = MoneyMath::normalize((string) ($purchase['coin_quantity'] ?? $lock['quantity']), $scale);
+            }
+        }
+
         if ($purchaseRef !== '' && db_connect()->tableExists('coin_sell_requests')) {
             $soldRow = db_connect()->table('coin_sell_requests')
                 ->selectSum('quantity', 'qty')
@@ -738,7 +731,8 @@ class CoinSellingService
             $reserved = MoneyMath::normalize((string) ($resRow['qty'] ?? '0'), $scale);
         }
 
-        $remaining = MoneyMath::sub($qty, MoneyMath::add($sold, $reserved, $scale), $scale);
+        $original = $qty;
+        $remaining = MoneyMath::sub($original, MoneyMath::add($sold, $reserved, $scale), $scale);
         if (MoneyMath::compare($remaining, '0', $scale) === -1) {
             $remaining = MoneyMath::normalize('0', $scale);
         }
@@ -754,7 +748,7 @@ class CoinSellingService
             'purchase_ref'       => $purchaseRef,
             'lock_ref'           => (string) $lock['lock_ref'],
             'member_id'          => (string) $lock['member_id'],
-            'coin_quantity'      => $qty,
+            'coin_quantity'       => $original,
             'approval_date'      => $this->toBusinessDate((string) ($lock['locked_at'] ?? $lock['created_at'] ?? '')),
             'lock_start_date'    => $this->toBusinessDate((string) $lock['locked_at']),
             'lock_end_date'      => $maturityBiz,

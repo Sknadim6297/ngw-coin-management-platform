@@ -33,7 +33,7 @@ class RegistrationService
      *   usdt_wallet: string,
      *   password: string
      * } $data
-     * @return array{user: User, profile: object, member_id: string}
+     * @return array{user: User, profile: object, member_id: string, verification_email_sent: bool}
      */
     public function register(array $data, ?int $actorUserId = null, string $source = 'public'): array
     {
@@ -89,7 +89,7 @@ class RegistrationService
 
             $user = new User([
                 'username' => $memberId,
-                'active'   => 1,
+                'active'   => 0,
             ]);
             $users->save($user);
             $user = $users->findById($users->getInsertID());
@@ -136,6 +136,14 @@ class RegistrationService
             $db->transCommit();
 
             $profile = $this->profiles->find($profileId);
+            try {
+                $verification = service('registrationEmailVerificationService')->sendForUser((int) $user->id);
+            } catch (RuntimeException) {
+                log_message('error', 'Registration verification could not be initiated for user {user_id}.', [
+                    'user_id' => (int) $user->id,
+                ]);
+                $verification = ['sent' => false, 'throttled' => false];
+            }
 
             $this->audit->log(
                 $source === 'admin' ? 'admin.member_created' : 'member.registered',
@@ -152,6 +160,7 @@ class RegistrationService
                 'user'      => $user,
                 'profile'   => $profile,
                 'member_id' => $memberId,
+                'verification_email_sent' => $verification['sent'],
             ];
         } catch (\Throwable $e) {
             if ($db->transStatus() !== false) {

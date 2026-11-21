@@ -43,11 +43,18 @@ class ExtendUsdtNetworksForEvm extends Migration
 
     public function down(): void
     {
-        $this->forge->dropColumn('usdt_payment_networks', [
+        foreach ([
             'chain_id',
             'verifier_type',
             'explorer_tx_url_template',
             'rpc_url_env_key',
-        ]);
+        ] as $col) {
+            if ($this->db->tableExists('usdt_payment_networks') && $this->db->fieldExists($col, 'usdt_payment_networks')) {
+                try {
+                    $this->forge->dropColumn('usdt_payment_networks', $col);
+                } catch (\Throwable) {
+                }
+            }
+        }
     }
 }

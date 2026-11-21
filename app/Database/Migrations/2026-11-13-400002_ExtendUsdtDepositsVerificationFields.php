@@ -67,7 +67,7 @@ class ExtendUsdtDepositsVerificationFields extends Migration
 
     public function down(): void
     {
-        $this->forge->dropColumn('usdt_deposit_requests', [
+        foreach ([
             'verified_chain_id',
             'verified_token_contract',
             'verified_destination',
@@ -76,6 +76,13 @@ class ExtendUsdtDepositsVerificationFields extends Migration
             'verified_confirmations',
             'payment_consumption_status',
             'payment_consumed_at',
-        ]);
+        ] as $col) {
+            if ($this->db->tableExists('usdt_deposit_requests') && $this->db->fieldExists($col, 'usdt_deposit_requests')) {
+                try {
+                    $this->forge->dropColumn('usdt_deposit_requests', $col);
+                } catch (\Throwable) {
+                }
+            }
+        }
     }
 }

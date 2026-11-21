@@ -65,7 +65,7 @@ class ImpersonationService
         if ($user === null || ! method_exists($user, 'can')) {
             return false;
         }
-        if (method_exists($user, 'isActivated') && ! $user->isActivated()) {
+        if ((int) $user->active !== 1) {
             return false;
         }
 

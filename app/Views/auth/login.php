@@ -33,6 +33,9 @@
             <div class="mt-4 small">
                 Already new here? <a href="<?= site_url('register') ?>">Create account</a>
             </div>
+            <div class="mt-2 small">
+                <a href="<?= site_url('resend-verification') ?>">Resend email verification</a>
+            </div>
         </div>
     </div>
 </div>

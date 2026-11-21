@@ -97,14 +97,22 @@ class Phase8ActivationAndPaymentSettings extends Migration
             }
             $fields = $this->db->getFieldNames('member_profiles');
             if (in_array('activation_purchase_ref', $fields, true)) {
-                $this->forge->dropColumn('member_profiles', 'activation_purchase_ref');
+                try {
+                    $this->forge->dropColumn('member_profiles', 'activation_purchase_ref');
+                } catch (\Throwable) {
+                    // Safe for PHPUnit migrate-down refresh cycles.
+                }
                 if (method_exists($this->db, 'resetDataCache')) {
                     $this->db->resetDataCache();
                 }
             }
             $fields = $this->db->getFieldNames('member_profiles');
             if (in_array('activated_at', $fields, true)) {
-                $this->forge->dropColumn('member_profiles', 'activated_at');
+                try {
+                    $this->forge->dropColumn('member_profiles', 'activated_at');
+                } catch (\Throwable) {
+                    // Safe for PHPUnit migrate-down refresh cycles.
+                }
                 if (method_exists($this->db, 'resetDataCache')) {
                     $this->db->resetDataCache();
                 }

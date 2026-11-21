@@ -97,6 +97,8 @@ final class Phase11ECoinSellingTest extends CIUnitTestCase
             'usdt_wallet' => '0x' . $hex,
             'password'    => 'Password123!',
         ]);
+        $result['user']->activate();
+        model(\CodeIgniter\Shield\Models\UserModel::class)->save($result['user']);
 
         return [
             'user_id'   => (int) $result['user']->id,
@@ -234,6 +236,60 @@ final class Phase11ECoinSellingTest extends CIUnitTestCase
             ->where('type', 'SALE_RESERVE')
             ->countAllResults();
         $this->assertSame(1, $reserve);
+    }
+
+    public function testLotSummaryTracksOriginalReservedRejectedCancelledAndSoldQuantities(): void
+    {
+        $m = $this->buyLocked('lot-accounting', '10');
+        $this->forceMature($m['lock_ref'], 1000);
+        config('Platform')->coinSellingEnabled = true;
+
+        $rejected = service('coinSellingService')->performSubmitWithReserve(
+            $m['user_id'],
+            $m['purchase_ref'],
+            '3.00000000',
+            'p11e-lot-reject-' . $m['user_id']
+        );
+        $pending = service('coinSellingService')->memberLotSummary($m['user_id'])['lots'][0];
+        $this->assertSame('10.00000000', $pending['coin_quantity']);
+        $this->assertSame('3.00000000', $pending['reserved_quantity']);
+        $this->assertSame('7.00000000', $pending['remaining_on_lot']);
+
+        service('coinSellingService')->performRejectWithRelease($rejected['sell_ref'], $this->adminUserId, 'test rejection');
+        $afterReject = service('coinSellingService')->memberLotSummary($m['user_id'])['lots'][0];
+        $this->assertSame('10.00000000', $afterReject['coin_quantity']);
+        $this->assertSame('0.00000000', $afterReject['reserved_quantity']);
+        $this->assertSame('10.00000000', $afterReject['remaining_on_lot']);
+
+        $cancelled = service('coinSellingService')->performSubmitWithReserve(
+            $m['user_id'],
+            $m['purchase_ref'],
+            '1.00000000',
+            'p11e-lot-cancel-' . $m['user_id']
+        );
+        service('coinSellingService')->performCancelWithRelease($cancelled['sell_ref'], $m['user_id']);
+        $afterCancel = service('coinSellingService')->memberLotSummary($m['user_id'])['lots'][0];
+        $this->assertSame('10.00000000', $afterCancel['coin_quantity']);
+        $this->assertSame('10.00000000', $afterCancel['remaining_on_lot']);
+
+        $sold = service('coinSellingService')->performSubmitWithReserve(
+            $m['user_id'],
+            $m['purchase_ref'],
+            '2.00000000',
+            'p11e-lot-sold-' . $m['user_id']
+        );
+        service('coinSellingService')->performApprove($sold['sell_ref'], $this->adminUserId);
+        service('coinSellingService')->performRecordSettlement($sold['sell_ref'], $this->adminUserId, [
+            'evidence_ref'     => 'EV-LOT-' . $m['user_id'],
+            'settlement_asset' => 'USDT',
+            'settlement_amount'=> '4.00',
+        ]);
+        service('coinSellingService')->performCompleteWithVerifiedSettlement($sold['sell_ref'], $this->adminUserId, true);
+
+        $afterSale = service('coinSellingService')->memberLotSummary($m['user_id'])['lots'][0];
+        $this->assertSame('10.00000000', $afterSale['coin_quantity']);
+        $this->assertSame('2.00000000', $afterSale['sold_quantity']);
+        $this->assertSame('8.00000000', $afterSale['remaining_on_lot']);
     }
 
     public function testSettlementVerificationRequired(): void

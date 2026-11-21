@@ -97,7 +97,11 @@ class CreateNotificationOutboxAndRemediationExtras extends Migration
         if ($this->db->tableExists('financial_remediation_proposals')) {
             foreach (['reason_code', 'evidence_stored_name', 'evidence_original_name', 'evidence_mime'] as $col) {
                 if ($this->db->fieldExists($col, 'financial_remediation_proposals')) {
-                    $this->forge->dropColumn('financial_remediation_proposals', $col);
+                    try {
+                        $this->forge->dropColumn('financial_remediation_proposals', $col);
+                    } catch (\Throwable) {
+                        // Safe for PHPUnit migrate-down refresh cycles.
+                    }
                 }
             }
         }
