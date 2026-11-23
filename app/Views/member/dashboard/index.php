@@ -6,6 +6,8 @@ $walletSummary = $walletSummary ?? ['balance' => '0', 'available' => '0', 'locke
 $pendingPayments = $pendingPayments ?? [];
 $recentPurchases = $recentPurchases ?? [];
 $referralSummary = $referralSummary ?? ['direct' => 0, 'total' => 0, 'active' => 0];
+$businessVolume  = $businessVolume ?? null;
+$bvLevels        = is_array($businessVolume) ? ($businessVolume['levels'] ?? []) : [];
 ?>
 
 <div class="panel-card mb-4">
@@ -68,6 +70,39 @@ $referralSummary = $referralSummary ?? ['direct' => 0, 'total' => 0, 'active' =>
 
 <?= view('components/kpi_grid', ['kpis' => $kpis]) ?>
 
+<div class="card-premium my-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h2 class="h5 mb-0">Team Business Volume</h2>
+        <a class="btn btn-sm btn-outline-gold" href="<?= site_url('member/referrals/business') ?>">Open Business Volume</a>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="text-secondary small">Total Team Business Volume</div>
+            <strong><?= esc((string) ($businessVolume['total_business_volume_usdt'] ?? '0.00000000')) ?> USDT</strong>
+        </div>
+        <div class="col-md-3">
+            <div class="text-secondary small">Level 1 (10% info)</div>
+            <strong><?= esc((string) ($bvLevels[1]['business_volume_usdt'] ?? '0.00000000')) ?> USDT</strong>
+            <div class="small text-secondary"><?= (int) ($bvLevels[1]['referral_member_count'] ?? 0) ?> members · <?= (int) ($bvLevels[1]['purchase_count'] ?? 0) ?> purchases</div>
+        </div>
+        <div class="col-md-3">
+            <div class="text-secondary small">Level 2 (5% info)</div>
+            <strong><?= esc((string) ($bvLevels[2]['business_volume_usdt'] ?? '0.00000000')) ?> USDT</strong>
+            <div class="small text-secondary"><?= (int) ($bvLevels[2]['referral_member_count'] ?? 0) ?> members · <?= (int) ($bvLevels[2]['purchase_count'] ?? 0) ?> purchases</div>
+        </div>
+        <div class="col-md-3">
+            <div class="text-secondary small">Level 3 (3% info)</div>
+            <strong><?= esc((string) ($bvLevels[3]['business_volume_usdt'] ?? '0.00000000')) ?> USDT</strong>
+            <div class="small text-secondary"><?= (int) ($bvLevels[3]['referral_member_count'] ?? 0) ?> members · <?= (int) ($bvLevels[3]['purchase_count'] ?? 0) ?> purchases</div>
+        </div>
+    </div>
+    <div class="small text-secondary mt-3">
+        Network within 3 levels: <?= (int) ($businessVolume['network_member_count'] ?? 0) ?>
+        · Direct: <?= (int) ($businessVolume['direct_referral_count'] ?? 0) ?>
+        · Only approved + verified USDT purchases · No commission posting from this view
+    </div>
+</div>
+
 <div class="row g-3 my-4">
     <div class="col-lg-4">
         <div class="card-premium h-100">
@@ -87,6 +122,7 @@ $referralSummary = $referralSummary ?? ['direct' => 0, 'total' => 0, 'active' =>
             <div class="d-flex justify-content-between"><span class="text-secondary">Active Team</span><strong><?= (int) ($referralSummary['active'] ?? 0) ?></strong></div>
             <div class="d-flex flex-wrap gap-2 mt-3">
                 <a class="btn btn-sm btn-outline-gold" href="<?= site_url('member/referrals') ?>">Referrals</a>
+                <a class="btn btn-sm btn-outline-gold" href="<?= site_url('member/referrals/business') ?>">Business Volume</a>
                 <a class="btn btn-sm btn-outline-gold" href="<?= site_url('member/genealogy') ?>">Genealogy</a>
             </div>
         </div>

@@ -54,6 +54,7 @@ use App\Services\CommissionPostingProposalService;
 use App\Services\CommissionWithdrawalService;
 use App\Services\CommissionWithdrawalSettingsService;
 use App\Services\MemberKycService;
+use App\Services\ReferralBusinessVolumeService;
 use App\Services\CommissionWalletReconciliationService;
 use App\Services\MemberActivationService;
 use App\Services\MemberProfileService;
@@ -484,6 +485,15 @@ class Services extends BaseService
         }
 
         return new ReferralTeamService();
+    }
+
+    public static function referralBusinessVolumeService(bool $getShared = true): ReferralBusinessVolumeService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('referralBusinessVolumeService');
+        }
+
+        return new ReferralBusinessVolumeService();
     }
 
     public static function genealogyIntegrityService(bool $getShared = true): GenealogyIntegrityService

@@ -381,8 +381,10 @@ $routes->group('member', ['filter' => 'member'], static function (RouteCollectio
     $routes->get('wallet/transactions/export', 'Member\WalletController::export');
     $routes->get('wallet/transactions/(:segment)', 'Member\WalletController::show/$1');
 
-    // Phase 7A referrals & genealogy
+    // Phase 7A referrals & genealogy + Phase 2 business volume (read-only)
     $routes->get('referrals', 'Member\ReferralController::index');
+    $routes->get('referrals/business', 'Member\ReferralController::business');
+    $routes->get('referrals/business/(:segment)', 'Member\ReferralController::businessMember/$1');
     $routes->get('genealogy', 'Member\ReferralController::genealogy');
     $routes->get('genealogy/children', 'Member\ReferralController::children');
 

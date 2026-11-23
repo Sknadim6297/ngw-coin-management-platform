@@ -82,8 +82,11 @@ $sv = $supportViewContext ?? null;
         <?php endif; ?>
 
         <div class="nav-section-title">Team</div>
-        <a class="side-link <?= $is($panelBase . '/referrals') ? 'active' : '' ?>" href="<?= $panelUrl('referrals') ?>">
+        <a class="side-link <?= $is($panelBase . '/referrals') && ! $is($panelBase . '/referrals/business') ? 'active' : '' ?>" href="<?= $panelUrl('referrals') ?>">
             <i class="bi bi-people"></i><span class="nav-label">My Referrals</span>
+        </a>
+        <a class="side-link <?= $is($panelBase . '/referrals/business') ? 'active' : '' ?>" href="<?= $panelUrl('referrals/business') ?>">
+            <i class="bi bi-graph-up"></i><span class="nav-label">Business Volume</span>
         </a>
         <a class="side-link <?= $is($panelBase . '/genealogy') ? 'active' : '' ?>" href="<?= $panelUrl('genealogy') ?>">
             <i class="bi bi-diagram-3"></i><span class="nav-label">Genealogy</span>

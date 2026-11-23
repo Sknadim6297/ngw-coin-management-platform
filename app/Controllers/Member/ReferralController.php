@@ -97,4 +97,86 @@ class ReferralController extends BaseController
 
         return $this->response->setJSON(['children' => $children]);
     }
+
+    /**
+     * Phase 2 — Level-wise referral Business Volume (read-only).
+     */
+    public function business()
+    {
+        $userId  = (int) auth()->id();
+        $profile = model(MemberProfileModel::class)->findByUserId($userId);
+        if ($profile === null) {
+            return redirect()->to(site_url('login'))->with('error', 'Member profile not found.');
+        }
+
+        $level = max(1, min(3, (int) ($this->request->getGet('level') ?: 1)));
+        $filters = [
+            'q'         => $this->request->getGet('q'),
+            'date_from' => $this->request->getGet('date_from'),
+            'date_to'   => $this->request->getGet('date_to'),
+            'per_page'  => $this->request->getGet('per_page'),
+            'page'      => $this->request->getGet('page'),
+        ];
+
+        try {
+            $summary = service('referralBusinessVolumeService')->summary($userId, $filters);
+            $list    = service('referralBusinessVolumeService')->membersAtLevel($userId, $level, $filters);
+        } catch (InvalidArgumentException $e) {
+            return redirect()->to(site_url('member/referrals/business'))->with('error', $e->getMessage());
+        }
+
+        $kpis = [
+            KpiCardFactory::ok(
+                'total_bv',
+                'Total Team Business Volume',
+                $summary['total_business_volume_usdt'],
+                'gold',
+                'bi-graph-up-arrow',
+                'usdt'
+            ),
+            KpiCardFactory::ok('l1_bv', 'Level 1 Volume', $summary['levels'][1]['business_volume_usdt'], 'cyan', 'bi-1-circle', 'usdt'),
+            KpiCardFactory::ok('l2_bv', 'Level 2 Volume', $summary['levels'][2]['business_volume_usdt'], 'indigo', 'bi-2-circle', 'usdt'),
+            KpiCardFactory::ok('l3_bv', 'Level 3 Volume', $summary['levels'][3]['business_volume_usdt'], 'teal', 'bi-3-circle', 'usdt'),
+            KpiCardFactory::ok('net', 'Network (3 levels)', $summary['network_member_count'], 'blue', 'bi-people', 'members'),
+        ];
+
+        return view('member/referrals/business', [
+            'title'    => 'Referral Business Volume',
+            'profile'  => $profile,
+            'summary'  => $summary,
+            'list'     => $list,
+            'level'    => $level,
+            'kpis'     => $kpis,
+            'filters'  => $list['filters'],
+        ]);
+    }
+
+    public function businessMember(string $memberId)
+    {
+        $userId  = (int) auth()->id();
+        $profile = model(MemberProfileModel::class)->findByUserId($userId);
+        if ($profile === null) {
+            return redirect()->to(site_url('login'))->with('error', 'Member profile not found.');
+        }
+
+        $filters = [
+            'date_from' => $this->request->getGet('date_from'),
+            'date_to'   => $this->request->getGet('date_to'),
+            'per_page'  => $this->request->getGet('per_page'),
+            'page'      => $this->request->getGet('page'),
+        ];
+
+        try {
+            $detail = service('referralBusinessVolumeService')->memberPurchases($userId, $memberId, $filters);
+        } catch (InvalidArgumentException $e) {
+            return redirect()->to(site_url('member/referrals/business'))->with('error', $e->getMessage());
+        }
+
+        return view('member/referrals/business_member', [
+            'title'   => 'Referral Business Detail',
+            'profile' => $profile,
+            'detail'  => $detail,
+            'filters' => $detail['filters'],
+        ]);
+    }
 }

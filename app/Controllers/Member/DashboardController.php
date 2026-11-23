@@ -29,6 +29,7 @@ class DashboardController extends BaseController
             'pendingPayments'  => $dashboard['pending_payments'],
             'recentPurchases'  => $dashboard['recent_purchases'],
             'referralSummary'  => $dashboard['referral_summary'],
+            'businessVolume'   => $dashboard['business_volume'] ?? null,
             'referralLink'     => $dashboard['referral_link'],
             'priceSummary'     => $dashboard['price_summary'],
             'inventory'        => $dashboard['inventory'],

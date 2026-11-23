@@ -12,6 +12,7 @@
         </div>
         <div class="d-flex flex-wrap gap-2">
             <button type="button" class="btn btn-gold btn-sm" data-copy-target="memberReferralLink">Copy Link</button>
+            <a class="btn btn-outline-gold btn-sm" href="<?= site_url('member/referrals/business') ?>">Business Volume</a>
             <a class="btn btn-outline-gold btn-sm" href="<?= site_url('member/genealogy') ?>">View Genealogy</a>
         </div>
     </div>

@@ -55,6 +55,7 @@ class MemberDashboardService
         $pendingPayments         = $this->pendingPaymentsForMember($memberUserId);
         $recentPurchases         = $this->recentPurchasesForMember($memberUserId, 5);
         $team                    = service('referralTeamService')->countsForSponsor($memberUserId);
+        $businessVolume          = service('referralBusinessVolumeService')->summary($memberUserId);
 
         return [
             'kpis'              => $this->kpis($memberUserId, $locking, $panelBase, $miningSummary),
@@ -67,6 +68,7 @@ class MemberDashboardService
             'pending_payments'  => $pendingPayments,
             'recent_purchases'  => $recentPurchases,
             'referral_summary'  => $team,
+            'business_volume'   => $businessVolume,
             'referral_link'     => site_url('register?sponsor=' . urlencode($profile->member_id)),
             'completion'        => $profile->profileCompletionPercent(),
             'price_summary'     => service('coinPriceService')->settingsSummary(),
