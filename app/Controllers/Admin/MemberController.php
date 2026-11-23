@@ -137,10 +137,21 @@ class MemberController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Member could not be created. Please try again.');
         }
 
-        $message = 'Member ' . $result['member_id'] . ' created. Email verification and the first approved coin purchase are required before activation.';
+        if (! empty($result['email_verification_required'])) {
+            $message = 'Member ' . $result['member_id'] . ' created. Email verification and the first approved coin purchase are required before activation.';
+            if (empty($result['verification_email_sent'])) {
+                $message .= ' Verification email delivery failed; ask the member to resend after SMTP is configured.';
+            }
+
+            return redirect()->to(site_url('admin/members'))
+                ->with(! empty($result['verification_email_sent']) ? 'success' : 'error', $message);
+        }
 
         return redirect()->to(site_url('admin/members'))
-            ->with($result['verification_email_sent'] ? 'success' : 'error', $message . ($result['verification_email_sent'] ? '' : ' Verification email delivery failed; ask the member to resend after SMTP is configured.'));
+            ->with(
+                'success',
+                'Member ' . $result['member_id'] . ' created. They can sign in now. Business activation still requires the first approved coin purchase.'
+            );
     }
 
     public function show(string $memberId)

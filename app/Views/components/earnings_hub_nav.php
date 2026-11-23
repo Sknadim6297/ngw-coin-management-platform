@@ -16,7 +16,9 @@ $section = $section ?? '';
         <span class="admin-tab" style="opacity:.7;cursor:default">Posting &amp; withdrawals disabled</span>
     <?php else: ?>
         <a class="admin-tab <?= str_starts_with(uri_string(), 'admin/wallets') || str_starts_with(uri_string(), 'admin/wallet') ? 'active' : '' ?>" href="<?= site_url('admin/wallets') ?>">Wallets</a>
-        <a class="admin-tab <?= str_starts_with(uri_string(), 'admin/withdrawals') ? 'active' : '' ?>" href="<?= site_url('admin/withdrawals') ?>">Withdrawals</a>
+        <a class="admin-tab <?= str_starts_with(uri_string(), 'admin/withdrawals') && ! str_starts_with(uri_string(), 'admin/withdrawal-settings') ? 'active' : '' ?>" href="<?= site_url('admin/withdrawals') ?>">Withdrawals</a>
+        <a class="admin-tab <?= str_starts_with(uri_string(), 'admin/withdrawal-settings') ? 'active' : '' ?>" href="<?= site_url('admin/withdrawal-settings') ?>">WD Settings</a>
+        <a class="admin-tab <?= str_starts_with(uri_string(), 'admin/kyc') ? 'active' : '' ?>" href="<?= site_url('admin/kyc') ?>">KYC</a>
         <span class="admin-tab" style="opacity:.7;cursor:default">Blockchain payout disabled</span>
     <?php endif; ?>
 </div>

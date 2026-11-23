@@ -33,7 +33,7 @@ class RegistrationService
      *   usdt_wallet: string,
      *   password: string
      * } $data
-     * @return array{user: User, profile: object, member_id: string, verification_email_sent: bool}
+     * @return array{user: User, profile: object, member_id: string, verification_email_sent: bool, email_verification_required: bool}
      */
     public function register(array $data, ?int $actorUserId = null, string $source = 'public'): array
     {
@@ -87,9 +87,13 @@ class RegistrationService
                 throw new InvalidArgumentException('Sponsor ID was not found.');
             }
 
+            $emailVerificationRequired = (bool) $config->registrationEmailVerificationRequired;
+
             $user = new User([
                 'username' => $memberId,
-                'active'   => 0,
+                // Login gate (Shield active flag). Business activation remains account_status=inactive
+                // until the first approved coin purchase — that is separate from email verification.
+                'active'   => $emailVerificationRequired ? 0 : 1,
             ]);
             $users->save($user);
             $user = $users->findById($users->getInsertID());
@@ -136,13 +140,18 @@ class RegistrationService
             $db->transCommit();
 
             $profile = $this->profiles->find($profileId);
-            try {
-                $verification = service('registrationEmailVerificationService')->sendForUser((int) $user->id);
-            } catch (RuntimeException) {
-                log_message('error', 'Registration verification could not be initiated for user {user_id}.', [
-                    'user_id' => (int) $user->id,
-                ]);
-                $verification = ['sent' => false, 'throttled' => false];
+
+            $verificationSent = true;
+            if ($emailVerificationRequired) {
+                try {
+                    $verification = service('registrationEmailVerificationService')->sendForUser((int) $user->id);
+                    $verificationSent = (bool) ($verification['sent'] ?? false);
+                } catch (RuntimeException) {
+                    log_message('error', 'Registration verification could not be initiated for user {user_id}.', [
+                        'user_id' => (int) $user->id,
+                    ]);
+                    $verificationSent = false;
+                }
             }
 
             $this->audit->log(
@@ -153,14 +162,16 @@ class RegistrationService
                 [
                     'sponsor_id' => $sponsor->member_id,
                     'source'     => $source,
+                    'email_verification_required' => $emailVerificationRequired,
                 ]
             );
 
             return [
-                'user'      => $user,
-                'profile'   => $profile,
-                'member_id' => $memberId,
-                'verification_email_sent' => $verification['sent'],
+                'user'                    => $user,
+                'profile'                 => $profile,
+                'member_id'               => $memberId,
+                'verification_email_sent' => $verificationSent,
+                'email_verification_required' => $emailVerificationRequired,
             ];
         } catch (\Throwable $e) {
             if ($db->transStatus() !== false) {

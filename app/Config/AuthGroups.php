@@ -101,6 +101,8 @@ class AuthGroups extends ShieldAuthGroups
             'commission.export',
             'commission.wallet.view',
             'commission.withdrawal.view',
+            'commission.withdrawal.review',
+            'commission.withdrawal.pay',
             'commission.wallet.reconcile',
         ],
         'member' => [

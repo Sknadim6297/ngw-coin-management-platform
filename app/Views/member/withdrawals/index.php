@@ -1,15 +1,36 @@
 <?= $this->extend('layouts/member') ?>
 <?= $this->section('content') ?>
+<?php
+$authorized = ! empty($authorized);
+$statusLabel = (string) ($statusLabel ?? 'Commission Withdrawals Not Activated');
+$settings = $settings ?? [];
+$kyc = $kyc ?? [];
+?>
 <p class="page-subtitle">Only posted level commission USDT can be withdrawn to your registered BEP20 wallet. Mining income and purchased coins are not withdrawable here.</p>
 
-<?php if (empty($enabled)): ?>
+<?php if (! $authorized): ?>
     <div class="alert alert-warning">
-        <strong>Commission Withdrawals Not Activated</strong>
-        · Fee / minimum amounts are pending business decision
-        · Submit remains disabled and reservation endpoints are blocked server-side.
+        <strong><?= esc($statusLabel) ?></strong>
+        <?php if (empty($kyc['is_approved'])): ?>
+            <div class="small mt-1">KYC status: <?= esc((string) ($kyc['status'] ?? 'none')) ?> · <a href="<?= site_url('member/kyc') ?>">Submit / view KYC</a></div>
+        <?php endif; ?>
+        <?php if (! empty($status['blockers'])): ?>
+            <ul class="mb-0 mt-2 small">
+                <?php foreach ($status['blockers'] as $blocker): ?>
+                    <li><?= esc((string) $blocker) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <div class="small mt-1">Fee / minimum must be configured by Admin · Submit remains disabled server-side.</div>
+        <?php endif; ?>
     </div>
 <?php else: ?>
-    <div class="alert alert-danger">Withdrawal kill-switch reports ON but Phase 11D still refuses execution until separately authorized.</div>
+    <div class="alert alert-success">
+        <strong><?= esc($statusLabel) ?></strong>
+        · Requests reserve posted commission USDT for admin review
+        · Automatic blockchain payout remains OFF
+        · Settlement requires a recorded TX hash plus independent verification
+    </div>
 <?php endif; ?>
 
 <?= view('components/kpi_grid', ['kpis' => $kpis]) ?>
@@ -21,6 +42,15 @@
             <div class="mb-2"><span class="text-secondary">Network</span><div>BEP20</div></div>
             <div class="mb-2"><span class="text-secondary">USDT Address</span>
                 <div><code class="text-break"><?= esc((string) ($profile->usdt_wallet ?: 'Not set — update in Profile')) ?></code></div>
+            </div>
+            <div class="mb-2"><span class="text-secondary">Minimum withdrawal</span>
+                <div><?= empty($settings['minimum_usdt']) ? 'Not configured by Admin' : esc($settings['minimum_usdt']) . ' USDT' ?></div>
+            </div>
+            <div class="mb-2"><span class="text-secondary">Withdrawal fee</span>
+                <div><?= ! isset($settings['fee_usdt']) || $settings['fee_usdt'] === null ? 'Not configured by Admin' : esc($settings['fee_usdt']) . ' USDT' ?></div>
+            </div>
+            <div class="mb-2"><span class="text-secondary">KYC</span>
+                <div><?= esc((string) ($kyc['status'] ?? 'none')) ?> · <a href="<?= site_url('member/kyc') ?>">Manage</a></div>
             </div>
             <div class="small text-secondary">Arbitrary destination addresses are not allowed. Change wallet from Profile with reauthentication and cooldown.</div>
         </div>
@@ -40,7 +70,8 @@
                 <div class="notice-box mb-3">
                     <div><strong>Preview</strong> · <?= esc($preview['note']) ?></div>
                     <div>Amount <?= esc($preview['amount']) ?> USDT</div>
-                    <div>Fee <?= $preview['fee_amount'] === null ? 'pending business decision' : esc($preview['fee_amount']) ?></div>
+                    <div>Fee <?= $preview['fee_amount'] === null ? 'pending business decision' : esc($preview['fee_amount']) . ' USDT' ?></div>
+                    <div>Minimum <?= empty($preview['minimum_amount']) ? 'pending business decision' : esc($preview['minimum_amount']) . ' USDT' ?></div>
                     <div>Net payout <?= esc($preview['net_amount']) ?> USDT</div>
                     <div>Available <?= esc($preview['available_balance']) ?></div>
                     <div>To <?= esc($preview['destination_masked']) ?> · <?= esc($preview['network']) ?></div>
@@ -53,8 +84,8 @@
                 <input type="hidden" name="network" value="BEP20">
                 <input type="hidden" name="idempotency_key" value="<?= esc(bin2hex(random_bytes(16))) ?>">
                 <label class="form-label" for="password">Confirm with password</label>
-                <input class="form-control mb-2" type="password" name="password" id="password" autocomplete="current-password" <?= empty($enabled) ? 'disabled' : 'required' ?>>
-                <button class="btn btn-gold" type="submit" <?= empty($enabled) ? 'disabled' : '' ?>>Confirm Withdrawal</button>
+                <input class="form-control mb-2" type="password" name="password" id="password" autocomplete="current-password" <?= $authorized ? 'required' : 'disabled' ?>>
+                <button class="btn btn-gold" type="submit" <?= $authorized ? '' : 'disabled' ?>>Confirm Withdrawal</button>
             </form>
         </div>
     </div>

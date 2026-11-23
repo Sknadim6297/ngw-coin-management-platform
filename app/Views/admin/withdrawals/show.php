@@ -2,15 +2,26 @@
 <?= $this->section('content') ?>
 <?= view('components/earnings_hub_nav', ['section' => 'wallets']) ?>
 
-<div class="alert alert-warning">
-    <?= esc($status['withdrawal_enabled'] ? 'Kill-switch ON' : 'Commission Withdrawals Not Activated') ?>
-    · Executable approve / reject / payout / settle remain blocked in Phase 11D
+<?php
+$authorized = ! empty($authorized);
+$canMutate  = $authorized && ! empty($canReview);
+$canSettle  = $authorized && ! empty($canPay);
+$rowStatus  = (string) ($row['status'] ?? '');
+?>
+<div class="alert <?= $authorized ? 'alert-success' : 'alert-warning' ?>">
+    <?= esc($statusLabel ?? ($status['withdrawal_enabled'] ? 'Kill-switch ON' : 'Commission Withdrawals Not Activated')) ?>
+    <?php if (! $authorized): ?>
+        · Approve / reject / payout / settle remain blocked until gates are satisfied
+    <?php else: ?>
+        · Manual payout + independent TX verification required before PAID
+    <?php endif; ?>
     · Admin cannot edit wallet balances
 </div>
 
 <div class="card-premium mb-3">
     <h2 class="h5"><code><?= esc($row['withdrawal_ref']) ?></code> <span class="badge bg-secondary"><?= esc($row['status']) ?></span></h2>
     <div>Member <?= esc($row['member_id']) ?> · <?= esc($row['amount']) ?> <?= esc($row['currency']) ?> · <?= esc($row['network']) ?></div>
+    <div class="mt-1">Fee <?= esc((string) ($row['fee_amount'] ?? '—')) ?> · Net payout <?= esc((string) ($row['net_amount'] ?? '—')) ?> · KYC <?= esc((string) ($kycStatus ?? '—')) ?></div>
     <div class="mt-1">Destination snapshot: <code><?= esc($row['destination_address_snapshot'] ?? $row['destination_masked'] ?? '') ?></code></div>
     <div class="mt-2 small text-secondary">
         Available <?= esc($wallet['available_balance'] ?? '0') ?> · Reserved <?= esc($wallet['reserved_balance'] ?? '0') ?>
@@ -28,17 +39,17 @@
     <div class="col-md-4">
         <div class="card-premium h-100">
             <h3 class="h6">Review Request</h3>
-            <p class="small text-secondary">Financial actions stay disabled while withdrawals are OFF.</p>
+            <p class="small text-secondary"><?= $canMutate ? 'Approve reserves remain locked until payout verification. Reject releases the reservation.' : 'Financial actions stay disabled while withdrawals are not authorized.' ?></p>
             <form method="post" action="<?= site_url('admin/withdrawals/' . rawurlencode($row['withdrawal_ref']) . '/approve') ?>" class="mb-2">
                 <?= csrf_field() ?>
-                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" disabled>
-                <button class="btn btn-outline-gold btn-sm" type="submit" disabled>Approve</button>
+                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" <?= $canMutate && $rowStatus === 'pending_admin_review' ? 'required' : 'disabled' ?>>
+                <button class="btn btn-outline-gold btn-sm" type="submit" <?= $canMutate && $rowStatus === 'pending_admin_review' ? '' : 'disabled' ?>>Approve</button>
             </form>
             <form method="post" action="<?= site_url('admin/withdrawals/' . rawurlencode($row['withdrawal_ref']) . '/reject') ?>">
                 <?= csrf_field() ?>
-                <input class="form-control form-control-sm mb-2" type="text" name="reason" placeholder="Rejection reason" disabled>
-                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" disabled>
-                <button class="btn btn-outline-gold btn-sm" type="submit" disabled>Reject</button>
+                <input class="form-control form-control-sm mb-2" type="text" name="reason" placeholder="Rejection reason" <?= $canMutate && $rowStatus === 'pending_admin_review' ? 'required' : 'disabled' ?>>
+                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" <?= $canMutate && $rowStatus === 'pending_admin_review' ? 'required' : 'disabled' ?>>
+                <button class="btn btn-outline-gold btn-sm" type="submit" <?= $canMutate && $rowStatus === 'pending_admin_review' ? '' : 'disabled' ?>>Reject</button>
             </form>
         </div>
     </div>
@@ -48,10 +59,10 @@
             <p class="small text-secondary">TX hash alone is not proof of payment. Independent verification required before PAID.</p>
             <form method="post" action="<?= site_url('admin/withdrawals/' . rawurlencode($row['withdrawal_ref']) . '/record-payout') ?>">
                 <?= csrf_field() ?>
-                <input class="form-control form-control-sm mb-2" type="text" name="tx_hash" placeholder="0x… transaction hash" disabled>
-                <input class="form-control form-control-sm mb-2" type="text" name="paid_amount" placeholder="Paid amount" disabled>
-                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" disabled>
-                <button class="btn btn-outline-gold btn-sm" type="submit" disabled>Record Payout</button>
+                <input class="form-control form-control-sm mb-2" type="text" name="tx_hash" placeholder="0x… transaction hash" <?= $canSettle && in_array($rowStatus, ['approved', 'payout_in_progress'], true) ? 'required' : 'disabled' ?>>
+                <input class="form-control form-control-sm mb-2" type="text" name="paid_amount" placeholder="Paid amount" <?= $canSettle && in_array($rowStatus, ['approved', 'payout_in_progress'], true) ? '' : 'disabled' ?>>
+                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" <?= $canSettle && in_array($rowStatus, ['approved', 'payout_in_progress'], true) ? 'required' : 'disabled' ?>>
+                <button class="btn btn-outline-gold btn-sm" type="submit" <?= $canSettle && in_array($rowStatus, ['approved', 'payout_in_progress'], true) ? '' : 'disabled' ?>>Record Payout</button>
             </form>
         </div>
     </div>
@@ -61,8 +72,8 @@
             <p class="small text-secondary">Provider readiness: blocked unless EVM verifier is configured. Never mark PAID on admin confirmation alone.</p>
             <form method="post" action="<?= site_url('admin/withdrawals/' . rawurlencode($row['withdrawal_ref']) . '/verify-payout') ?>">
                 <?= csrf_field() ?>
-                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" disabled>
-                <button class="btn btn-outline-gold btn-sm" type="submit" disabled>Verify &amp; Mark Paid</button>
+                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" <?= $canSettle && $rowStatus === 'payout_submitted' ? 'required' : 'disabled' ?>>
+                <button class="btn btn-outline-gold btn-sm" type="submit" <?= $canSettle && $rowStatus === 'payout_submitted' ? '' : 'disabled' ?>>Verify &amp; Mark Paid</button>
             </form>
         </div>
     </div>

@@ -54,7 +54,14 @@ class Platform extends BaseConfig
     public int $emailChangeMaxPerHour = 3;
 
     /**
-     * Registration verification token lifetime and resend limit.
+     * When false, new members are created login-ready (users.active=1) and no verification email is sent.
+     * Account status "active" (business activation) still requires the first approved coin purchase.
+     * Override in .env with: registrationEmailVerificationRequired = true
+     */
+    public bool $registrationEmailVerificationRequired = false;
+
+    /**
+     * Registration verification token lifetime and resend limit (used only when verification is required).
      */
     public int $registrationEmailTtl = 3600;
 

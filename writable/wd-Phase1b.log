@@ -1,0 +1,164 @@
+PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+
+......................................EEEEEEE                     45 / 45 (100%)
+
+Time: 09:04.427, Memory: 32.00 MB
+
+Phase11DCommission Withdrawal (Tests\Feature\Phase11DCommissionWithdrawal)
+ ✔ Only posted commission is withdrawable
+ ✔ Unposted calculation excluded
+ ✔ Mining wallet excluded
+ ✔ Coin wallet excluded
+ ✔ Invalid wallet address rejected
+ ✔ Unverified destination rejected
+ ✔ Insufficient balance rejected
+ ✔ Duplicate request prevention
+ ✔ Concurrent reservation safety
+ ✔ Invalid status transitions rejected
+ ✔ Rejected request releases reservation once
+ ✔ Cancelled request releases reservation once
+ ✔ Duplicate payout tx rejected
+ ✔ Wrong network rejected
+ ✔ Wrong token rejected
+ ✔ Wrong destination rejected
+ ✔ Failed blockchain transaction rejected
+ ✔ Paid requires verified evidence
+ ✔ Settlement occurs exactly once
+ ✔ Disabled withdrawals block execution
+ ✔ Disabled blockchain payout blocks execution
+ ✔ Admin impersonation blocked
+ ✔ Member ownership scoping
+ ✔ Ledger reconciliation
+ ✔ Existing controls remain off
+ ✔ Member page shows disabled state
+ ✔ Kill switch on without fee policy still blocks execution
+ ✔ Incorrect password is rejected
+ ✔ Minimum withdrawal validation
+ ✔ Authorized submit reserves and returns pending review
+ ✔ Authorized http submit shows pending success not paid
+ ✔ Admin reject releases reservation via public api
+
+Phase1Admin Withdrawal Settings And Kyc (Tests\Feature\Phase1AdminWithdrawalSettingsAndKyc)
+ ✔ Settings start pending without invented defaults
+ ✔ Admin can change minimum and fee
+ ✔ Cannot activate requests without emergency unlock
+ ✔ Cannot activate with invalid policy
+ ✔ Disabled settings block submission
+ ✔ Missing kyc blocks submission
+ ✘ Member cannot self approve kyc
+   │
+   │ CodeIgniter\Database\Exceptions\DatabaseException: Can't DROP INDEX `member_coin_ownership_transactions_lock_ref`; check that it exists
+   │
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\BaseConnection.php:883
+   │ C:\xampp\htdocs\coin-platform\app\Database\Migrations\2026-11-13-800001_CreateCoinLockingAndBalanceSplit.php:165
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:1024
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:323
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:146
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:122
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:68
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\CIUnitTestCase.php:254
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase1AdminWithdrawalSettingsAndKycTest.php:37
+   │
+ ✘ Invalid bep 20 wallet blocks draft
+   │
+   │ CodeIgniter\Database\Exceptions\DatabaseException: Unknown table 'coin_platform_test.factories'
+   │
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\BaseConnection.php:883
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\Forge.php:670
+   │ C:\xampp\htdocs\coin-platform\tests\_support\Database\Migrations\2020-02-22-222222_example_migration.php:35
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:1024
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:323
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:146
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:122
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:68
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\CIUnitTestCase.php:254
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase1AdminWithdrawalSettingsAndKycTest.php:37
+   │
+ ✘ Valid request with fee preview and reserve
+   │
+   │ CodeIgniter\Database\Exceptions\DatabaseException: Table 'users' already exists
+   │
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\BaseConnection.php:883
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\Forge.php:574
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\shield\src\Database\Migrations\2020-12-28-223112_create_auth_tables.php:187
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\shield\src\Database\Migrations\2020-12-28-223112_create_auth_tables.php:60
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:1024
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:202
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:174
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:128
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:68
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\CIUnitTestCase.php:254
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase1AdminWithdrawalSettingsAndKycTest.php:37
+   │
+ ✘ Duplicate idempotency returns same draft
+   │
+   │ CodeIgniter\Database\Exceptions\DatabaseException: Table 'users' already exists
+   │
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\BaseConnection.php:883
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\Forge.php:574
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\shield\src\Database\Migrations\2020-12-28-223112_create_auth_tables.php:187
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\shield\src\Database\Migrations\2020-12-28-223112_create_auth_tables.php:60
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:1024
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:202
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:174
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:128
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:68
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\CIUnitTestCase.php:254
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase1AdminWithdrawalSettingsAndKycTest.php:37
+   │
+ ✘ Admin approve and reject release
+   │
+   │ CodeIgniter\Database\Exceptions\DatabaseException: Table 'users' already exists
+   │
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\BaseConnection.php:883
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\Forge.php:574
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\shield\src\Database\Migrations\2020-12-28-223112_create_auth_tables.php:187
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\shield\src\Database\Migrations\2020-12-28-223112_create_auth_tables.php:60
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:1024
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:202
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:174
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:128
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:68
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\CIUnitTestCase.php:254
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase1AdminWithdrawalSettingsAndKycTest.php:37
+   │
+ ✘ Member cannot access admin withdrawal settings
+   │
+   │ CodeIgniter\Database\Exceptions\DatabaseException: Duplicate entry '1' for key 'PRIMARY'
+   │
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\BaseConnection.php:883
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\BaseBuilder.php:2362
+   │ C:\xampp\htdocs\coin-platform\app\Database\Migrations\2026-11-12-100002_CreateCoinInventory.php:50
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:1024
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:202
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:174
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:128
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:68
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\CIUnitTestCase.php:254
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase1AdminWithdrawalSettingsAndKycTest.php:37
+   │
+ ✘ Kyc reject blocks withdrawal
+   │
+   │ CodeIgniter\Database\Exceptions\DatabaseException: Can't create table `coin_platform_test`.`coin_purchase_requests` (errno: 150 "Foreign key constraint is incorrectly formed")
+   │
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\BaseConnection.php:883
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\Forge.php:574
+   │ C:\xampp\htdocs\coin-platform\app\Database\Migrations\2026-11-13-200001_CreateCoinPurchaseRequests.php:103
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:1024
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Database\MigrationRunner.php:202
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:174
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:128
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\DatabaseTestTrait.php:68
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\framework\system\Test\CIUnitTestCase.php:254
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase1AdminWithdrawalSettingsAndKycTest.php:37
+   │
+
+There was 1 PHPUnit test runner warning:
+
+1) No code coverage driver available
+
+ERRORS!
+Tests: 45, Assertions: 102, Errors: 7, PHPUnit Warnings: 1.

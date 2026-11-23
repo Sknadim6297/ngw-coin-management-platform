@@ -53,36 +53,133 @@ class CommissionWithdrawalService
     ) {
     }
 
+    /**
+     * Short member-facing status label. Never reports "Active" unless every required gate is satisfied.
+     */
     public function activationStatus(): string
     {
-        return $this->wallets->withdrawalEnabled()
-            ? 'ENABLED'
-            : 'Commission Withdrawals Not Activated';
+        $status = $this->status();
+        if (! empty($status['execution_authorized'])) {
+            return 'Active (manual payout)';
+        }
+
+        $settings = [];
+        try {
+            $settings = service('commissionWithdrawalSettingsService')->current();
+        } catch (\Throwable) {
+            $settings = ['emergency_unlock' => false, 'requests_enabled' => false];
+        }
+
+        if (empty($settings['emergency_unlock'])) {
+            return 'Commission Withdrawals Not Activated';
+        }
+        if (! $this->feePolicyApproved()) {
+            return 'Awaiting fee / minimum policy approval';
+        }
+        if ($this->wallets->blockchainPayoutEnabled()) {
+            return 'Blocked — automatic blockchain payout must stay OFF';
+        }
+        if (empty($settings['requests_enabled'])) {
+            return 'Awaiting Admin request activation';
+        }
+
+        return 'Not available';
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *   withdrawal_enabled: bool,
+     *   blockchain_payout_enabled: bool,
+     *   commission_posting_enabled: bool,
+     *   mining_posting_enabled: bool,
+     *   mining_p2p_enabled: bool,
+     *   execution_authorized: bool,
+     *   fee_policy_status: string,
+     *   fee_amount: ?string,
+     *   minimum_amount: ?string,
+     *   minimum_withdrawal_status: string,
+     *   blockers: list<string>
+     * }
      */
     public function status(): array
     {
-        $cfg = $this->config ?? config('Platform');
+        $cfg      = $this->config ?? config('Platform');
+        $settings = service('commissionWithdrawalSettingsService')->current();
+        $feeOk    = (bool) $settings['policy_approved'];
+        $wdOn     = $this->wallets->withdrawalEnabled();
+        $chainOn  = $this->wallets->blockchainPayoutEnabled();
+        $blockers = [];
+
+        if (! $settings['emergency_unlock']) {
+            $blockers[] = 'Emergency unlock OFF (Platform.commissionWithdrawalEnabled).';
+        }
+        if (! $settings['requests_enabled']) {
+            $blockers[] = 'Admin withdrawal request activation is OFF.';
+        }
+        if (! $feeOk) {
+            $blockers[] = 'Withdrawal fee / minimum pending Admin configuration and approval.';
+        }
+        if ($chainOn) {
+            $blockers[] = 'commissionBlockchainPayoutEnabled=true (automatic blockchain payout must remain OFF).';
+        }
+
+        $authorized = $wdOn && $feeOk && ! $chainOn;
+        if ($authorized) {
+            $blockers = [];
+        }
 
         return [
-            'withdrawal_enabled'          => (bool) $cfg->commissionWithdrawalEnabled,
-            'blockchain_payout_enabled'   => (bool) $cfg->commissionBlockchainPayoutEnabled,
-            'commission_posting_enabled'  => (bool) $cfg->commissionPostingEnabled,
-            'mining_posting_enabled'      => (bool) $cfg->miningPostingEnabled,
-            'mining_p2p_enabled'          => (bool) $cfg->miningP2pEnabled,
-            'execution_authorized'        => false,
-            'fee_policy_status'           => 'pending_business_decision',
-            'minimum_withdrawal_status'   => 'pending_business_decision',
-            'blockers'                    => [
-                'commissionWithdrawalEnabled=false',
-                'commissionBlockchainPayoutEnabled=false (auto payout remains OFF; manual payout still not authorized)',
-                'Withdrawal fee / minimum amounts pending business decision.',
-                'Executable withdrawal submission not authorized in Phase 11D.',
-            ],
+            'withdrawal_enabled'         => $wdOn,
+            'blockchain_payout_enabled'  => $chainOn,
+            'commission_posting_enabled' => (bool) $cfg->commissionPostingEnabled,
+            'mining_posting_enabled'     => (bool) $cfg->miningPostingEnabled,
+            'mining_p2p_enabled'         => (bool) $cfg->miningP2pEnabled,
+            'execution_authorized'       => $authorized,
+            'fee_policy_status'          => (string) $settings['policy_status'],
+            'fee_amount'                 => $settings['fee_usdt'],
+            'minimum_amount'             => $settings['minimum_usdt'],
+            'minimum_withdrawal_status'  => $feeOk ? 'approved' : 'pending_business_decision',
+            'settings'                   => $settings,
+            'blockers'                   => $blockers,
         ];
+    }
+
+    /** Fee + minimum must both be explicitly configured by Admin and marked approved — never invent amounts. */
+    public function feePolicyApproved(): bool
+    {
+        try {
+            return service('commissionWithdrawalSettingsService')->policyApproved();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * @throws RuntimeException when execution is not fully authorized
+     */
+    public function assertExecutionAuthorized(string $action = 'withdrawal'): void
+    {
+        $cfg = $this->config ?? config('Platform');
+        if (! (bool) $cfg->commissionWithdrawalEnabled
+            && ! service('financialSandboxService')->allows('commission_withdrawal')
+        ) {
+            throw new RuntimeException('Commission Withdrawals Not Activated. ' . ucfirst($action) . ' is blocked server-side.');
+        }
+        if (! $this->feePolicyApproved()) {
+            throw new RuntimeException(
+                'Withdrawal fee / minimum policy is not approved. Admin must configure and approve fee and minimum before withdrawals can run.'
+            );
+        }
+        if ($this->wallets->blockchainPayoutEnabled()) {
+            throw new RuntimeException(
+                'Automatic blockchain payout must remain disabled. Turn commissionBlockchainPayoutEnabled OFF before authorizing manual withdrawal settlement.'
+            );
+        }
+        if (! $this->wallets->withdrawalEnabled()) {
+            throw new RuntimeException(
+                'Admin withdrawal request activation is OFF. ' . ucfirst($action) . ' is blocked until Admin enables requests.'
+            );
+        }
     }
 
     /**
@@ -109,33 +206,94 @@ class CommissionWithdrawalService
         $wallet = trim((string) $profile->usdt_wallet);
         $this->assertRegisteredWallet($profile, $wallet);
 
-        $summary = $this->wallets->withdrawableSummary($memberUserId);
+        $summary  = $this->wallets->withdrawableSummary($memberUserId);
+        $feeCalc  = $this->feeBreakdown($qty);
+        $status   = $this->status();
+        $kycOk    = service('memberKycService')->isApproved($memberUserId);
         $blockers = [];
         if (! $this->wallets->withdrawalEnabled()) {
             $blockers[] = 'withdrawal_kill_switch_off';
         }
+        if (! $this->feePolicyApproved()) {
+            $blockers[] = 'fee_minimum_pending_business_decision';
+        }
+        if ($this->wallets->blockchainPayoutEnabled()) {
+            $blockers[] = 'automatic_blockchain_payout_must_stay_off';
+        }
+        if (! $kycOk) {
+            $blockers[] = 'kyc_not_approved';
+        }
         if (MoneyMath::compare($qty, $summary['available_balance'], 8) === 1) {
             $blockers[] = 'insufficient_posted_balance';
         }
-        $blockers[] = 'fee_minimum_pending_business_decision';
-        $blockers[] = 'phase_11d_execution_not_authorized';
+        if ($feeCalc['minimum'] !== null && MoneyMath::compare($qty, $feeCalc['minimum'], 8) === -1) {
+            $blockers[] = 'below_minimum_withdrawal';
+        }
+        if ($feeCalc['fee'] !== null && MoneyMath::compare($feeCalc['net'], '0', 8) !== 1) {
+            $blockers[] = 'net_payout_not_positive_after_fee';
+        }
+
+        $sufficient = MoneyMath::compare($qty, $summary['available_balance'], 8) <= 0;
+        $canExecute = $status['execution_authorized']
+            && $kycOk
+            && $sufficient
+            && ! in_array('below_minimum_withdrawal', $blockers, true)
+            && ! in_array('net_payout_not_positive_after_fee', $blockers, true);
 
         return [
             'amount'              => $qty,
-            'fee_amount'          => null,
-            'net_amount'          => $qty,
-            'fee_policy_status'   => 'pending_business_decision',
+            'fee_amount'          => $feeCalc['fee'],
+            'net_amount'          => $feeCalc['net'],
+            'fee_policy_status'   => $status['fee_policy_status'],
+            'minimum_amount'      => $feeCalc['minimum'],
             'available_balance'   => $summary['available_balance'],
             'reserved_balance'    => $summary['reserved_balance'],
             'total_posted'        => $summary['total_posted_credits'],
             'destination_address' => $wallet,
             'destination_masked'  => $this->maskAddress($wallet),
             'network'             => 'BEP20',
-            'sufficient'          => MoneyMath::compare($qty, $summary['available_balance'], 8) <= 0,
-            'can_execute'         => false,
+            'sufficient'          => $sufficient,
+            'can_execute'         => $canExecute,
+            'kyc_approved'        => $kycOk,
             'blockers'            => $blockers,
-            'note'                => 'PREVIEW ONLY — commission withdrawals are OFF. Mining and coin balances are not withdrawable.',
+            'note'                => $canExecute
+                ? 'Preview ready — confirming will reserve posted commission USDT and send the request for admin review. Mining and purchased coins are not withdrawable.'
+                : 'PREVIEW ONLY — submission remains blocked until withdrawal gates are satisfied. Mining and coin balances are not withdrawable.',
         ];
+    }
+
+    /**
+     * @return array{fee: ?string, minimum: ?string, net: string}
+     */
+    private function feeBreakdown(string $amount): array
+    {
+        if (! $this->feePolicyApproved()) {
+            return ['fee' => null, 'minimum' => null, 'net' => $amount];
+        }
+        $settings = service('commissionWithdrawalSettingsService')->current();
+        $fee = MoneyMath::normalize((string) $settings['fee_usdt'], 8);
+        $min = MoneyMath::normalize((string) $settings['minimum_usdt'], 8);
+        $net = MoneyMath::sub($amount, $fee, 8);
+
+        return ['fee' => $fee, 'minimum' => $min, 'net' => $net];
+    }
+
+    private function assertAmountAgainstPolicy(string $amount): void
+    {
+        if (! $this->feePolicyApproved()) {
+            return;
+        }
+        $calc = $this->feeBreakdown($amount);
+        if ($calc['minimum'] !== null && MoneyMath::compare($amount, $calc['minimum'], 8) === -1) {
+            throw new InvalidArgumentException(
+                'Amount is below the approved minimum withdrawal of ' . $calc['minimum'] . ' USDT.'
+            );
+        }
+        if ($calc['fee'] !== null && MoneyMath::compare($calc['net'], '0', 8) !== 1) {
+            throw new InvalidArgumentException(
+                'Amount must exceed the approved withdrawal fee of ' . $calc['fee'] . ' USDT.'
+            );
+        }
     }
 
     /**
@@ -159,6 +317,7 @@ class CommissionWithdrawalService
         if (! MoneyMath::isPositive($amount, 8)) {
             throw new InvalidArgumentException('Withdrawal amount must be positive.');
         }
+        $this->assertAmountAgainstPolicy($amount);
 
         $currency = strtoupper(trim((string) ($data['currency'] ?? 'USDT')));
         if ($currency !== 'USDT') {
@@ -189,8 +348,23 @@ class CommissionWithdrawalService
             $idem = 'wd-draft:' . $memberUserId . ':' . bin2hex(random_bytes(8));
         }
 
-        $ref = 'CWD-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
-        $now = date('Y-m-d H:i:s');
+        // Idempotent resume: an existing draft with the same key is returned, never duplicated.
+        $existing = db_connect()->table('commission_withdrawal_requests')
+            ->where('idempotency_key', $idem)
+            ->get()
+            ->getRowArray();
+        if ($existing !== null) {
+            if ((int) $existing['member_user_id'] !== $memberUserId) {
+                throw new InvalidArgumentException('Duplicate withdrawal idempotency key.');
+            }
+
+            return $this->findByRef((string) $existing['withdrawal_ref']) ?? $existing;
+        }
+
+        $fees     = $this->feeBreakdown($amount);
+        $settings = service('commissionWithdrawalSettingsService')->current();
+        $ref      = 'CWD-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
+        $now      = date('Y-m-d H:i:s');
 
         try {
             db_connect()->table('commission_withdrawal_requests')->insert([
@@ -198,9 +372,9 @@ class CommissionWithdrawalService
                 'member_user_id'                  => $memberUserId,
                 'member_id'                       => $memberId,
                 'amount'                          => $amount,
-                'fee_amount'                      => null,
-                'net_amount'                      => $amount,
-                'fee_policy_status'               => 'pending_business_decision',
+                'fee_amount'                      => $fees['fee'],
+                'net_amount'                      => $fees['net'],
+                'fee_policy_status'               => (string) $settings['policy_status'],
                 'currency'                        => $currency,
                 'network'                         => $network,
                 'destination_address'             => $address,
@@ -234,11 +408,11 @@ class CommissionWithdrawalService
     }
 
     /**
-     * Submit + reserve — always blocked in Phase 11D after validation.
+     * Submit + reserve. Kill-switch, approved fee/minimum policy, and blockchain-auto-OFF are required.
      *
-     * @return never
+     * @return array<string, mixed>
      */
-    public function submit(string $withdrawalRef, int $memberUserId, string $password = ''): never
+    public function submit(string $withdrawalRef, int $memberUserId, string $password = ''): array
     {
         $this->assertNotImpersonation();
         $this->assertRateLimit($memberUserId);
@@ -259,19 +433,20 @@ class CommissionWithdrawalService
             throw new InvalidArgumentException('Password confirmation failed.');
         }
 
-        if (! $this->wallets->withdrawalEnabled()) {
+        try {
+            $this->assertExecutionAuthorized('submission');
+        } catch (RuntimeException $e) {
             $this->audit->log('commission.withdrawal_denied', $memberUserId, 'commission_withdrawal', $withdrawalRef, [
-                'reason' => 'kill_switch_off',
+                'reason'  => 'execution_not_authorized',
+                'message' => $e->getMessage(),
             ]);
-            throw new RuntimeException('Commission Withdrawals Not Activated. Submission is blocked server-side.');
+            throw $e;
         }
 
-        $this->audit->log('commission.withdrawal_denied', $memberUserId, 'commission_withdrawal', $withdrawalRef, [
-            'reason' => 'phase_11d_execution_not_authorized',
-        ]);
-        throw new RuntimeException(
-            'Executable withdrawal submission/reservation is not authorized in Phase 11D. Architecture is prepared; activation requires separate approval.'
-        );
+        $this->assertAmountAgainstPolicy((string) $row['amount']);
+        service('memberKycService')->assertApproved($memberUserId);
+
+        return $this->performSubmitWithReserve($withdrawalRef, $memberUserId);
     }
 
     /**
@@ -281,9 +456,8 @@ class CommissionWithdrawalService
      */
     public function performSubmitWithReserve(string $withdrawalRef, int $memberUserId): array
     {
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. Submission is blocked server-side.');
-        }
+        // perform* paths check emergency unlock only; public APIs also require Admin request activation.
+        $this->assertEmergencyUnlock('Submission');
 
         $db = db_connect();
         $db->transBegin();
@@ -353,18 +527,14 @@ class CommissionWithdrawalService
     }
 
     /**
-     * @return never
+     * @return array<string, mixed>
      */
-    public function approve(string $withdrawalRef, int $approverUserId, string $password = ''): never
+    public function approve(string $withdrawalRef, int $approverUserId, string $password = ''): array
     {
-        $this->assertAdminActor($approverUserId, $password);
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. Approval mutations are blocked.');
-        }
-        if ($this->wallets->blockchainPayoutEnabled()) {
-            throw new RuntimeException('Automatic blockchain payout must remain disabled. Manual payout architecture only.');
-        }
-        throw new RuntimeException('Executable withdrawal approval is not authorized in Phase 11D.');
+        $this->assertAdminActor($approverUserId, $password, 'commission.withdrawal.review');
+        $this->assertExecutionAuthorized('approval');
+
+        return $this->performApprove($withdrawalRef, $approverUserId);
     }
 
     /**
@@ -372,9 +542,7 @@ class CommissionWithdrawalService
      */
     public function performApprove(string $withdrawalRef, int $approverUserId): array
     {
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. Approval mutations are blocked.');
-        }
+        $this->assertEmergencyUnlock('Approval mutations');
 
         $row = $this->requireRow($withdrawalRef);
         $this->assertTransition((string) $row['status'], self::STATUS_APPROVED);
@@ -399,15 +567,14 @@ class CommissionWithdrawalService
     }
 
     /**
-     * @return never
+     * @return array<string, mixed>
      */
-    public function reject(string $withdrawalRef, int $approverUserId, string $reason, string $password = ''): never
+    public function reject(string $withdrawalRef, int $approverUserId, string $reason, string $password = ''): array
     {
-        $this->assertAdminActor($approverUserId, $password);
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. Rejection mutations that alter reserves are blocked.');
-        }
-        throw new RuntimeException('Executable withdrawal rejection is not authorized in Phase 11D.');
+        $this->assertAdminActor($approverUserId, $password, 'commission.withdrawal.review');
+        $this->assertExecutionAuthorized('rejection');
+
+        return $this->performRejectWithRelease($withdrawalRef, $approverUserId, $reason);
     }
 
     /**
@@ -415,9 +582,7 @@ class CommissionWithdrawalService
      */
     public function performRejectWithRelease(string $withdrawalRef, int $approverUserId, string $reason): array
     {
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. Rejection mutations that alter reserves are blocked.');
-        }
+        $this->assertEmergencyUnlock('Rejection mutations that alter reserves');
         $reason = trim($reason);
         if ($reason === '') {
             throw new InvalidArgumentException('Rejection reason is required.');
@@ -431,28 +596,23 @@ class CommissionWithdrawalService
      */
     public function performCancelWithRelease(string $withdrawalRef, int $actorUserId): array
     {
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. Cancellation mutations that alter reserves are blocked.');
-        }
+        $this->assertEmergencyUnlock('Cancellation mutations that alter reserves');
 
         return $this->performReleaseTerminal($withdrawalRef, $actorUserId, self::STATUS_CANCELLED, 'cancelled', 'cancelled');
     }
 
     /**
-     * Record manual payout TX evidence — blocked publicly in Phase 11D.
+     * Record manual payout TX evidence (does NOT mark PAID).
      *
-     * @return never
+     * @param array{tx_hash: string, paid_amount?: string, payment_timestamp?: string, network_key?: string} $data
+     * @return array<string, mixed>
      */
-    public function recordManualPayout(string $withdrawalRef, int $adminUserId, array $data, string $password = ''): never
+    public function recordManualPayout(string $withdrawalRef, int $adminUserId, array $data, string $password = ''): array
     {
-        $this->assertAdminActor($adminUserId, $password);
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. Manual payout recording is blocked.');
-        }
-        if ($this->wallets->blockchainPayoutEnabled()) {
-            throw new RuntimeException('Automatic blockchain payout remains disabled.');
-        }
-        throw new RuntimeException('Executable manual payout recording is not authorized in Phase 11D.');
+        $this->assertAdminActor($adminUserId, $password, 'commission.withdrawal.pay');
+        $this->assertExecutionAuthorized('manual payout recording');
+
+        return $this->performRecordManualPayout($withdrawalRef, $adminUserId, $data);
     }
 
     /**
@@ -463,9 +623,7 @@ class CommissionWithdrawalService
      */
     public function performRecordManualPayout(string $withdrawalRef, int $adminUserId, array $data): array
     {
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. Manual payout recording is blocked.');
-        }
+        $this->assertEmergencyUnlock('Manual payout recording');
         if ($this->wallets->blockchainPayoutEnabled()) {
             throw new RuntimeException('Automatic blockchain payout remains disabled.');
         }
@@ -554,15 +712,16 @@ class CommissionWithdrawalService
     }
 
     /**
-     * @return never
+     * Independent blockchain verification then single PAID settlement. Never marks paid on admin confirmation alone.
+     *
+     * @return array<string, mixed>
      */
-    public function verifyAndMarkPaid(string $withdrawalRef, int $adminUserId, string $password = ''): never
+    public function verifyAndMarkPaid(string $withdrawalRef, int $adminUserId, string $password = ''): array
     {
-        $this->assertAdminActor($adminUserId, $password);
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. PAID settlement is blocked.');
-        }
-        throw new RuntimeException('Executable payout verification/settlement is not authorized in Phase 11D.');
+        $this->assertAdminActor($adminUserId, $password, 'commission.withdrawal.pay');
+        $this->assertExecutionAuthorized('payout verification');
+
+        return $this->performVerifyAndMarkPaid($withdrawalRef, $adminUserId);
     }
 
     /**
@@ -572,9 +731,7 @@ class CommissionWithdrawalService
      */
     public function performVerifyAndMarkPaid(string $withdrawalRef, int $adminUserId): array
     {
-        if (! $this->wallets->withdrawalEnabled()) {
-            throw new RuntimeException('Withdrawals Not Activated. PAID settlement is blocked.');
-        }
+        $this->assertEmergencyUnlock('PAID settlement');
 
         $row = $this->requireRow($withdrawalRef);
         $this->assertTransition((string) $row['status'], self::STATUS_PAID);
@@ -744,10 +901,12 @@ class CommissionWithdrawalService
             $b->groupStart()->like('member_id', $q)->orLike('withdrawal_ref', $q)->groupEnd();
         }
         $rows = $b->limit(max(1, min(200, $limit)))->get()->getResultArray();
+        $kyc  = service('memberKycService');
         foreach ($rows as &$row) {
             $row['destination_masked'] = $this->maskAddress((string) $row['destination_address']);
             $profile = $this->profiles->findByMemberId((string) $row['member_id']);
             $row['member_name'] = $profile->member_name ?? '';
+            $row['kyc_status']  = $kyc->statusForMember((int) $row['member_user_id'])['status'];
         }
 
         return $rows;
@@ -894,6 +1053,20 @@ class CommissionWithdrawalService
         return $row;
     }
 
+    /**
+     * Emergency unlock only (Platform.commissionWithdrawalEnabled / sandbox).
+     * Does not grant Admin operational request activation.
+     */
+    private function assertEmergencyUnlock(string $action): void
+    {
+        $cfg = $this->config ?? config('Platform');
+        if (! (bool) $cfg->commissionWithdrawalEnabled
+            && ! service('financialSandboxService')->allows('commission_withdrawal')
+        ) {
+            throw new RuntimeException('Withdrawals Not Activated. ' . $action . ' is blocked server-side.');
+        }
+    }
+
     private function assertRegisteredWallet(object $profile, string $address): void
     {
         if ($address === '') {
@@ -925,15 +1098,15 @@ class CommissionWithdrawalService
         }
     }
 
-    private function assertAdminActor(int $adminUserId, string $password): void
+    private function assertAdminActor(int $adminUserId, string $password, string $permission = 'commission.withdrawal.review'): void
     {
         $this->assertNotImpersonation();
         $user = auth()->user();
         if ($user === null || (int) $user->id !== $adminUserId) {
             throw new InvalidArgumentException('Authenticated admin mismatch.');
         }
-        if (! $user->can('commission.withdrawal.review')) {
-            throw new InvalidArgumentException('Missing commission.withdrawal.review permission.');
+        if (! $user->can($permission)) {
+            throw new InvalidArgumentException('Missing ' . $permission . ' permission.');
         }
         if (! $this->verifyPassword($user, $password)) {
             throw new InvalidArgumentException('Password confirmation failed.');
@@ -960,11 +1133,17 @@ class CommissionWithdrawalService
         }
         try {
             $hash = (string) ($user->password_hash ?? '');
-            if ($hash === '') {
-                return false;
+            if ($hash !== '' && service('passwords')->verify($password, $hash)) {
+                return true;
             }
+            // Shield email_password identities store the hash in secret2/secret.
+            $identity = db_connect()->table('auth_identities')
+                ->where('user_id', (int) $user->id)
+                ->where('type', 'email_password')
+                ->get()->getRowArray();
+            $secret = (string) ($identity['secret2'] ?? $identity['secret'] ?? '');
 
-            return service('passwords')->verify($password, $hash);
+            return $secret !== '' && service('passwords')->verify($password, $secret);
         } catch (\Throwable) {
             return false;
         }

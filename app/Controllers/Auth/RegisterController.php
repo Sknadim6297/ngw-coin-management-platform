@@ -64,13 +64,18 @@ class RegisterController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Registration could not be completed. Please try again.');
         }
 
-        if (! $result['verification_email_sent']) {
-            return redirect()->to(site_url('resend-verification'))
-                ->with('verification_member_id', $result['member_id'])
-                ->with('error', 'Your account was created, but the verification email could not be sent. Request a new link before signing in. Your Member ID is ' . $result['member_id'] . '.');
+        if (! empty($result['email_verification_required'])) {
+            if (empty($result['verification_email_sent'])) {
+                return redirect()->to(site_url('resend-verification'))
+                    ->with('verification_member_id', $result['member_id'])
+                    ->with('error', 'Your account was created, but the verification email could not be sent. Request a new link before signing in. Your Member ID is ' . $result['member_id'] . '.');
+            }
+
+            return redirect()->to(site_url('login'))
+                ->with('success', 'Registration successful. Verify your email before signing in. Your Member ID is ' . $result['member_id'] . '. Your account remains inactive until the first approved coin purchase.');
         }
 
         return redirect()->to(site_url('login'))
-            ->with('success', 'Registration successful. Verify your email before signing in. Your Member ID is ' . $result['member_id'] . '. Your account remains inactive until the first approved coin purchase.');
+            ->with('success', 'Registration successful. Your Member ID is ' . $result['member_id'] . '. You can sign in now. Business activation still requires the first approved coin purchase.');
     }
 }

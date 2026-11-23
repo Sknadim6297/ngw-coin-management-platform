@@ -33,9 +33,11 @@
             <div class="mt-4 small">
                 Already new here? <a href="<?= site_url('register') ?>">Create account</a>
             </div>
+            <?php if (! empty(config('Platform')->registrationEmailVerificationRequired)): ?>
             <div class="mt-2 small">
                 <a href="<?= site_url('resend-verification') ?>">Resend email verification</a>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

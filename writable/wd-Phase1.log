@@ -1,0 +1,115 @@
+PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+
+..........EEE....EE.E.........E..............                     45 / 45 (100%)
+
+Time: 11:05.764, Memory: 32.00 MB
+
+Phase11DCommission Withdrawal (Tests\Feature\Phase11DCommissionWithdrawal)
+ ✔ Only posted commission is withdrawable
+ ✔ Unposted calculation excluded
+ ✔ Mining wallet excluded
+ ✔ Coin wallet excluded
+ ✔ Invalid wallet address rejected
+ ✔ Unverified destination rejected
+ ✔ Insufficient balance rejected
+ ✔ Duplicate request prevention
+ ✔ Concurrent reservation safety
+ ✔ Invalid status transitions rejected
+ ✘ Rejected request releases reservation once
+   │
+   │ RuntimeException: Withdrawals are disabled (kill-switch). No reservation performed.
+   │
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWalletService.php:215
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWithdrawalService.php:493
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase11DCommissionWithdrawalTest.php:318
+   │
+ ✘ Cancelled request releases reservation once
+   │
+   │ RuntimeException: Withdrawals are disabled (kill-switch). No reservation performed.
+   │
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWalletService.php:215
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWithdrawalService.php:493
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase11DCommissionWithdrawalTest.php:347
+   │
+ ✘ Duplicate payout tx rejected
+   │
+   │ RuntimeException: Withdrawals are disabled (kill-switch). No reservation performed.
+   │
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWalletService.php:215
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWithdrawalService.php:493
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase11DCommissionWithdrawalTest.php:370
+   │
+ ✔ Wrong network rejected
+ ✔ Wrong token rejected
+ ✔ Wrong destination rejected
+ ✔ Failed blockchain transaction rejected
+ ✘ Paid requires verified evidence
+   │
+   │ RuntimeException: Withdrawals are disabled (kill-switch). No reservation performed.
+   │
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWalletService.php:215
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWithdrawalService.php:493
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase11DCommissionWithdrawalTest.php:446
+   │
+ ✘ Settlement occurs exactly once
+   │
+   │ RuntimeException: Withdrawals are disabled (kill-switch). No reservation performed.
+   │
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWalletService.php:215
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWithdrawalService.php:493
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase11DCommissionWithdrawalTest.php:468
+   │
+ ✔ Disabled withdrawals block execution
+ ✘ Disabled blockchain payout blocks execution
+   │
+   │ RuntimeException: Withdrawals are disabled (kill-switch). No reservation performed.
+   │
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWalletService.php:215
+   │ C:\xampp\htdocs\coin-platform\app\Services\CommissionWithdrawalService.php:493
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase11DCommissionWithdrawalTest.php:528
+   │
+ ✔ Admin impersonation blocked
+ ✔ Member ownership scoping
+ ✔ Ledger reconciliation
+ ✔ Existing controls remain off
+ ✔ Member page shows disabled state
+ ✔ Kill switch on without fee policy still blocks execution
+ ✔ Incorrect password is rejected
+ ✔ Minimum withdrawal validation
+ ✔ Authorized submit reserves and returns pending review
+ ✘ Authorized http submit shows pending success not paid
+   │
+   │ CodeIgniter\Shield\Exceptions\LogicException: The user has User Info in Session, so already logged in or in pending login state. If a logged in user logs in again with other account, the session data of the previous user will be used as the new user. Fix your code to prevent users from logging in without logging out or delete the session data. user_id: 2
+   │
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\shield\src\Authentication\Authenticators\Session.php:708
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\shield\src\Authentication\Authenticators\Session.php:813
+   │ C:\xampp\htdocs\coin-platform\vendor\codeigniter4\shield\src\Auth.php:202
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase11DCommissionWithdrawalTest.php:149
+   │ C:\xampp\htdocs\coin-platform\tests\feature\Phase11DCommissionWithdrawalTest.php:755
+   │
+ ✔ Admin reject releases reservation via public api
+
+Phase1Admin Withdrawal Settings And Kyc (Tests\Feature\Phase1AdminWithdrawalSettingsAndKyc)
+ ✔ Settings start pending without invented defaults
+ ✔ Admin can change minimum and fee
+ ✔ Cannot activate requests without emergency unlock
+ ✔ Cannot activate with invalid policy
+ ✔ Disabled settings block submission
+ ✔ Missing kyc blocks submission
+ ✔ Member cannot self approve kyc
+ ✔ Invalid bep 20 wallet blocks draft
+ ✔ Valid request with fee preview and reserve
+ ✔ Duplicate idempotency returns same draft
+ ✔ Admin approve and reject release
+ ✔ Member cannot access admin withdrawal settings
+ ✔ Kyc reject blocks withdrawal
+
+There was 1 PHPUnit test runner warning:
+
+1) No code coverage driver available
+
+ERRORS!
+Tests: 45, Assertions: 110, Errors: 7, PHPUnit Warnings: 1.

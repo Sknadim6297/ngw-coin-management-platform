@@ -24,9 +24,12 @@ class MemberFilter implements FilterInterface
 
         if ((int) $user->active !== 1) {
             auth()->logout();
+            $needsEmail = (bool) config('Platform')->registrationEmailVerificationRequired;
+            $message    = $needsEmail
+                ? 'Email verification is required. Verify your email or request a new link before continuing.'
+                : 'This account is not allowed to sign in. Please contact support.';
 
-            return redirect()->to(site_url('login'))
-                ->with('error', 'Email verification is required. Verify your email or request a new link before continuing.');
+            return redirect()->to(site_url('login'))->with('error', $message);
         }
 
         return null;

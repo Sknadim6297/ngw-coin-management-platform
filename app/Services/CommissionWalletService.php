@@ -158,12 +158,32 @@ class CommissionWalletService
             || service('financialSandboxService')->allows('commission_posting');
     }
 
+    /**
+     * Deployer emergency unlock only (Platform / .env / sandbox).
+     * Admin request activation is a separate operational gate on the public withdrawal API.
+     */
+    public function emergencyUnlockActive(): bool
+    {
+        if (service('financialSandboxService')->allows('commission_withdrawal')) {
+            return true;
+        }
+
+        return (bool) ($this->config ?? config('Platform'))->commissionWithdrawalEnabled;
+    }
+
     public function withdrawalEnabled(): bool
     {
-        $cfg = $this->config ?? config('Platform');
+        // Emergency unlock (deployer / .env) AND Admin operational enable (DB settings).
+        // Admin UI cannot override a false emergency unlock.
+        if (! $this->emergencyUnlockActive()) {
+            return false;
+        }
 
-        return (bool) $cfg->commissionWithdrawalEnabled
-            || service('financialSandboxService')->allows('commission_withdrawal');
+        try {
+            return service('commissionWithdrawalSettingsService')->requestsEnabled();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function blockchainPayoutEnabled(): bool
@@ -199,7 +219,7 @@ class CommissionWalletService
      */
     public function reserveForWithdrawal(int $memberUserId, string $memberId, array $data): array
     {
-        if (! $this->withdrawalEnabled()) {
+        if (! $this->emergencyUnlockActive()) {
             throw new RuntimeException('Withdrawals are disabled (kill-switch). No reservation performed.');
         }
 
@@ -212,7 +232,7 @@ class CommissionWalletService
      */
     public function releaseForWithdrawal(int $memberUserId, string $memberId, array $data): array
     {
-        if (! $this->withdrawalEnabled()) {
+        if (! $this->emergencyUnlockActive()) {
             throw new RuntimeException('Withdrawals are disabled (kill-switch). No reservation release performed.');
         }
 
@@ -227,7 +247,7 @@ class CommissionWalletService
      */
     public function settleWithdrawal(int $memberUserId, string $memberId, array $data): array
     {
-        if (! $this->withdrawalEnabled()) {
+        if (! $this->emergencyUnlockActive()) {
             throw new RuntimeException('Withdrawals are disabled (kill-switch). No settlement performed.');
         }
 

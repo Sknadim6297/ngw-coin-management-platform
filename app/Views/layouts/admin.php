@@ -39,7 +39,7 @@ $isCommissions = $is('admin/commissions')
     || $is('admin/commission-postings')
     || $is('admin/referrals')
     || $uri === 'admin/genealogy';
-$isWallets = $is('admin/wallets') || $is('admin/withdrawals');
+$isWallets = $is('admin/wallets') || $is('admin/withdrawals') || $is('admin/withdrawal-settings') || $is('admin/kyc');
 ?>
 <div class="app-shell" data-app-shell>
     <aside class="sidebar">

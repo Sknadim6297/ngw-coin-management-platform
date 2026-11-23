@@ -103,6 +103,9 @@ $sv = $supportViewContext ?? null;
         <a class="side-link <?= $is('member/withdrawals') ? 'active' : '' ?>" href="<?= site_url('member/withdrawals') ?>">
             <i class="bi bi-cash-coin"></i><span class="nav-label">Withdrawals</span>
         </a>
+        <a class="side-link <?= $is('member/kyc') ? 'active' : '' ?>" href="<?= site_url('member/kyc') ?>">
+            <i class="bi bi-person-vcard"></i><span class="nav-label">KYC</span>
+        </a>
         <?php endif; ?>
 
         <div class="nav-section-title">Help</div>

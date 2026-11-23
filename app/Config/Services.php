@@ -52,6 +52,8 @@ use App\Services\PurchaseSponsorSnapshotService;
 use App\Services\CommissionWalletService;
 use App\Services\CommissionPostingProposalService;
 use App\Services\CommissionWithdrawalService;
+use App\Services\CommissionWithdrawalSettingsService;
+use App\Services\MemberKycService;
 use App\Services\CommissionWalletReconciliationService;
 use App\Services\MemberActivationService;
 use App\Services\MemberProfileService;
@@ -716,6 +718,24 @@ class Services extends BaseService
         }
 
         return new CommissionWithdrawalService();
+    }
+
+    public static function commissionWithdrawalSettingsService(bool $getShared = true): CommissionWithdrawalSettingsService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('commissionWithdrawalSettingsService');
+        }
+
+        return new CommissionWithdrawalSettingsService();
+    }
+
+    public static function memberKycService(bool $getShared = true): MemberKycService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('memberKycService');
+        }
+
+        return new MemberKycService();
     }
 
     public static function commissionWalletReconciliationService(bool $getShared = true): CommissionWalletReconciliationService
