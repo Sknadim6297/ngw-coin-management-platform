@@ -78,7 +78,10 @@ $prUnit = is_array($principalRelease) ? (string) ($principalRelease['unit_label'
         <a class="btn btn-sm btn-outline-gold" href="<?= site_url('member/principal-release') ?>">Open Principal Release</a>
     </div>
     <?php if (empty($principalRelease['posting_enabled'])): ?>
-        <div class="small text-secondary mb-2">Schedule preview only · posting OFF · amounts in <?= esc($prUnit) ?></div>
+        <div class="alert alert-warning py-2 mb-3" role="alert">
+            <strong>Schedule Preview — No Coins Released</strong>
+            · amounts in <?= esc($prUnit) ?> · posting OFF
+        </div>
     <?php endif; ?>
     <div class="row g-3">
         <div class="col-6 col-md">
@@ -86,20 +89,24 @@ $prUnit = is_array($principalRelease) ? (string) ($principalRelease['unit_label'
             <strong><?= esc((string) ($principalRelease['original_principal'] ?? '0.00000000')) ?></strong>
         </div>
         <div class="col-6 col-md">
-            <div class="text-secondary small">Today's Release</div>
+            <div class="text-secondary small"><?= esc((string) ($principalRelease['today_principal_release_label'] ?? "Today's Scheduled Release")) ?></div>
             <strong><?= esc((string) ($principalRelease['today_principal_release'] ?? '0.00000000')) ?></strong>
         </div>
         <div class="col-6 col-md">
-            <div class="text-secondary small">Total Released</div>
-            <strong><?= esc((string) ($principalRelease['total_released_principal'] ?? '0.00000000')) ?></strong>
+            <div class="text-secondary small"><?= esc((string) ($principalRelease['total_released_label'] ?? 'Total Scheduled Release')) ?></div>
+            <strong><?= esc((string) ($principalRelease['total_scheduled_release'] ?? $principalRelease['total_released_principal'] ?? '0.00000000')) ?></strong>
         </div>
         <div class="col-6 col-md">
-            <div class="text-secondary small">Remaining Locked</div>
+            <div class="text-secondary small"><?= esc((string) ($principalRelease['remaining_locked_label'] ?? 'Projected Remaining Principal')) ?></div>
             <strong><?= esc((string) ($principalRelease['remaining_locked_principal'] ?? '0.00000000')) ?></strong>
         </div>
         <div class="col-6 col-md">
-            <div class="text-secondary small">Available P2P Principal</div>
-            <strong><?= esc((string) ($principalRelease['available_p2p_principal'] ?? '0.00000000')) ?></strong>
+            <div class="text-secondary small">P2P Principal Available</div>
+            <?php if (($principalRelease['p2p_principal_status'] ?? 'not_enabled') === 'enabled' && ($principalRelease['available_p2p_principal'] ?? null) !== null): ?>
+                <strong><?= esc((string) $principalRelease['available_p2p_principal']) ?></strong>
+            <?php else: ?>
+                <strong class="text-secondary"><?= esc((string) ($principalRelease['p2p_principal_message'] ?? 'Not enabled')) ?></strong>
+            <?php endif; ?>
         </div>
     </div>
 </div>

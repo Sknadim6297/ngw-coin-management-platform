@@ -78,36 +78,46 @@ class PrincipalDailyReleaseService
 
         $posted = $this->postedTotals($memberUserId);
         $balances = $this->ownership->summaryForUser($memberUserId);
+        $postingOn = $this->postingEnabled();
+        $sellingOn = (bool) (($this->config ?? config('Platform'))->coinSellingEnabled);
+
+        // P2P principal is only meaningful when daily release posting AND selling are authorized.
+        // Never fabricate a sellable balance from schedule-only math.
+        $p2pEnabled = $postingOn && $sellingOn;
+        $p2pAmount  = $p2pEnabled ? $posted['released_quantity'] : null;
 
         return [
-            'asset_code'                      => 'COIN',
-            'unit_label'                      => 'COIN',
-            'posting_enabled'                 => $this->postingEnabled(),
-            'mode'                            => $this->postingEnabled() ? 'posted_and_schedule' : 'schedule_preview_only',
-            'rate'                            => $rate,
-            'max_days'                        => $maxDays,
-            'release_start_policy'            => self::RELEASE_START_POLICY,
-            'timezone'                        => $tz,
-            'business_date_today'             => $today,
-            'original_principal'              => $original,
-            'today_principal_release'         => $todayRelease,
+            'asset_code'                         => 'COIN',
+            'unit_label'                         => 'COIN',
+            'posting_enabled'                    => $postingOn,
+            'mode'                               => $postingOn ? 'posted_and_schedule' : 'schedule_preview_only',
+            'rate'                               => $rate,
+            'max_days'                           => $maxDays,
+            'release_start_policy'               => self::RELEASE_START_POLICY,
+            'timezone'                           => $tz,
+            'business_date_today'                => $today,
+            'original_principal'                 => $original,
+            'today_principal_release'            => $todayRelease,
+            'today_principal_release_label'      => $postingOn ? "Today's Principal Release" : "Today's Scheduled Release",
             'total_released_principal_scheduled' => $scheduledCumulative,
-            'total_released_principal_posted' => $posted['released_quantity'],
-            // Prefer posted when posting is on; otherwise schedule preview.
-            'total_released_principal'        => $this->postingEnabled()
-                ? $posted['released_quantity']
-                : $scheduledCumulative,
-            'remaining_locked_principal'      => $this->postingEnabled()
+            'total_released_principal_posted'    => $posted['released_quantity'],
+            'total_scheduled_release'            => $scheduledCumulative,
+            'total_released_principal'           => $postingOn ? $posted['released_quantity'] : $scheduledCumulative,
+            'total_released_label'               => $postingOn ? 'Total Released Principal' : 'Total Scheduled Release',
+            'remaining_locked_principal'         => $postingOn
                 ? MoneyMath::sub($original, $posted['released_quantity'], $scale)
                 : $remainingScheduled,
-            'available_p2p_principal'         => $this->postingEnabled()
-                ? $posted['released_quantity']
-                : $scheduledCumulative,
-            'ownership_available_balance'     => MoneyMath::normalize((string) ($balances['available'] ?? '0'), $scale),
-            'ownership_locked_balance'        => MoneyMath::normalize((string) ($balances['locked'] ?? '0'), $scale),
-            'lock_count'                      => count($lockRows),
-            'notes'                           => [
-                'Daily release posting is OFF until Platform.principalDailyReleasePostingEnabled is authorized.',
+            'remaining_locked_label'             => $postingOn ? 'Remaining Locked Principal' : 'Projected Remaining Principal',
+            'available_p2p_principal'            => $p2pAmount,
+            'p2p_principal_status'               => $p2pEnabled ? 'enabled' : 'not_enabled',
+            'p2p_principal_message'              => $p2pEnabled
+                ? null
+                : 'P2P Principal Available: Not enabled',
+            'ownership_available_balance'        => MoneyMath::normalize((string) ($balances['available'] ?? '0'), $scale),
+            'ownership_locked_balance'           => MoneyMath::normalize((string) ($balances['locked'] ?? '0'), $scale),
+            'lock_count'                         => count($lockRows),
+            'notes'                              => [
+                'Schedule Preview — No Coins Released while principalDailyReleasePostingEnabled is false.',
                 'Schedule uses original lock quantity × 0.001 per day; never remaining principal.',
                 'Existing locks remain cliff 1000-day until daily posting architecture is activated.',
                 'Values are COIN principal, not commission USDT and not mining rewards.',

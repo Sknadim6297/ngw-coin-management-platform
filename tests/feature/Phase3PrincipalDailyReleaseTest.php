@@ -146,6 +146,11 @@ final class Phase3PrincipalDailyReleaseTest extends CIUnitTestCase
         $this->assertSame($expectedOriginal, $summary['original_principal']);
         $this->assertFalse($summary['posting_enabled']);
         $this->assertSame('schedule_preview_only', $summary['mode']);
+        $this->assertSame('Total Scheduled Release', $summary['total_released_label']);
+        $this->assertSame('Projected Remaining Principal', $summary['remaining_locked_label']);
+        $this->assertSame('not_enabled', $summary['p2p_principal_status']);
+        $this->assertNull($summary['available_p2p_principal']);
+        $this->assertStringContainsString('Not enabled', (string) $summary['p2p_principal_message']);
     }
 
     public function testPrecisionEightDecimals(): void

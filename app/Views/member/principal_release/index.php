@@ -6,6 +6,7 @@ $history = $history ?? ['rows' => [], 'pager' => null];
 $filters = $filters ?? [];
 $unit    = (string) ($summary['unit_label'] ?? 'COIN');
 $posting = ! empty($summary['posting_enabled']);
+$p2pOk   = ($summary['p2p_principal_status'] ?? 'not_enabled') === 'enabled';
 ?>
 <p class="page-subtitle">
     Daily Principal Release schedule: <strong>0.1%</strong> of each purchase’s <strong>original</strong> locked principal per day (max 1000 days).
@@ -14,46 +15,57 @@ $posting = ! empty($summary['posting_enabled']);
 </p>
 
 <?php if (! $posting): ?>
-    <div class="alert alert-warning">
-        <strong>Schedule preview only</strong> — daily principal release posting is OFF
-        (<code>principalDailyReleasePostingEnabled=false</code>).
-        No ownership ledger unlocks are created by this page. Existing locks remain the cliff 1000-day model until posting is separately authorized.
+    <div class="alert alert-warning mb-3" role="alert">
+        <strong>Schedule Preview — No Coins Released</strong>
+        <div class="mt-1">
+            Daily principal release posting is OFF. Figures below are projections only.
+            No ownership-ledger unlocks have occurred. Coins are not sellable from this schedule.
+        </div>
     </div>
 <?php endif; ?>
-
-<?= view('components/kpi_grid', ['kpis' => $kpis]) ?>
 
 <div class="row g-3 my-3">
     <div class="col-md-4">
         <div class="card-premium h-100">
             <h2 class="h6">Original Principal</h2>
             <div class="h4 mb-0"><?= esc((string) ($summary['original_principal'] ?? '0.00000000')) ?> <?= esc($unit) ?></div>
+            <div class="small text-secondary">From mandatory purchase locks (ledger)</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card-premium h-100">
-            <h2 class="h6">Today's Principal Release</h2>
+            <h2 class="h6"><?= esc((string) ($summary['today_principal_release_label'] ?? "Today's Scheduled Release")) ?></h2>
             <div class="h4 mb-0"><?= esc((string) ($summary['today_principal_release'] ?? '0.00000000')) ?> <?= esc($unit) ?></div>
             <div class="small text-secondary">Business date <?= esc((string) ($summary['business_date_today'] ?? '')) ?></div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card-premium h-100">
-            <h2 class="h6">Total Released Principal</h2>
-            <div class="h4 mb-0"><?= esc((string) ($summary['total_released_principal'] ?? '0.00000000')) ?> <?= esc($unit) ?></div>
+            <h2 class="h6"><?= esc((string) ($summary['total_released_label'] ?? 'Total Scheduled Release')) ?></h2>
+            <div class="h4 mb-0"><?= esc((string) ($summary['total_scheduled_release'] ?? $summary['total_released_principal'] ?? '0.00000000')) ?> <?= esc($unit) ?></div>
+            <?php if (! $posting): ?>
+                <div class="small text-secondary">Projected cumulative — not posted</div>
+            <?php endif; ?>
         </div>
     </div>
     <div class="col-md-6">
         <div class="card-premium h-100">
-            <h2 class="h6">Remaining Locked Principal</h2>
+            <h2 class="h6"><?= esc((string) ($summary['remaining_locked_label'] ?? 'Projected Remaining Principal')) ?></h2>
             <div class="h4 mb-0"><?= esc((string) ($summary['remaining_locked_principal'] ?? '0.00000000')) ?> <?= esc($unit) ?></div>
+            <div class="small text-secondary">
+                Ownership locked balance (ledger): <?= esc((string) ($summary['ownership_locked_balance'] ?? '0.00000000')) ?> <?= esc($unit) ?>
+            </div>
         </div>
     </div>
     <div class="col-md-6">
         <div class="card-premium h-100">
-            <h2 class="h6">Available P2P Principal</h2>
-            <div class="h4 mb-0"><?= esc((string) ($summary['available_p2p_principal'] ?? '0.00000000')) ?> <?= esc($unit) ?></div>
-            <div class="small text-secondary">Scheduled eligible principal only — coin selling / P2P flags remain OFF.</div>
+            <h2 class="h6">P2P Principal Available</h2>
+            <?php if ($p2pOk && $summary['available_p2p_principal'] !== null): ?>
+                <div class="h4 mb-0"><?= esc((string) $summary['available_p2p_principal']) ?> <?= esc($unit) ?></div>
+            <?php else: ?>
+                <div class="h5 mb-0 text-secondary"><?= esc((string) ($summary['p2p_principal_message'] ?? 'P2P Principal Available: Not enabled')) ?></div>
+                <div class="small text-secondary mt-1">No sellable principal is implied by the schedule preview.</div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -89,6 +101,9 @@ $posting = ! empty($summary['posting_enabled']);
 
 <div class="card-premium">
     <h2 class="h5 mb-3">Principal Release History</h2>
+    <?php if (! $posting): ?>
+        <div class="small text-secondary mb-2">History rows are schedule projections (<code>scheduled_not_posted</code>). They are not ownership unlocks.</div>
+    <?php endif; ?>
     <?php if (! empty($history['notes'])): ?>
         <div class="small text-secondary mb-2"><?= esc((string) $history['notes']) ?></div>
     <?php endif; ?>
@@ -99,9 +114,9 @@ $posting = ! empty($summary['posting_enabled']);
                 <th>Purchase ref</th>
                 <th>Original locked</th>
                 <th>Release date</th>
-                <th>Released qty</th>
-                <th>Cumulative released</th>
-                <th>Remaining locked</th>
+                <th><?= $posting ? 'Released qty' : 'Scheduled qty' ?></th>
+                <th><?= $posting ? 'Cumulative released' : 'Cumulative scheduled' ?></th>
+                <th><?= $posting ? 'Remaining locked' : 'Projected remaining' ?></th>
                 <th>Status</th>
             </tr>
             </thead>
