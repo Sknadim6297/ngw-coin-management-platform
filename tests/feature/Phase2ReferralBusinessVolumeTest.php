@@ -76,10 +76,35 @@ final class Phase2ReferralBusinessVolumeTest extends CIUnitTestCase
     }
 
     /**
+     * New members start inactive until first approved purchase. SponsorValidator
+     * blocks inactive non-root sponsors — activate via fixture (no purchase) so
+     * chained registrations stay valid without polluting BV assertions.
+     */
+    private function ensureSponsorCanRecruit(string $sponsorMemberId): void
+    {
+        if (strcasecmp($sponsorMemberId, 'ROOT0001') === 0) {
+            return;
+        }
+
+        $profile = model(MemberProfileModel::class)->findByMemberId($sponsorMemberId);
+        if ($profile === null || ! $profile->isInactive()) {
+            return;
+        }
+
+        db_connect()->table('member_profiles')->where('member_id', $sponsorMemberId)->update([
+            'account_status' => 'active',
+            'activated_at'   => date('Y-m-d H:i:s'),
+            'updated_at'     => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    /**
      * @return array{user_id: int, member_id: string, password: string}
      */
     private function registerUnder(string $sponsorMemberId, string $suffix): array
     {
+        $this->ensureSponsorCanRecruit($sponsorMemberId);
+
         $digits = preg_replace('/\D/', '', (string) crc32($suffix) . (string) abs(crc32('p2' . $suffix)));
         $hex    = str_pad(substr(hash('sha256', 'p2-' . $suffix), 0, 40), 40, '0');
         $result = service('registrationService')->register([

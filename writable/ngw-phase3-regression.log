@@ -1,0 +1,54 @@
+[2026-11-23 12:23:16] START root=C:\xampp\htdocs\coin-platform
+[2026-11-23 12:23:16] Database.php snippets captured for audit
+[2026-11-23 12:23:16] ===== RUN Phase3 filter=Phase3PrincipalDailyReleaseTest =====
+[2026-11-23 12:25:56] PHPUnit 10.5.66 by Sebastian Bergmann and contributors.
+[2026-11-23 12:25:57] 
+[2026-11-23 12:25:57] Runtime:       PHP 8.2.12
+[2026-11-23 12:25:57] Configuration: C:\xampp\htdocs\coin-platform\phpunit.dist.xml
+[2026-11-23 12:25:57] 
+[2026-11-23 12:25:57] ..........                                                        10 / 10 (100%)
+[2026-11-23 12:25:57] 
+[2026-11-23 12:25:57] Time: 02:39.170, Memory: 30.00 MB
+[2026-11-23 12:25:57] 
+[2026-11-23 12:25:57] Phase3Principal Daily Release (Tests\Feature\Phase3PrincipalDailyRelease)
+[2026-11-23 12:25:57]  ? Daily point one percent of original
+[2026-11-23 12:25:57]  ? Uses original not remaining
+[2026-11-23 12:25:57]  ? Thousand day cap and remainder
+[2026-11-23 12:25:57]  ? Multiple purchases independent
+[2026-11-23 12:25:57]  ? Precision eight decimals
+[2026-11-23 12:25:57]  ? Member isolation
+[2026-11-23 12:25:57]  ? No ledger mutation and flags unchanged
+[2026-11-23 12:25:57]  ? History date filter and status preview
+[2026-11-23 12:25:57]  ? Page requires auth
+[2026-11-23 12:25:57]  ? Business volume unaffected
+[2026-11-23 12:25:57] 
+[2026-11-23 12:25:57] OK (10 tests, 36 assertions)
+[2026-11-23 12:25:57] ===== END Phase3 exit=0 =====
+[2026-11-23 12:25:57] ===== RUN Phase2 filter=Phase2ReferralBusinessVolumeTest =====
+[2026-11-23 12:29:54]    ¦ C:\xampp\htdocs\coin-platform\app\Services\RegistrationService.php:58
+[2026-11-23 12:29:54]    ¦ C:\xampp\htdocs\coin-platform\tests\feature\Phase2ReferralBusinessVolumeTest.php:85
+[2026-11-23 12:29:54]    ¦ C:\xampp\htdocs\coin-platform\tests\feature\Phase2ReferralBusinessVolumeTest.php:285
+[2026-11-23 12:29:54]    ¦
+[2026-11-23 12:29:55]  ? Cross member isolation and unauthorized detail
+[2026-11-23 12:29:55]    ¦
+[2026-11-23 12:29:55]    ¦ InvalidArgumentException: Inactive members cannot sponsor registrations.
+[2026-11-23 12:29:55]    ¦
+[2026-11-23 12:29:55]    ¦ C:\xampp\htdocs\coin-platform\app\Services\RegistrationService.php:58
+[2026-11-23 12:29:55]    ¦ C:\xampp\htdocs\coin-platform\tests\feature\Phase2ReferralBusinessVolumeTest.php:85
+[2026-11-23 12:29:55]    ¦ C:\xampp\htdocs\coin-platform\tests\feature\Phase2ReferralBusinessVolumeTest.php:307
+[2026-11-23 12:29:55]    ¦
+[2026-11-23 12:29:55]  ? No commission posting or ledger mutation
+[2026-11-23 12:29:55]    ¦
+[2026-11-23 12:29:55]    ¦ InvalidArgumentException: Inactive members cannot sponsor registrations.
+[2026-11-23 12:29:55]    ¦
+[2026-11-23 12:29:55]    ¦ C:\xampp\htdocs\coin-platform\app\Services\RegistrationService.php:58
+[2026-11-23 12:29:55]    ¦ C:\xampp\htdocs\coin-platform\tests\feature\Phase2ReferralBusinessVolumeTest.php:85
+[2026-11-23 12:29:55]    ¦ C:\xampp\htdocs\coin-platform\tests\feature\Phase2ReferralBusinessVolumeTest.php:318
+[2026-11-23 12:29:55]    ¦
+[2026-11-23 12:29:55]  ? Business page requires auth and escapes
+[2026-11-23 12:29:55]  ? Invalid level rejected
+[2026-11-23 12:29:55] 
+[2026-11-23 12:29:55] ERRORS!
+[2026-11-23 12:29:55] Tests: 14, Assertions: 9, Errors: 11.
+[2026-11-23 12:29:55] ===== END Phase2 exit=2 =====
+[2026-11-23 12:29:55] ===== RUN Phase11D filter=Phase11DCommissionWithdrawalTest =====
