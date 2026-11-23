@@ -36,7 +36,6 @@
             <th>Fee</th>
             <th>Net</th>
             <th>BEP20</th>
-            <th>KYC</th>
             <th>Requested</th>
             <th>Status</th>
             <th></th>
@@ -44,7 +43,7 @@
         </thead>
         <tbody>
         <?php if (empty($rows)): ?>
-            <tr><td colspan="10" class="text-secondary">No withdrawal requests.</td></tr>
+            <tr><td colspan="9" class="text-secondary">No withdrawal requests.</td></tr>
         <?php else: foreach ($rows as $row): ?>
             <tr>
                 <td><code><?= esc($row['withdrawal_ref']) ?></code></td>
@@ -53,7 +52,6 @@
                 <td><?= esc((string) ($row['fee_amount'] ?? '—')) ?></td>
                 <td><?= esc((string) ($row['net_amount'] ?? '—')) ?></td>
                 <td><code><?= esc($row['destination_masked'] ?? '') ?></code></td>
-                <td><?= esc((string) ($row['kyc_status'] ?? '—')) ?></td>
                 <td><?= esc($row['requested_at'] ?? $row['created_at'] ?? '') ?></td>
                 <td><?= esc($row['status']) ?></td>
                 <td><a class="btn btn-outline-gold btn-sm" href="<?= site_url('admin/withdrawals/' . rawurlencode($row['withdrawal_ref'])) ?>">View</a></td>

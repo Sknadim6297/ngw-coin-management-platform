@@ -278,10 +278,6 @@ $routes->group('admin', ['filter' => 'admin'], static function (RouteCollection 
     $routes->get('withdrawals', 'Admin\WithdrawalController::index');
     $routes->get('withdrawal-settings', 'Admin\WithdrawalSettingsController::index');
     $routes->post('withdrawal-settings', 'Admin\WithdrawalSettingsController::update');
-    $routes->get('kyc', 'Admin\KycController::index');
-    $routes->get('kyc/(:num)', 'Admin\KycController::show/$1');
-    $routes->post('kyc/(:num)/approve', 'Admin\KycController::approve/$1');
-    $routes->post('kyc/(:num)/reject', 'Admin\KycController::reject/$1');
     $routes->get('withdrawals/(:segment)', 'Admin\WithdrawalController::show/$1');
     $routes->post('withdrawals/(:segment)/approve', 'Admin\WithdrawalController::approve/$1');
     $routes->post('withdrawals/(:segment)/reject', 'Admin\WithdrawalController::reject/$1');
@@ -409,8 +405,6 @@ $routes->group('member', ['filter' => 'member'], static function (RouteCollectio
 
     // Phase 7D/11D/Phase1 commission wallet & withdrawals (activation OFF until Admin + deployer gates)
     $routes->get('commission-wallet', 'Member\CommissionWalletController::index');
-    $routes->get('kyc', 'Member\KycController::index');
-    $routes->post('kyc', 'Member\KycController::submit');
     $routes->get('withdrawals', 'Member\WithdrawalController::index');
     $routes->get('withdrawals/create', 'Member\WithdrawalController::create');
     $routes->post('withdrawals/preview', 'Member\WithdrawalController::preview');

@@ -73,7 +73,6 @@ class WithdrawalController extends BaseController
         $reconcile  = service('commissionWithdrawalReconciliationService')->run(50);
         $status     = service('commissionWithdrawalService')->status();
         $authorized = (bool) $status['execution_authorized'];
-        $kyc        = service('memberKycService')->statusForMember((int) $row['member_user_id']);
 
         return view('admin/withdrawals/show', [
             'title'       => 'Withdrawal Detail',
@@ -86,7 +85,6 @@ class WithdrawalController extends BaseController
             'canPay'      => $this->can('commission.withdrawal.pay'),
             'enabled'     => (bool) $status['withdrawal_enabled'],
             'reconcile'   => $reconcile,
-            'kycStatus'   => (string) ($kyc['status'] ?? 'none'),
         ]);
     }
 

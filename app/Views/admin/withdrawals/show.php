@@ -21,7 +21,7 @@ $rowStatus  = (string) ($row['status'] ?? '');
 <div class="card-premium mb-3">
     <h2 class="h5"><code><?= esc($row['withdrawal_ref']) ?></code> <span class="badge bg-secondary"><?= esc($row['status']) ?></span></h2>
     <div>Member <?= esc($row['member_id']) ?> · <?= esc($row['amount']) ?> <?= esc($row['currency']) ?> · <?= esc($row['network']) ?></div>
-    <div class="mt-1">Fee <?= esc((string) ($row['fee_amount'] ?? '—')) ?> · Net payout <?= esc((string) ($row['net_amount'] ?? '—')) ?> · KYC <?= esc((string) ($kycStatus ?? '—')) ?></div>
+    <div class="mt-1">Fee <?= esc((string) ($row['fee_amount'] ?? '—')) ?> · Net payout <?= esc((string) ($row['net_amount'] ?? '—')) ?></div>
     <div class="mt-1">Destination snapshot: <code><?= esc($row['destination_address_snapshot'] ?? $row['destination_masked'] ?? '') ?></code></div>
     <div class="mt-2 small text-secondary">
         Available <?= esc($wallet['available_balance'] ?? '0') ?> · Reserved <?= esc($wallet['reserved_balance'] ?? '0') ?>

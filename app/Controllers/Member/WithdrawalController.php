@@ -27,13 +27,9 @@ class WithdrawalController extends BaseController
         $summary     = service('commissionWalletService')->withdrawableSummary($userId);
         $status      = service('commissionWithdrawalService')->status();
         $settings    = service('commissionWithdrawalSettingsService')->current();
-        $kyc         = service('memberKycService')->statusForMember($userId);
         $enabled     = (bool) $status['withdrawal_enabled'];
-        $authorized  = (bool) $status['execution_authorized'] && ! empty($kyc['is_approved']);
+        $authorized  = (bool) $status['execution_authorized'];
         $statusLabel = service('commissionWithdrawalService')->activationStatus();
-        if (empty($kyc['is_approved']) && (bool) $status['execution_authorized']) {
-            $statusLabel = 'KYC approval required';
-        }
 
         $kpis = [
             KpiCardFactory::ok('posted', 'Total Posted Commission', $summary['total_posted_credits'], 'purple', 'bi-safe', 'usdt'),
@@ -52,7 +48,6 @@ class WithdrawalController extends BaseController
             'summary'     => $summary,
             'status'      => $status,
             'settings'    => $settings,
-            'kyc'         => $kyc,
             'enabled'     => $enabled,
             'authorized'  => $authorized,
             'statusLabel' => $statusLabel,

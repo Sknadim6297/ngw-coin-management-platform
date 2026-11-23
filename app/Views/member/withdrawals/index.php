@@ -4,16 +4,12 @@
 $authorized = ! empty($authorized);
 $statusLabel = (string) ($statusLabel ?? 'Commission Withdrawals Not Activated');
 $settings = $settings ?? [];
-$kyc = $kyc ?? [];
 ?>
 <p class="page-subtitle">Only posted level commission USDT can be withdrawn to your registered BEP20 wallet. Mining income and purchased coins are not withdrawable here.</p>
 
 <?php if (! $authorized): ?>
     <div class="alert alert-warning">
         <strong><?= esc($statusLabel) ?></strong>
-        <?php if (empty($kyc['is_approved'])): ?>
-            <div class="small mt-1">KYC status: <?= esc((string) ($kyc['status'] ?? 'none')) ?> · <a href="<?= site_url('member/kyc') ?>">Submit / view KYC</a></div>
-        <?php endif; ?>
         <?php if (! empty($status['blockers'])): ?>
             <ul class="mb-0 mt-2 small">
                 <?php foreach ($status['blockers'] as $blocker): ?>
@@ -48,9 +44,6 @@ $kyc = $kyc ?? [];
             </div>
             <div class="mb-2"><span class="text-secondary">Withdrawal fee</span>
                 <div><?= ! isset($settings['fee_usdt']) || $settings['fee_usdt'] === null ? 'Not configured by Admin' : esc($settings['fee_usdt']) . ' USDT' ?></div>
-            </div>
-            <div class="mb-2"><span class="text-secondary">KYC</span>
-                <div><?= esc((string) ($kyc['status'] ?? 'none')) ?> · <a href="<?= site_url('member/kyc') ?>">Manage</a></div>
             </div>
             <div class="small text-secondary">Arbitrary destination addresses are not allowed. Change wallet from Profile with reauthentication and cooldown.</div>
         </div>

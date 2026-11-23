@@ -209,7 +209,6 @@ class CommissionWithdrawalService
         $summary  = $this->wallets->withdrawableSummary($memberUserId);
         $feeCalc  = $this->feeBreakdown($qty);
         $status   = $this->status();
-        $kycOk    = service('memberKycService')->isApproved($memberUserId);
         $blockers = [];
         if (! $this->wallets->withdrawalEnabled()) {
             $blockers[] = 'withdrawal_kill_switch_off';
@@ -219,9 +218,6 @@ class CommissionWithdrawalService
         }
         if ($this->wallets->blockchainPayoutEnabled()) {
             $blockers[] = 'automatic_blockchain_payout_must_stay_off';
-        }
-        if (! $kycOk) {
-            $blockers[] = 'kyc_not_approved';
         }
         if (MoneyMath::compare($qty, $summary['available_balance'], 8) === 1) {
             $blockers[] = 'insufficient_posted_balance';
@@ -235,7 +231,6 @@ class CommissionWithdrawalService
 
         $sufficient = MoneyMath::compare($qty, $summary['available_balance'], 8) <= 0;
         $canExecute = $status['execution_authorized']
-            && $kycOk
             && $sufficient
             && ! in_array('below_minimum_withdrawal', $blockers, true)
             && ! in_array('net_payout_not_positive_after_fee', $blockers, true);
@@ -254,7 +249,6 @@ class CommissionWithdrawalService
             'network'             => 'BEP20',
             'sufficient'          => $sufficient,
             'can_execute'         => $canExecute,
-            'kyc_approved'        => $kycOk,
             'blockers'            => $blockers,
             'note'                => $canExecute
                 ? 'Preview ready — confirming will reserve posted commission USDT and send the request for admin review. Mining and purchased coins are not withdrawable.'
@@ -444,7 +438,6 @@ class CommissionWithdrawalService
         }
 
         $this->assertAmountAgainstPolicy((string) $row['amount']);
-        service('memberKycService')->assertApproved($memberUserId);
 
         return $this->performSubmitWithReserve($withdrawalRef, $memberUserId);
     }
@@ -901,12 +894,10 @@ class CommissionWithdrawalService
             $b->groupStart()->like('member_id', $q)->orLike('withdrawal_ref', $q)->groupEnd();
         }
         $rows = $b->limit(max(1, min(200, $limit)))->get()->getResultArray();
-        $kyc  = service('memberKycService');
         foreach ($rows as &$row) {
             $row['destination_masked'] = $this->maskAddress((string) $row['destination_address']);
             $profile = $this->profiles->findByMemberId((string) $row['member_id']);
             $row['member_name'] = $profile->member_name ?? '';
-            $row['kyc_status']  = $kyc->statusForMember((int) $row['member_user_id'])['status'];
         }
 
         return $rows;

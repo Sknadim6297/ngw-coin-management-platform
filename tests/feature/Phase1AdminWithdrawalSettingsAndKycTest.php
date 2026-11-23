@@ -6,7 +6,6 @@ namespace Tests\Feature;
 
 use App\Models\MemberProfileModel;
 use App\Services\CommissionWithdrawalService;
-use App\Services\MemberKycService;
 use CodeIgniter\Shield\Models\UserModel;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
@@ -16,7 +15,7 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Phase 1 — Admin withdrawal settings + KYC gates (execution remains OFF unless test unlocks).
+ * Phase 1 — Admin withdrawal settings gates (execution remains OFF unless test unlocks).
  *
  * @internal
  */
@@ -155,16 +154,6 @@ final class Phase1AdminWithdrawalSettingsAndKycTest extends CIUnitTestCase
         config('Platform')->commissionBlockchainPayoutEnabled = false;
     }
 
-    private function approveKyc(int $memberUserId): void
-    {
-        service('memberKycService')->submit($memberUserId, [
-            'full_name'       => 'Phase1 KYC',
-            'document_type'   => 'passport',
-            'document_number' => 'P1DOC' . $memberUserId,
-        ]);
-        service('memberKycService')->approve($memberUserId, $this->adminUserId, 'ok');
-    }
-
     public function testSettingsStartPendingWithoutInventedDefaults(): void
     {
         $current = service('commissionWithdrawalSettingsService')->current();
@@ -225,7 +214,6 @@ final class Phase1AdminWithdrawalSettingsAndKycTest extends CIUnitTestCase
         $this->seedPostedCommission($m['user_id'], $m['member_id'], '20.00000000');
         $this->unlockEmergency();
         service('commissionWithdrawalSettingsService')->applyForTests('5.00000000', '0.50000000', false, $this->adminUserId);
-        $this->approveKyc($m['user_id']);
         $this->loginAs($m['user_id']);
 
         $d = service('commissionWithdrawalService')->createDraft($m['user_id'], $m['member_id'], [
@@ -235,37 +223,6 @@ final class Phase1AdminWithdrawalSettingsAndKycTest extends CIUnitTestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('request activation is OFF');
         service('commissionWithdrawalService')->submit($d['withdrawal_ref'], $m['user_id'], $m['password']);
-    }
-
-    public function testMissingKycBlocksSubmission(): void
-    {
-        $m = $this->register('nokyc');
-        $this->activate($m);
-        $this->seedPostedCommission($m['user_id'], $m['member_id'], '20.00000000');
-        $this->unlockEmergency();
-        service('commissionWithdrawalSettingsService')->applyForTests('5.00000000', '0.50000000', true, $this->adminUserId);
-        $this->loginAs($m['user_id']);
-
-        $d = service('commissionWithdrawalService')->createDraft($m['user_id'], $m['member_id'], [
-            'amount' => '5.00000000',
-            'idempotency_key' => 'p1-nokyc-' . $m['user_id'],
-        ]);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('KYC');
-        service('commissionWithdrawalService')->submit($d['withdrawal_ref'], $m['user_id'], $m['password']);
-    }
-
-    public function testMemberCannotSelfApproveKyc(): void
-    {
-        $m = $this->register('selfkyc');
-        service('memberKycService')->submit($m['user_id'], [
-            'full_name'       => 'Self Approve',
-            'document_type'   => 'national_id',
-            'document_number' => 'SELF12345',
-        ]);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('cannot approve');
-        service('memberKycService')->approve($m['user_id'], $m['user_id'], 'nope');
     }
 
     public function testInvalidBep20WalletBlocksDraft(): void
@@ -294,14 +251,12 @@ final class Phase1AdminWithdrawalSettingsAndKycTest extends CIUnitTestCase
         $this->seedPostedCommission($m['user_id'], $m['member_id'], '20.00000000');
         $this->unlockEmergency();
         service('commissionWithdrawalSettingsService')->applyForTests('5.00000000', '1.00000000', true, $this->adminUserId);
-        $this->approveKyc($m['user_id']);
         $this->loginAs($m['user_id']);
 
         $preview = service('commissionWithdrawalService')->preview($m['user_id'], '10.00000000');
         $this->assertTrue($preview['can_execute']);
         $this->assertSame('1.00000000', $preview['fee_amount']);
         $this->assertSame('9.00000000', $preview['net_amount']);
-        $this->assertTrue($preview['kyc_approved']);
 
         $d = service('commissionWithdrawalService')->createDraft($m['user_id'], $m['member_id'], [
             'amount' => '10.00000000',
@@ -342,7 +297,6 @@ final class Phase1AdminWithdrawalSettingsAndKycTest extends CIUnitTestCase
         $this->seedPostedCommission($m['user_id'], $m['member_id'], '30.00000000');
         $this->unlockEmergency();
         service('commissionWithdrawalSettingsService')->applyForTests('5.00000000', '0.50000000', true, $this->adminUserId);
-        $this->approveKyc($m['user_id']);
         $this->loginAs($m['user_id']);
 
         $d1 = service('commissionWithdrawalService')->createDraft($m['user_id'], $m['member_id'], [
@@ -389,32 +343,5 @@ final class Phase1AdminWithdrawalSettingsAndKycTest extends CIUnitTestCase
         $res = $this->get('admin/withdrawal-settings');
         $code = $res->response()->getStatusCode();
         $this->assertTrue($code === 302 || $code === 303 || $code === 401 || $code === 403 || $code >= 300);
-    }
-
-    public function testKycRejectBlocksWithdrawal(): void
-    {
-        $m = $this->register('kycrej');
-        $this->activate($m);
-        $this->seedPostedCommission($m['user_id'], $m['member_id'], '20.00000000');
-        $this->unlockEmergency();
-        service('commissionWithdrawalSettingsService')->applyForTests('5.00000000', '0.00000000', true, $this->adminUserId);
-
-        service('memberKycService')->submit($m['user_id'], [
-            'full_name'       => 'Reject Me',
-            'document_type'   => 'other',
-            'document_number' => 'REJ9999',
-        ]);
-        service('memberKycService')->reject($m['user_id'], $this->adminUserId, 'unclear document');
-        $this->assertFalse(service('memberKycService')->isApproved($m['user_id']));
-        $this->assertSame(MemberKycService::STATUS_REJECTED, service('memberKycService')->statusForMember($m['user_id'])['status']);
-
-        $this->loginAs($m['user_id']);
-        $d = service('commissionWithdrawalService')->createDraft($m['user_id'], $m['member_id'], [
-            'amount' => '5.00000000',
-            'idempotency_key' => 'p1-kycrej-' . $m['user_id'],
-        ]);
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('KYC');
-        service('commissionWithdrawalService')->submit($d['withdrawal_ref'], $m['user_id'], $m['password']);
     }
 }

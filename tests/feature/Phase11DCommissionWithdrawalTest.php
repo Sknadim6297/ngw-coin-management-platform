@@ -267,16 +267,6 @@ final class Phase11DCommissionWithdrawalTest extends CIUnitTestCase
         );
     }
 
-    private function approveKycForTest(int $memberUserId): void
-    {
-        service('memberKycService')->submit($memberUserId, [
-            'full_name'       => 'Test Member KYC',
-            'document_type'   => 'national_id',
-            'document_number' => 'KYC' . $memberUserId . 'TEST',
-        ]);
-        service('memberKycService')->approve($memberUserId, $this->adminUserId, 'phase11d test');
-    }
-
     public function testConcurrentReservationSafety(): void
     {
         $m = $this->register('concur');
@@ -677,7 +667,6 @@ final class Phase11DCommissionWithdrawalTest extends CIUnitTestCase
         $this->activate($m);
         $this->seedPostedCommission($m['user_id'], $m['member_id'], '5.00000000');
         $this->authorizeWithdrawalsForTest();
-        $this->approveKycForTest($m['user_id']);
         $this->loginAs($m['user_id']);
         $d = service('commissionWithdrawalService')->createDraft($m['user_id'], $m['member_id'], [
             'amount' => '1.00000000',
@@ -715,7 +704,6 @@ final class Phase11DCommissionWithdrawalTest extends CIUnitTestCase
         $this->activate($m);
         $this->seedPostedCommission($m['user_id'], $m['member_id'], '5.00000000');
         $this->authorizeWithdrawalsForTest();
-        $this->approveKycForTest($m['user_id']);
         $this->loginAs($m['user_id']);
 
         $before = service('commissionWalletService')->withdrawableSummary($m['user_id']);
@@ -742,7 +730,6 @@ final class Phase11DCommissionWithdrawalTest extends CIUnitTestCase
         $this->activate($m);
         $this->seedPostedCommission($m['user_id'], $m['member_id'], '5.00000000');
         $this->authorizeWithdrawalsForTest();
-        $this->approveKycForTest($m['user_id']);
         $this->assertTrue(service('commissionWithdrawalService')->status()['execution_authorized']);
 
         // Controller success path: draft+submit via service (HTTP auth/session is flaky under Shield in this suite).
@@ -778,7 +765,6 @@ final class Phase11DCommissionWithdrawalTest extends CIUnitTestCase
         $this->activate($m);
         $this->seedPostedCommission($m['user_id'], $m['member_id'], '4.00000000');
         $this->authorizeWithdrawalsForTest();
-        $this->approveKycForTest($m['user_id']);
         $this->loginAs($m['user_id']);
         $d = service('commissionWithdrawalService')->createDraft($m['user_id'], $m['member_id'], [
             'amount' => '1.00000000',
