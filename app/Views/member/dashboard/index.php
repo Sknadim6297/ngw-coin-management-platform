@@ -8,6 +8,8 @@ $recentPurchases = $recentPurchases ?? [];
 $referralSummary = $referralSummary ?? ['direct' => 0, 'total' => 0, 'active' => 0];
 $businessVolume  = $businessVolume ?? null;
 $bvLevels        = is_array($businessVolume) ? ($businessVolume['levels'] ?? []) : [];
+$principalRelease = $principalRelease ?? null;
+$prUnit = is_array($principalRelease) ? (string) ($principalRelease['unit_label'] ?? 'COIN') : 'COIN';
 ?>
 
 <div class="panel-card mb-4">
@@ -69,6 +71,38 @@ $bvLevels        = is_array($businessVolume) ? ($businessVolume['levels'] ?? [])
 <?php endif; ?>
 
 <?= view('components/kpi_grid', ['kpis' => $kpis]) ?>
+
+<div class="card-premium my-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h2 class="h5 mb-0">Daily Principal Release</h2>
+        <a class="btn btn-sm btn-outline-gold" href="<?= site_url('member/principal-release') ?>">Open Principal Release</a>
+    </div>
+    <?php if (empty($principalRelease['posting_enabled'])): ?>
+        <div class="small text-secondary mb-2">Schedule preview only · posting OFF · amounts in <?= esc($prUnit) ?></div>
+    <?php endif; ?>
+    <div class="row g-3">
+        <div class="col-6 col-md">
+            <div class="text-secondary small">Original Principal</div>
+            <strong><?= esc((string) ($principalRelease['original_principal'] ?? '0.00000000')) ?></strong>
+        </div>
+        <div class="col-6 col-md">
+            <div class="text-secondary small">Today's Release</div>
+            <strong><?= esc((string) ($principalRelease['today_principal_release'] ?? '0.00000000')) ?></strong>
+        </div>
+        <div class="col-6 col-md">
+            <div class="text-secondary small">Total Released</div>
+            <strong><?= esc((string) ($principalRelease['total_released_principal'] ?? '0.00000000')) ?></strong>
+        </div>
+        <div class="col-6 col-md">
+            <div class="text-secondary small">Remaining Locked</div>
+            <strong><?= esc((string) ($principalRelease['remaining_locked_principal'] ?? '0.00000000')) ?></strong>
+        </div>
+        <div class="col-6 col-md">
+            <div class="text-secondary small">Available P2P Principal</div>
+            <strong><?= esc((string) ($principalRelease['available_p2p_principal'] ?? '0.00000000')) ?></strong>
+        </div>
+    </div>
+</div>
 
 <div class="card-premium my-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">

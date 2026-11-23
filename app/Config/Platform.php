@@ -309,6 +309,19 @@ class Platform extends BaseConfig
     public string $commissionWithdrawalFeePolicyStatus = 'pending_business_decision';
 
     /**
+     * Phase 3 — Daily principal release (0.1% of ORIGINAL locked principal per day).
+     * Fail-closed OFF: schedule/visibility may run; ledger posting must stay disabled until authorized.
+     * Current production locks are cliff 1000-day; daily partial unlock posting is not active.
+     */
+    public bool $principalDailyReleasePostingEnabled = false;
+
+    /** Daily fraction of original principal (informational schedule rate). Do not invent other rates. */
+    public string $principalDailyReleaseRate = '0.001';
+
+    /** Maximum release days per lock (matches LOCK1000 duration). */
+    public int $principalDailyReleaseMaxDays = 1000;
+
+    /**
      * Phase 11E — coin selling execution kill-switch. Fail-closed OFF until authorized.
      */
     public bool $coinSellingEnabled = false;

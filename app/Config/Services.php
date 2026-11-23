@@ -55,6 +55,7 @@ use App\Services\CommissionWithdrawalService;
 use App\Services\CommissionWithdrawalSettingsService;
 use App\Services\MemberKycService;
 use App\Services\ReferralBusinessVolumeService;
+use App\Services\PrincipalDailyReleaseService;
 use App\Services\CommissionWalletReconciliationService;
 use App\Services\MemberActivationService;
 use App\Services\MemberProfileService;
@@ -494,6 +495,15 @@ class Services extends BaseService
         }
 
         return new ReferralBusinessVolumeService();
+    }
+
+    public static function principalDailyReleaseService(bool $getShared = true): PrincipalDailyReleaseService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('principalDailyReleaseService');
+        }
+
+        return new PrincipalDailyReleaseService();
     }
 
     public static function genealogyIntegrityService(bool $getShared = true): GenealogyIntegrityService

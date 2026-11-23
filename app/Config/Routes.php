@@ -367,6 +367,9 @@ $routes->group('member', ['filter' => 'member'], static function (RouteCollectio
     $routes->get('locking/(:segment)', 'Member\CoinLockingController::show/$1');
     $routes->post('locking/(:segment)/unlock', 'Member\CoinLockingController::unlock/$1');
 
+    // Phase 3 daily principal release (schedule preview; posting OFF)
+    $routes->get('principal-release', 'Member\PrincipalReleaseController::index');
+
     // Phase 11E coin selling (execution OFF)
     $routes->get('coin-selling', 'Member\CoinSellingController::index');
     $routes->post('coin-selling/preview', 'Member\CoinSellingController::preview');

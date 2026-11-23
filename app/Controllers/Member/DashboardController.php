@@ -30,6 +30,7 @@ class DashboardController extends BaseController
             'recentPurchases'  => $dashboard['recent_purchases'],
             'referralSummary'  => $dashboard['referral_summary'],
             'businessVolume'   => $dashboard['business_volume'] ?? null,
+            'principalRelease' => $dashboard['principal_release'] ?? null,
             'referralLink'     => $dashboard['referral_link'],
             'priceSummary'     => $dashboard['price_summary'],
             'inventory'        => $dashboard['inventory'],
