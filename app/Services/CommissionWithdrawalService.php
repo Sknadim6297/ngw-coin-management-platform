@@ -630,10 +630,15 @@ class CommissionWithdrawalService
             throw new InvalidArgumentException('Withdrawal is already paid.');
         }
 
-        $txHash = $this->normalizeTxHash((string) ($data['tx_hash'] ?? ''));
-        if ($txHash === null) {
-            throw new InvalidArgumentException('Invalid transaction hash format. Use a 66-character 0x… hash (64 hex digits).');
+        $txHash = trim((string) ($data['tx_hash'] ?? ''));
+        if ($txHash === '') {
+            throw new InvalidArgumentException('Transaction ID is required.');
         }
+        // No format validation — accept any non-empty payout reference the admin enters.
+        if (strlen($txHash) > 80) {
+            throw new InvalidArgumentException('Transaction ID is too long (max 80 characters).');
+        }
+        $txHashNormalized = strtolower($txHash);
 
         $existingEvidence = db_connect()->table('commission_withdrawal_payout_evidence')
             ->where('withdrawal_ref', $withdrawalRef)
@@ -642,7 +647,7 @@ class CommissionWithdrawalService
             ->getRowArray();
 
         $dup = db_connect()->table('commission_withdrawal_payout_evidence')
-            ->where('tx_hash_normalized', $txHash)
+            ->where('tx_hash_normalized', $txHashNormalized)
             ->get()
             ->getRowArray();
         if ($dup !== null && (string) ($dup['withdrawal_ref'] ?? '') !== $withdrawalRef) {
@@ -676,7 +681,7 @@ class CommissionWithdrawalService
                 'blockchain_network'      => (string) $row['network'],
                 'destination_address'     => (string) ($row['destination_address_snapshot'] ?? $row['destination_address']),
                 'tx_hash'                 => $txHash,
-                'tx_hash_normalized'      => $txHash,
+                'tx_hash_normalized'      => $txHashNormalized,
                 'tx_status'               => 'recorded',
                 'verification_status'     => 'admin_confirmed',
                 'verification_method'     => 'admin_manual_confirm',
@@ -691,7 +696,7 @@ class CommissionWithdrawalService
         } else {
             db_connect()->table('commission_withdrawal_payout_evidence')->where('id', (int) $existingEvidence['id'])->update([
                 'tx_hash'              => $txHash,
-                'tx_hash_normalized'   => $txHash,
+                'tx_hash_normalized'   => $txHashNormalized,
                 'paid_amount'          => $paidAmount,
                 'tx_status'            => 'recorded',
                 'verification_status'  => 'admin_confirmed',
@@ -809,24 +814,6 @@ class CommissionWithdrawalService
         return $this->findByRef($withdrawalRef) ?? [];
     }
 
-    /**
-     * Normalize EVM tx hash: optional 0x prefix, 64 hex digits.
-     */
-    private function normalizeTxHash(string $raw): ?string
-    {
-        $hash = strtolower(trim($raw));
-        if ($hash === '') {
-            return null;
-        }
-        if (str_starts_with($hash, '0x')) {
-            $hash = substr($hash, 2);
-        }
-        if (! preg_match('/^[a-f0-9]{64}$/', $hash)) {
-            return null;
-        }
-
-        return '0x' . $hash;
-    }
 
     /**
      * Independent blockchain verification then single PAID settlement. Never marks paid on admin confirmation alone.

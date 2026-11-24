@@ -61,7 +61,7 @@ $rowStatus  = (string) ($row['status'] ?? '');
             <form method="post" action="<?= site_url('admin/withdrawals/' . rawurlencode($row['withdrawal_ref']) . '/record-payout') ?>">
                 <?= csrf_field() ?>
                 <label class="form-label small mb-1" for="tx_hash">Transaction ID</label>
-                <input class="form-control form-control-sm mb-2" id="tx_hash" type="text" name="tx_hash" placeholder="0x… transaction hash" autocomplete="off" <?= $canRecord ? 'required' : 'disabled' ?>>
+                <input class="form-control form-control-sm mb-2" id="tx_hash" type="text" name="tx_hash" placeholder="Transaction ID / TX hash" autocomplete="off" <?= $canRecord ? 'required' : 'disabled' ?>>
                 <label class="form-label small mb-1" for="payout_password">Reauth password</label>
                 <input class="form-control form-control-sm mb-2" id="payout_password" type="password" name="password" placeholder="Reauth password" <?= $canRecord ? 'required' : 'disabled' ?>>
                 <button class="btn btn-gold btn-sm" type="submit" <?= $canRecord ? '' : 'disabled' ?>>Approve</button>
