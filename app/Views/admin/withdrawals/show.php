@@ -11,9 +11,9 @@ $rowStatus  = (string) ($row['status'] ?? '');
 <div class="alert <?= $authorized ? 'alert-success' : 'alert-warning' ?>">
     <?= esc($statusLabel ?? ($status['withdrawal_enabled'] ? 'Kill-switch ON' : 'Commission Withdrawals Not Activated')) ?>
     <?php if (! $authorized): ?>
-        · Approve / reject / payout / settle remain blocked until gates are satisfied
+        · Approve / reject / payout remain blocked until gates are satisfied
     <?php else: ?>
-        · Manual payout + independent TX verification required before PAID
+        · After review approval, record the transaction ID and confirm with password to mark PAID
     <?php endif; ?>
     · Admin cannot edit wallet balances
 </div>
@@ -36,10 +36,10 @@ $rowStatus  = (string) ($row['status'] ?? '');
 </div>
 
 <div class="row g-3 mb-3">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card-premium h-100">
             <h3 class="h6">Review Request</h3>
-            <p class="small text-secondary"><?= $canMutate ? 'Approve reserves remain locked until payout verification. Reject releases the reservation.' : 'Financial actions stay disabled while withdrawals are not authorized.' ?></p>
+            <p class="small text-secondary"><?= $canMutate ? 'Approve reserves remain locked until payout is recorded. Reject releases the reservation.' : 'Financial actions stay disabled while withdrawals are not authorized.' ?></p>
             <form method="post" action="<?= site_url('admin/withdrawals/' . rawurlencode($row['withdrawal_ref']) . '/approve') ?>" class="mb-2">
                 <?= csrf_field() ?>
                 <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" <?= $canMutate && $rowStatus === 'pending_admin_review' ? 'required' : 'disabled' ?>>
@@ -53,27 +53,18 @@ $rowStatus  = (string) ($row['status'] ?? '');
             </form>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card-premium h-100">
             <h3 class="h6">Record Manual Payment</h3>
-            <p class="small text-secondary">TX hash alone is not proof of payment. Independent verification required before PAID.</p>
+            <p class="small text-secondary">Enter the blockchain transaction ID, then reauth password, then Approve to mark PAID.</p>
+            <?php $canRecord = $canSettle && in_array($rowStatus, ['approved', 'payout_in_progress', 'payout_submitted'], true); ?>
             <form method="post" action="<?= site_url('admin/withdrawals/' . rawurlencode($row['withdrawal_ref']) . '/record-payout') ?>">
                 <?= csrf_field() ?>
-                <input class="form-control form-control-sm mb-2" type="text" name="tx_hash" placeholder="0x… transaction hash" <?= $canSettle && in_array($rowStatus, ['approved', 'payout_in_progress'], true) ? 'required' : 'disabled' ?>>
-                <input class="form-control form-control-sm mb-2" type="text" name="paid_amount" placeholder="Paid amount" <?= $canSettle && in_array($rowStatus, ['approved', 'payout_in_progress'], true) ? '' : 'disabled' ?>>
-                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" <?= $canSettle && in_array($rowStatus, ['approved', 'payout_in_progress'], true) ? 'required' : 'disabled' ?>>
-                <button class="btn btn-outline-gold btn-sm" type="submit" <?= $canSettle && in_array($rowStatus, ['approved', 'payout_in_progress'], true) ? '' : 'disabled' ?>>Record Payout</button>
-            </form>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card-premium h-100">
-            <h3 class="h6">Verify Payout</h3>
-            <p class="small text-secondary">Provider readiness: blocked unless EVM verifier is configured. Never mark PAID on admin confirmation alone.</p>
-            <form method="post" action="<?= site_url('admin/withdrawals/' . rawurlencode($row['withdrawal_ref']) . '/verify-payout') ?>">
-                <?= csrf_field() ?>
-                <input class="form-control form-control-sm mb-2" type="password" name="password" placeholder="Reauth password" <?= $canSettle && $rowStatus === 'payout_submitted' ? 'required' : 'disabled' ?>>
-                <button class="btn btn-outline-gold btn-sm" type="submit" <?= $canSettle && $rowStatus === 'payout_submitted' ? '' : 'disabled' ?>>Verify &amp; Mark Paid</button>
+                <label class="form-label small mb-1" for="tx_hash">Transaction ID</label>
+                <input class="form-control form-control-sm mb-2" id="tx_hash" type="text" name="tx_hash" placeholder="0x… transaction hash" autocomplete="off" <?= $canRecord ? 'required' : 'disabled' ?>>
+                <label class="form-label small mb-1" for="payout_password">Reauth password</label>
+                <input class="form-control form-control-sm mb-2" id="payout_password" type="password" name="password" placeholder="Reauth password" <?= $canRecord ? 'required' : 'disabled' ?>>
+                <button class="btn btn-gold btn-sm" type="submit" <?= $canRecord ? '' : 'disabled' ?>>Approve</button>
             </form>
         </div>
     </div>

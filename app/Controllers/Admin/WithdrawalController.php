@@ -104,7 +104,7 @@ class WithdrawalController extends BaseController
         }
 
         return redirect()->to(site_url('admin/withdrawals/' . rawurlencode($ref)))
-            ->with('success', 'Withdrawal approved. Record a blockchain payout transaction next — this is not a completed payment.');
+            ->with('success', 'Withdrawal approved. Record the transaction ID and confirm with password to mark PAID.');
     }
 
     public function reject(string $ref)
@@ -148,26 +148,13 @@ class WithdrawalController extends BaseController
         }
 
         return redirect()->to(site_url('admin/withdrawals/' . rawurlencode($ref)))
-            ->with('success', 'Payout transaction recorded as evidence. Independent verification is still required before PAID.');
+            ->with('success', 'Transaction recorded and withdrawal marked PAID.');
     }
 
     public function verifyPayout(string $ref)
     {
-        if (! $this->can('commission.withdrawal.pay')) {
-            return redirect()->to(site_url('admin/withdrawals'))->with('error', 'Permission denied.');
-        }
-        try {
-            service('commissionWithdrawalService')->verifyAndMarkPaid(
-                $ref,
-                (int) auth()->id(),
-                (string) $this->request->getPost('password')
-            );
-        } catch (InvalidArgumentException|RuntimeException $e) {
-            return redirect()->to(site_url('admin/withdrawals/' . rawurlencode($ref)))->with('error', $e->getMessage());
-        }
-
-        return redirect()->to(site_url('admin/withdrawals/' . rawurlencode($ref)))
-            ->with('success', 'Payout verified on-chain and settled. Withdrawal is now PAID.');
+        // Legacy route: same as record-payout settlement path (EVM verify UI removed).
+        return $this->recordPayout($ref);
     }
 
     private function can(string $permission): bool

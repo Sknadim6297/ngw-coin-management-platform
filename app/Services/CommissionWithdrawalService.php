@@ -595,7 +595,7 @@ class CommissionWithdrawalService
     }
 
     /**
-     * Record manual payout TX evidence (does NOT mark PAID).
+     * Record manual payout TX hash (admin reauth) and settle to PAID.
      *
      * @param array{tx_hash: string, paid_amount?: string, payment_timestamp?: string, network_key?: string} $data
      * @return array<string, mixed>
@@ -609,7 +609,7 @@ class CommissionWithdrawalService
     }
 
     /**
-     * Future path: record TX hash and move to payout_submitted (does NOT mark PAID).
+     * Record TX hash with admin reauth and settle to PAID in one step (no EVM verifier gate).
      *
      * @param array{tx_hash: string, paid_amount?: string, payment_timestamp?: string, network_key?: string} $data
      * @return array<string, mixed>
@@ -622,55 +622,89 @@ class CommissionWithdrawalService
         }
 
         $row = $this->requireRow($withdrawalRef);
-        if (! in_array((string) $row['status'], [self::STATUS_APPROVED, self::STATUS_PAYOUT_IN_PROGRESS], true)) {
-            throw new InvalidArgumentException('Withdrawal must be approved before recording payout evidence.');
+        $status = (string) $row['status'];
+        if (! in_array($status, [self::STATUS_APPROVED, self::STATUS_PAYOUT_IN_PROGRESS, self::STATUS_PAYOUT_SUBMITTED], true)) {
+            throw new InvalidArgumentException('Withdrawal must be approved before recording payout.');
+        }
+        if ((int) ($row['is_paid'] ?? 0) === 1 || $status === self::STATUS_PAID) {
+            throw new InvalidArgumentException('Withdrawal is already paid.');
         }
 
-        $txHash = strtolower(trim((string) ($data['tx_hash'] ?? '')));
-        if (! preg_match('/^0x[a-f0-9]{64}$/', $txHash)) {
-            throw new InvalidArgumentException('Invalid transaction hash format.');
+        $txHash = $this->normalizeTxHash((string) ($data['tx_hash'] ?? ''));
+        if ($txHash === null) {
+            throw new InvalidArgumentException('Invalid transaction hash format. Use a 66-character 0x… hash (64 hex digits).');
         }
+
+        $existingEvidence = db_connect()->table('commission_withdrawal_payout_evidence')
+            ->where('withdrawal_ref', $withdrawalRef)
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getRowArray();
 
         $dup = db_connect()->table('commission_withdrawal_payout_evidence')
             ->where('tx_hash_normalized', $txHash)
             ->get()
             ->getRowArray();
-        if ($dup !== null) {
+        if ($dup !== null && (string) ($dup['withdrawal_ref'] ?? '') !== $withdrawalRef) {
             throw new InvalidArgumentException('Duplicate payout transaction hash.');
         }
 
-        $paidAmount = MoneyMath::normalize((string) ($data['paid_amount'] ?? $row['amount']), 8);
-        if (MoneyMath::compare($paidAmount, (string) $row['amount'], 8) === -1) {
-            throw new InvalidArgumentException('Paid amount is below approved withdrawal amount.');
+        $paidAmount = MoneyMath::normalize((string) ($data['paid_amount'] ?? $row['net_amount'] ?? $row['amount']), 8);
+        $approvedAmount = MoneyMath::normalize((string) ($row['net_amount'] ?? $row['amount']), 8);
+        if (MoneyMath::compare($paidAmount, $approvedAmount, 8) === -1) {
+            // Allow exact request amount when net_amount missing; still never underpay request amount.
+            $minAmount = MoneyMath::normalize((string) $row['amount'], 8);
+            if (MoneyMath::compare($paidAmount, $minAmount, 8) === -1) {
+                throw new InvalidArgumentException('Paid amount is below approved withdrawal amount.');
+            }
         }
 
         $network = service('usdtPaymentNetworkService')->findByKey((string) ($data['network_key'] ?? 'bep20'))
             ?? service('usdtPaymentNetworkService')->findByKey('BEP20');
 
-        $evidenceRef = 'CWE-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4)));
+        $evidenceRef = (string) ($existingEvidence['evidence_ref'] ?? ('CWE-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(4)))));
         $now = date('Y-m-d H:i:s');
 
-        db_connect()->table('commission_withdrawal_payout_evidence')->insert([
-            'evidence_ref'            => $evidenceRef,
-            'withdrawal_ref'          => $withdrawalRef,
-            'member_id'               => (string) $row['member_id'],
-            'approved_amount'         => (string) $row['amount'],
-            'paid_amount'             => $paidAmount,
-            'token_contract'          => $network['token_contract_address'] ?? null,
-            'blockchain_network'      => (string) $row['network'],
-            'destination_address'     => (string) ($row['destination_address_snapshot'] ?? $row['destination_address']),
-            'tx_hash'                 => $txHash,
-            'tx_hash_normalized'      => $txHash,
-            'tx_status'               => 'recorded',
-            'verification_status'     => 'pending_verification',
-            'verification_method'     => 'manual_record',
-            'payment_timestamp'       => $data['payment_timestamp'] ?? $now,
-            'recorded_by'             => $adminUserId,
-            'created_at'              => $now,
-            'updated_at'              => $now,
-        ]);
+        if ($existingEvidence === null) {
+            db_connect()->table('commission_withdrawal_payout_evidence')->insert([
+                'evidence_ref'            => $evidenceRef,
+                'withdrawal_ref'          => $withdrawalRef,
+                'member_id'               => (string) $row['member_id'],
+                'approved_amount'         => (string) $row['amount'],
+                'paid_amount'             => $paidAmount,
+                'token_contract'          => $network['token_contract_address'] ?? null,
+                'blockchain_network'      => (string) $row['network'],
+                'destination_address'     => (string) ($row['destination_address_snapshot'] ?? $row['destination_address']),
+                'tx_hash'                 => $txHash,
+                'tx_hash_normalized'      => $txHash,
+                'tx_status'               => 'recorded',
+                'verification_status'     => 'admin_confirmed',
+                'verification_method'     => 'admin_manual_confirm',
+                'verification_message'    => 'Marked PAID by admin after recording transaction ID.',
+                'payment_timestamp'       => $data['payment_timestamp'] ?? $now,
+                'recorded_by'             => $adminUserId,
+                'verified_by'             => $adminUserId,
+                'verified_at'             => $now,
+                'created_at'              => $now,
+                'updated_at'              => $now,
+            ]);
+        } else {
+            db_connect()->table('commission_withdrawal_payout_evidence')->where('id', (int) $existingEvidence['id'])->update([
+                'tx_hash'              => $txHash,
+                'tx_hash_normalized'   => $txHash,
+                'paid_amount'          => $paidAmount,
+                'tx_status'            => 'recorded',
+                'verification_status'  => 'admin_confirmed',
+                'verification_method'  => 'admin_manual_confirm',
+                'verification_message' => 'Marked PAID by admin after recording transaction ID.',
+                'verified_by'          => $adminUserId,
+                'verified_at'          => $now,
+                'updated_at'           => $now,
+            ]);
+            $evidenceRef = (string) $existingEvidence['evidence_ref'];
+        }
 
-        $from = (string) $row['status'];
+        $from = $status;
         if ($from === self::STATUS_APPROVED) {
             $this->assertTransition($from, self::STATUS_PAYOUT_IN_PROGRESS);
             db_connect()->table('commission_withdrawal_requests')->where('withdrawal_ref', $withdrawalRef)->update([
@@ -684,24 +718,114 @@ class CommissionWithdrawalService
             $from = self::STATUS_PAYOUT_IN_PROGRESS;
         }
 
-        $this->assertTransition($from, self::STATUS_PAYOUT_SUBMITTED);
-        db_connect()->table('commission_withdrawal_requests')->where('withdrawal_ref', $withdrawalRef)->update([
-            'status'               => self::STATUS_PAYOUT_SUBMITTED,
-            'payout_reference'     => $txHash,
-            'paid_amount'          => $paidAmount,
-            'verification_status'  => 'pending_verification',
-            'updated_at'           => $now,
-        ]);
-        $this->recordEvent($withdrawalRef, 'payout_submitted', $adminUserId, $from, self::STATUS_PAYOUT_SUBMITTED, [
-            'evidence_ref' => $evidenceRef,
-            'tx_hash'      => $txHash,
-        ]);
+        if ($from === self::STATUS_PAYOUT_IN_PROGRESS) {
+            $this->assertTransition($from, self::STATUS_PAYOUT_SUBMITTED);
+            db_connect()->table('commission_withdrawal_requests')->where('withdrawal_ref', $withdrawalRef)->update([
+                'status'              => self::STATUS_PAYOUT_SUBMITTED,
+                'payout_reference'    => $txHash,
+                'paid_amount'         => $paidAmount,
+                'verification_status' => 'admin_confirmed',
+                'updated_at'          => $now,
+            ]);
+            $this->recordEvent($withdrawalRef, 'payout_submitted', $adminUserId, $from, self::STATUS_PAYOUT_SUBMITTED, [
+                'evidence_ref' => $evidenceRef,
+                'tx_hash'      => $txHash,
+            ]);
+            $from = self::STATUS_PAYOUT_SUBMITTED;
+        } else {
+            db_connect()->table('commission_withdrawal_requests')->where('withdrawal_ref', $withdrawalRef)->update([
+                'payout_reference'    => $txHash,
+                'paid_amount'         => $paidAmount,
+                'verification_status' => 'admin_confirmed',
+                'updated_at'          => $now,
+            ]);
+        }
+
         $this->audit->log('commission.withdrawal_payout_recorded', $adminUserId, 'commission_withdrawal', $withdrawalRef, [
             'evidence_ref' => $evidenceRef,
             'tx_hash'      => $txHash,
         ]);
 
+        // Settle reserved commission → PAID on admin confirmation (EVM verifier not required).
+        $this->assertTransition($from, self::STATUS_PAID);
+
+        $db = db_connect();
+        $db->transBegin();
+        try {
+            $locked = $db->query(
+                'SELECT * FROM commission_withdrawal_requests WHERE withdrawal_ref = ? FOR UPDATE',
+                [$withdrawalRef]
+            )->getRowArray();
+            if ($locked === null) {
+                throw new InvalidArgumentException('Withdrawal not found.');
+            }
+            if ((string) $locked['status'] === self::STATUS_PAID || (int) ($locked['is_paid'] ?? 0) === 1) {
+                $db->transCommit();
+
+                return $this->findByRef($withdrawalRef) ?? [];
+            }
+
+            $this->wallets->settleWithdrawal((int) $locked['member_user_id'], (string) $locked['member_id'], [
+                'amount'          => (string) $locked['amount'],
+                'reference_type'  => 'commission_withdrawal',
+                'reference_id'    => $withdrawalRef,
+                'idempotency_key' => 'wd-settle:' . $withdrawalRef,
+                'created_by'      => $adminUserId,
+            ]);
+
+            $db->table('commission_withdrawal_requests')->where('withdrawal_ref', $withdrawalRef)->update([
+                'status'              => self::STATUS_PAID,
+                'is_paid'             => 1,
+                'paid_at'             => $now,
+                'paid_amount'         => $paidAmount,
+                'payout_reference'    => $txHash,
+                'verification_status' => 'admin_confirmed',
+                'updated_at'          => $now,
+            ]);
+
+            if ($db->transStatus() === false) {
+                $db->transRollback();
+                throw new RuntimeException('PAID settlement failed.');
+            }
+            $db->transCommit();
+        } catch (\Throwable $e) {
+            if ($db->transDepth > 0) {
+                $db->transRollback();
+            }
+            throw $e;
+        }
+
+        $this->recordEvent($withdrawalRef, 'paid', $adminUserId, $from, self::STATUS_PAID, [
+            'evidence_ref' => $evidenceRef,
+            'tx_hash'      => $txHash,
+            'method'       => 'admin_manual_confirm',
+        ]);
+        $this->audit->log('commission.withdrawal_paid', $adminUserId, 'commission_withdrawal', $withdrawalRef, [
+            'evidence_ref' => $evidenceRef,
+            'tx_hash'      => $txHash,
+            'method'       => 'admin_manual_confirm',
+        ]);
+
         return $this->findByRef($withdrawalRef) ?? [];
+    }
+
+    /**
+     * Normalize EVM tx hash: optional 0x prefix, 64 hex digits.
+     */
+    private function normalizeTxHash(string $raw): ?string
+    {
+        $hash = strtolower(trim($raw));
+        if ($hash === '') {
+            return null;
+        }
+        if (str_starts_with($hash, '0x')) {
+            $hash = substr($hash, 2);
+        }
+        if (! preg_match('/^[a-f0-9]{64}$/', $hash)) {
+            return null;
+        }
+
+        return '0x' . $hash;
     }
 
     /**
