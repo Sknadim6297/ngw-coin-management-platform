@@ -654,15 +654,15 @@ class CommissionWithdrawalService
             throw new InvalidArgumentException('Duplicate payout transaction hash.');
         }
 
-        $paidAmount = MoneyMath::normalize((string) ($data['paid_amount'] ?? $row['net_amount'] ?? $row['amount']), 8);
-        $approvedAmount = MoneyMath::normalize((string) ($row['net_amount'] ?? $row['amount']), 8);
-        if (MoneyMath::compare($paidAmount, $approvedAmount, 8) === -1) {
-            // Allow exact request amount when net_amount missing; still never underpay request amount.
-            $minAmount = MoneyMath::normalize((string) $row['amount'], 8);
-            if (MoneyMath::compare($paidAmount, $minAmount, 8) === -1) {
-                throw new InvalidArgumentException('Paid amount is below approved withdrawal amount.');
-            }
+        // Paid amount is taken from the withdrawal itself — admin only enters TX ID + password.
+        $paidSource = trim((string) ($data['paid_amount'] ?? ''));
+        if ($paidSource === '' || ! is_numeric($paidSource)) {
+            $net = trim((string) ($row['net_amount'] ?? ''));
+            $paidSource = ($net !== '' && is_numeric($net))
+                ? $net
+                : (string) ($row['amount'] ?? '0');
         }
+        $paidAmount = MoneyMath::normalize($paidSource, 8);
 
         $network = service('usdtPaymentNetworkService')->findByKey((string) ($data['network_key'] ?? 'bep20'))
             ?? service('usdtPaymentNetworkService')->findByKey('BEP20');

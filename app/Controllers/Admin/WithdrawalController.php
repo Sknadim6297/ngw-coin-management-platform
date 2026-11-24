@@ -138,7 +138,6 @@ class WithdrawalController extends BaseController
                 (int) auth()->id(),
                 [
                     'tx_hash'     => (string) $this->request->getPost('tx_hash'),
-                    'paid_amount' => (string) $this->request->getPost('paid_amount'),
                     'network_key' => (string) ($this->request->getPost('network_key') ?: 'bep20'),
                 ],
                 (string) $this->request->getPost('password')
